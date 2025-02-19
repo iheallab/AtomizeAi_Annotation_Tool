@@ -1,0 +1,25 @@
+{
+    "user_id": "jiaqing",
+    "question_id": 1,
+    "question" : {
+        "Question": "What is the average Glasgow Coma Score for traumatic brain injury patients by age group?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify patients with traumatic brain injury",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%traumatic brain injury%'"
+            },
+            {
+                "table": "nursing_assessment",
+                "task": "Retrieve Glasgow Coma Scores",
+                "sql_query": "SELECT patient_id, glasgow_coma_score FROM nursing_assessment"
+            },
+            {
+                "table": "admissions",
+                "task": "Group patients by age brackets",
+                "sql_query": "SELECT patient_id, CASE WHEN age BETWEEN 0-18 THEN 'Pediatric' WHEN age 19-65 THEN 'Adult' ELSE 'Elderly' END AS age_group FROM admissions"
+            }
+        ]
+    }
+}

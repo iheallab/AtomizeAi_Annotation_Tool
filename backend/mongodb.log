@@ -1,0 +1,70 @@
+Tue Feb 18 14:10:55 EST 2025
+/home/hrudayte.akkalad/blue_parisa-rashidi/hrudayte.akkalad/dev/AtomizeAI/data-collector/backend
+MONGODB_HOSTNAME:c0709a-s1.ufhpc
+MONGODB_PORT:37968
+Starting MongoDB on host c0709a-s1.ufhpc and port 37968
+2025-02-18T14:10:56.203-0500 I CONTROL  [main] Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] MongoDB starting : pid=363779 port=37968 dbpath=/home/hrudayte.akkalad/blue_parisa-rashidi/hrudayte.akkalad/dev/AtomizeAI/data-collector/backend/mongodb 64-bit host=c0709a-s1.ufhpc
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] db version v4.0.3
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] git version: 7ea530946fa7880364d88c8d8b6026bbc9ffa48c
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] OpenSSL version: OpenSSL 1.1.1d  10 Sep 2019
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] allocator: tcmalloc
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] modules: none
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] build environment:
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten]     distarch: x86_64
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten]     target_arch: x86_64
+2025-02-18T14:10:56.215-0500 I CONTROL  [initandlisten] options: { net: { bindIp: "0.0.0.0", port: 37968 }, storage: { dbPath: "/home/hrudayte.akkalad/blue_parisa-rashidi/hrudayte.akkalad/dev/AtomizeAI/data-collector/backend/mongodb" } }
+2025-02-18T14:10:56.216-0500 W STORAGE  [initandlisten] Detected unclean shutdown - /home/hrudayte.akkalad/blue_parisa-rashidi/hrudayte.akkalad/dev/AtomizeAI/data-collector/backend/mongodb/mongod.lock is not empty.
+2025-02-18T14:10:56.217-0500 I STORAGE  [initandlisten] Detected data files in /home/hrudayte.akkalad/blue_parisa-rashidi/hrudayte.akkalad/dev/AtomizeAI/data-collector/backend/mongodb created by the 'wiredTiger' storage engine, so setting the active storage engine to 'wiredTiger'.
+2025-02-18T14:10:56.217-0500 W STORAGE  [initandlisten] Recovering data from the last clean checkpoint.
+2025-02-18T14:10:56.239-0500 I STORAGE  [initandlisten] wiredtiger_open config: create,cache_size=256857M,session_max=20000,eviction=(threads_min=4,threads_max=4),config_base=false,statistics=(fast),log=(enabled=true,archive=true,path=journal,compressor=snappy),file_manager=(close_idle_time=100000),statistics_log=(wait=0),verbose=(recovery_progress),
+2025-02-18T14:10:57.576-0500 I STORAGE  [initandlisten] WiredTiger message [1739905857:576526][363779:0x146b5b08d9c0], txn-recover: Main recovery loop: starting at 1/2982400
+2025-02-18T14:10:57.577-0500 I STORAGE  [initandlisten] WiredTiger message [1739905857:577897][363779:0x146b5b08d9c0], txn-recover: Recovering log 1 through 2
+2025-02-18T14:10:57.696-0500 I STORAGE  [initandlisten] WiredTiger message [1739905857:696075][363779:0x146b5b08d9c0], txn-recover: Recovering log 2 through 2
+2025-02-18T14:10:57.717-0500 I STORAGE  [initandlisten] WiredTiger message [1739905857:717182][363779:0x146b5b08d9c0], txn-recover: Set global recovery timestamp: 0
+2025-02-18T14:10:57.808-0500 I RECOVERY [initandlisten] WiredTiger recoveryTimestamp. Ts: Timestamp(0, 0)
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] 
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] ** WARNING: Access control is not enabled for the database.
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] **          Read and write access to data and configuration is unrestricted.
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] 
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] 
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] ** WARNING: You are running on a NUMA machine.
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] **          We suggest launching mongod like this to avoid performance problems:
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] **              numactl --interleave=all mongod [other options]
+2025-02-18T14:10:57.837-0500 W CONTROL  [initandlisten] 
+2025-02-18T14:10:57.837-0500 W CONTROL  [initandlisten] 
+2025-02-18T14:10:57.837-0500 I CONTROL  [initandlisten] 
+2025-02-18T14:10:57.867-0500 I FTDC     [initandlisten] Initializing full-time diagnostic data capture with directory '/home/hrudayte.akkalad/blue_parisa-rashidi/hrudayte.akkalad/dev/AtomizeAI/data-collector/backend/mongodb/diagnostic.data'
+2025-02-18T14:10:57.868-0500 I NETWORK  [initandlisten] waiting for connections on port 37968
+2025-02-18T14:11:41.431-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:46760 #1 (1 connection now open)
+2025-02-18T14:11:41.508-0500 I NETWORK  [conn1] received client metadata from 172.16.206.47:46760 conn1: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:11:45.084-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:59564 #2 (2 connections now open)
+2025-02-18T14:11:45.096-0500 I NETWORK  [conn2] received client metadata from 172.16.206.47:59564 conn2: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:11:45.107-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:59580 #3 (3 connections now open)
+2025-02-18T14:11:45.138-0500 I NETWORK  [conn3] received client metadata from 172.16.206.47:59580 conn3: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:11:45.182-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:59596 #4 (4 connections now open)
+2025-02-18T14:11:45.183-0500 I NETWORK  [conn4] received client metadata from 172.16.206.47:59596 conn4: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:11:56.546-0500 I NETWORK  [conn1] end connection 172.16.206.47:46760 (3 connections now open)
+2025-02-18T14:11:56.546-0500 I NETWORK  [conn2] end connection 172.16.206.47:59564 (2 connections now open)
+2025-02-18T14:11:58.020-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:47576 #5 (3 connections now open)
+2025-02-18T14:11:58.020-0500 I NETWORK  [conn5] received client metadata from 172.16.206.47:47576 conn5: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:11:58.030-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:47590 #6 (4 connections now open)
+2025-02-18T14:11:58.030-0500 I NETWORK  [conn6] received client metadata from 172.16.206.47:47590 conn6: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:29:28.059-0500 I NETWORK  [conn5] end connection 172.16.206.47:47576 (3 connections now open)
+2025-02-18T14:29:28.059-0500 I NETWORK  [conn6] end connection 172.16.206.47:47590 (2 connections now open)
+2025-02-18T14:29:28.059-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:54762 #7 (3 connections now open)
+2025-02-18T14:29:28.060-0500 I NETWORK  [conn7] received client metadata from 172.16.206.47:54762 conn7: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:29:28.062-0500 I NETWORK  [listener] connection accepted from 172.16.206.47:54764 #8 (4 connections now open)
+2025-02-18T14:29:28.063-0500 I NETWORK  [conn8] received client metadata from 172.16.206.47:54764 conn8: { application: { name: "Database Client" }, driver: { name: "nodejs", version: "6.6.2" }, platform: "Node.js v18.15.0, LE", os: { name: "linux", architecture: "x64", version: "4.18.0-553.33.1.el8_10.x86_64", type: "Linux" } }
+2025-02-18T14:29:44.882-0500 I COMMAND  [conn8] CMD: drop atomizeai.assignments
+2025-02-18T14:29:44.882-0500 I STORAGE  [conn8] Finishing collection drop for atomizeai.assignments (dfa2b24e-64cc-439f-b09c-f46d2d3429c5).
+2025-02-18T14:29:49.046-0500 I COMMAND  [conn8] CMD: drop atomizeai.counters
+2025-02-18T14:29:49.046-0500 I STORAGE  [conn8] Finishing collection drop for atomizeai.counters (709f6172-65a9-49f1-bd09-bdf2302342cc).
+2025-02-18T14:29:53.620-0500 I COMMAND  [conn8] CMD: drop atomizeai.questions
+2025-02-18T14:29:53.620-0500 I STORAGE  [conn8] Finishing collection drop for atomizeai.questions (2194f523-7b93-4573-a66d-de885e1d623a).
+2025-02-18T14:29:57.966-0500 I COMMAND  [conn8] CMD: drop atomizeai.users
+2025-02-18T14:29:57.966-0500 I STORAGE  [conn8] Finishing collection drop for atomizeai.users (e8c840fa-5de0-4fe3-b9c1-986f33308cfc).
+2025-02-18T14:53:38.385-0500 I NETWORK  [conn4] end connection 172.16.206.47:59596 (3 connections now open)
+2025-02-18T14:53:38.385-0500 I NETWORK  [conn3] end connection 172.16.206.47:59580 (2 connections now open)
+2025-02-18T14:53:38.385-0500 I NETWORK  [conn8] end connection 172.16.206.47:54764 (1 connection now open)
+2025-02-18T14:53:38.386-0500 I NETWORK  [conn7] end connection 172.16.206.47:54762 (0 connections now open)

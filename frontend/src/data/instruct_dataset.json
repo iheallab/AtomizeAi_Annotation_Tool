@@ -1,0 +1,459 @@
+[
+    {
+        "Question": "Are there signs of sepsis on patient [ID] and what treatments have been initiated in response?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "laboratory",
+                "task": "Retrieve results for white blood cell count, blood cultures, and lactate levels",
+                "sql_query": "SELECT laboratory_reading_type, value, timestamp FROM laboratory WHERE patient_id = '[ID]' AND laboratory_reading_type IN ('white blood cell count', 'blood cultures', 'lactate')"
+            },
+            {
+                "table": "heart_rate",
+                "task": "Retrieve data for tachycardia assessment",
+                "sql_query": "SELECT heart_rate_reading, timestamp FROM heart_rate WHERE patient_id = '[ID]' ORDER BY timestamp DESC LIMIT 24"
+            },
+            {
+                "table": "blood_pressure",
+                "task": "Retrieve blood pressure readings for hypotension",
+                "sql_query": "SELECT reading, timestamp FROM blood_pressure WHERE patient_id = '[ID]' AND blood_pressure_type = 'noninvasive_mean_blood_pressure'"
+            },
+            {
+                "table": "medications",
+                "task": "Retrieve antibiotics or other treatments administered",
+                "sql_query": "SELECT medication, dose, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%antibiotic%'"
+            }
+        ],
+        "Question ID": 1
+    },
+    {
+        "Question": "What percentage of patients over 65 with sepsis diagnosis had emergency admissions?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "admissions",
+                "task": "Identify patients over 65 with emergency admissions",
+                "sql_query": "SELECT patient_id FROM admissions WHERE age > 65 AND admission_type = 'Emergency'"
+            },
+            {
+                "table": "diagnoses",
+                "task": "Find sepsis diagnoses in elderly patients",
+                "sql_query": "SELECT COUNT(DISTINCT d.patient_id) FROM diagnoses d JOIN admissions a ON d.patient_id = a.patient_id WHERE d.diagnosis ILIKE '%sepsis%' AND a.age > 65"
+            },
+            {
+                "table": "admissions",
+                "task": "Calculate total emergency admissions for elderly",
+                "sql_query": "SELECT COUNT(*) FROM admissions WHERE age > 65 AND admission_type = 'Emergency'"
+            }
+        ],
+        "Question ID": 2
+    },
+    {
+        "Question": "What is the average Glasgow Coma Score for traumatic brain injury patients by age group?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify patients with traumatic brain injury",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%traumatic brain injury%'"
+            },
+            {
+                "table": "nursing_assessment",
+                "task": "Retrieve Glasgow Coma Scores",
+                "sql_query": "SELECT patient_id, glasgow_coma_score FROM nursing_assessment"
+            },
+            {
+                "table": "admissions",
+                "task": "Group patients by age brackets",
+                "sql_query": "SELECT patient_id, CASE WHEN age BETWEEN 0-18 THEN 'Pediatric' WHEN age 19-65 THEN 'Adult' ELSE 'Elderly' END AS age_group FROM admissions"
+            }
+        ],
+        "Question ID": 3
+    },
+    {
+        "Question": "Has patient [ID] shown improvement in oxygen saturation after bronchodilator administration?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "medications",
+                "task": "Find bronchodilator administration times",
+                "sql_query": "SELECT timestamp FROM medications WHERE patient_id = '[ID]' AND medication ILIKE '%bronchodilator%'"
+            },
+            {
+                "table": "oxygen_saturation",
+                "task": "Retrieve pre- and post-medication oxygen levels",
+                "sql_query": "SELECT pulseoxymetry_saturation, timestamp FROM oxygen_saturation WHERE patient_id = '[ID]' ORDER BY timestamp"
+            }
+        ],
+        "Question ID": 4
+    },
+    {
+        "Question": "Which medication classes are most frequently associated with hypotension in cardiac patients?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify cardiac patients",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%cardiac%'"
+            },
+            {
+                "table": "blood_pressure",
+                "task": "Find hypotensive episodes",
+                "sql_query": "SELECT patient_id, timestamp FROM blood_pressure WHERE blood_pressure_type = 'noninvasive_mean_blood_pressure' AND reading < 65"
+            },
+            {
+                "table": "medications",
+                "task": "Analyze medication administration patterns",
+                "sql_query": "SELECT medication, COUNT(*) AS frequency FROM medications GROUP BY medication ORDER BY frequency DESC"
+            }
+        ],
+        "Question ID": 5
+    },
+    {
+        "Question": "What is the mortality rate correlation with lactate levels in septic shock patients?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify septic shock patients",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%septic shock%'"
+            },
+            {
+                "table": "laboratory",
+                "task": "Retrieve peak lactate levels",
+                "sql_query": "SELECT patient_id, MAX(value) AS peak_lactate FROM laboratory WHERE laboratory_reading_type = 'lactate' GROUP BY patient_id"
+            },
+            {
+                "table": "admissions",
+                "task": "Determine mortality outcomes",
+                "sql_query": "SELECT patient_id, CASE WHEN stay_time < 1 THEN 'Early mortality' ELSE 'Survivor' END AS outcome FROM admissions"
+            }
+        ],
+        "Question ID": 6
+    },
+    {
+        "Question": "Does patient [ID] show hyperglycemia and have they received insulin treatment?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "laboratory",
+                "task": "Retrieve blood glucose levels",
+                "sql_query": "SELECT value, timestamp FROM laboratory WHERE patient_id = '[ID]' AND laboratory_reading_type = 'blood_glucose'"
+            },
+            {
+                "table": "medications",
+                "task": "Check insulin administration",
+                "sql_query": "SELECT medication, dose, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%insulin%'"
+            }
+        ],
+        "Question ID": 7
+    },
+    {
+        "Question": "What is the average ICU stay duration for cardiac vs neurological admissions?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "admissions",
+                "task": "Calculate average stay times by type",
+                "sql_query": "SELECT admission_type, AVG(stay_time::numeric) FROM admissions GROUP BY admission_type"
+            }
+        ],
+        "Question ID": 8
+    },
+    {
+        "Question": "Has patient [ID]'s Glasgow Coma Score improved after sedative administration?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "medications",
+                "task": "Identify sedative administration times",
+                "sql_query": "SELECT timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%sedative%'"
+            },
+            {
+                "table": "nursing_assessment",
+                "task": "Retrieve coma scores before/after",
+                "sql_query": "SELECT glasgow_coma_score, timestamp FROM nursing_assessment WHERE patient_id = '[ID]' ORDER BY timestamp"
+            }
+        ],
+        "Question ID": 9
+    },
+    {
+        "Question": "Is there a correlation between patient age and heart rate variability?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "heart_rate",
+                "task": "Calculate heart rate variability",
+                "sql_query": "SELECT patient_id, STDDEV(heart_rate_reading) AS hr_variability FROM heart_rate GROUP BY patient_id"
+            },
+            {
+                "table": "admissions",
+                "task": "Retrieve patient ages",
+                "sql_query": "SELECT patient_id, age FROM admissions"
+            }
+        ],
+        "Question ID": 10
+    },
+    {
+        "Question": "Did patient [ID] experience hypotension following antihypertensive medication?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "medications",
+                "task": "Find antihypertensive administration",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%antihypertensive%'"
+            },
+            {
+                "table": "blood_pressure",
+                "task": "Retrieve blood pressure trends",
+                "sql_query": "SELECT reading, timestamp FROM blood_pressure WHERE patient_id = '[ID]' AND blood_pressure_type = 'noninvasive_mean_blood_pressure'"
+            }
+        ],
+        "Question ID": 11
+    },
+    {
+        "Question": "What is the racial distribution among COPD patients?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify COPD patients",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%COPD%'"
+            },
+            {
+                "table": "admissions",
+                "task": "Analyze race distribution",
+                "sql_query": "SELECT race, COUNT(*) FROM admissions WHERE patient_id IN (SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%COPD%') GROUP BY race"
+            }
+        ],
+        "Question ID": 12
+    },
+    {
+        "Question": "Has patient [ID]'s fever resolved with antipyretic administration?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "body_temperature",
+                "task": "Retrieve temperature readings",
+                "sql_query": "SELECT temperature_reading, timestamp FROM body_temperature WHERE patient_id = '[ID]' ORDER BY timestamp"
+            },
+            {
+                "table": "medications",
+                "task": "Check antipyretic use",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%antipyretic%'"
+            }
+        ],
+        "Question ID": 13
+    },
+    {
+        "Question": "What admission type has the highest mortality rate (stay_time < 1 day)?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "admissions",
+                "task": "Calculate mortality rates",
+                "sql_query": "SELECT admission_type, COUNT(*) FILTER (WHERE stay_time::numeric < 1)::float / COUNT(*) AS mortality_rate FROM admissions GROUP BY admission_type"
+            }
+        ],
+        "Question ID": 14
+    },
+    {
+        "Question": "Is patient [ID]'s hyponatremia being managed with diuretics?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "laboratory",
+                "task": "Retrieve sodium levels",
+                "sql_query": "SELECT value, timestamp FROM laboratory WHERE patient_id = '[ID]' AND laboratory_reading_type = 'sodium'"
+            },
+            {
+                "table": "medications",
+                "task": "Check diuretic administration",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%diuretic%'"
+            }
+        ],
+        "Question ID": 15
+    },
+    {
+        "Question": "Do traumatic brain injury patients have lower average Glasgow Scores than others?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify TBI patients",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%traumatic brain injury%'"
+            },
+            {
+                "table": "nursing_assessment",
+                "task": "Compare Glasgow Scores",
+                "sql_query": "SELECT CASE WHEN d.patient_id IS NOT NULL THEN 'TBI' ELSE 'Non-TBI' END, AVG(glasgow_coma_score) FROM nursing_assessment na LEFT JOIN (SELECT DISTINCT patient_id FROM diagnoses WHERE diagnosis ILIKE '%traumatic brain injury%') d ON na.patient_id = d.patient_id GROUP BY 1"
+            }
+        ],
+        "Question ID": 16
+    },
+    {
+        "Question": "Has patient [ID]'s respiratory rate improved after bronchodilator administration?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "medications",
+                "task": "Get bronchodilator times",
+                "sql_query": "SELECT timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%bronchodilator%'"
+            },
+            {
+                "table": "respiratory_rate",
+                "task": "Retrieve respiratory rates",
+                "sql_query": "SELECT respiratory_rate_reading, timestamp FROM respiratory_rate WHERE patient_id = '[ID]' ORDER BY timestamp"
+            }
+        ],
+        "Question ID": 17
+    },
+    {
+        "Question": "Do African American patients have higher diastolic blood pressure than Caucasian patients?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "admissions",
+                "task": "Identify patient races",
+                "sql_query": "SELECT patient_id, race FROM admissions"
+            },
+            {
+                "table": "blood_pressure",
+                "task": "Retrieve diastolic readings",
+                "sql_query": "SELECT patient_id, AVG(reading) FROM blood_pressure WHERE blood_pressure_type = 'noninvasive_diastolic_blood_pressure' GROUP BY patient_id"
+            }
+        ],
+        "Question ID": 18
+    },
+    {
+        "Question": "Is patient [ID]'s hypomagnesemia being addressed with supplementation?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "laboratory",
+                "task": "Retrieve magnesium levels",
+                "sql_query": "SELECT value, timestamp FROM laboratory WHERE patient_id = '[ID]' AND laboratory_reading_type = 'magnesium'"
+            },
+            {
+                "table": "medications",
+                "task": "Check magnesium supplements",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%magnesium%'"
+            }
+        ],
+        "Question ID": 19
+    },
+    {
+        "Question": "Do diabetic patients have higher average blood glucose levels than non-diabetics?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify diabetic patients",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%diabetes%'"
+            },
+            {
+                "table": "laboratory",
+                "task": "Compare glucose levels",
+                "sql_query": "SELECT CASE WHEN d.patient_id IS NOT NULL THEN 'Diabetic' ELSE 'Non-Diabetic' END, AVG(value) FROM laboratory l LEFT JOIN (SELECT DISTINCT patient_id FROM diagnoses WHERE diagnosis ILIKE '%diabetes%') d ON l.patient_id = d.patient_id WHERE laboratory_reading_type = 'blood_glucose' GROUP BY 1"
+            }
+        ],
+        "Question ID": 20
+    },
+    {
+        "Question": "Has patient [ID]'s oxygen saturation stabilized after ventilator adjustment?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "oxygen_saturation",
+                "task": "Retrieve saturation trends",
+                "sql_query": "SELECT pulseoxymetry_saturation, timestamp FROM oxygen_saturation WHERE patient_id = '[ID]' ORDER BY timestamp"
+            },
+            {
+                "table": "medications",
+                "task": "Check ventilator-related interventions",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) IN ('oxygen', 'sedative')"
+            }
+        ],
+        "Question ID": 21
+    },
+    {
+        "Question": "What's the average duration of antibiotic treatment for sepsis patients?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "diagnoses",
+                "task": "Identify sepsis patients",
+                "sql_query": "SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%sepsis%'"
+            },
+            {
+                "table": "medications",
+                "task": "Calculate antibiotic duration",
+                "sql_query": "SELECT m.patient_id, MAX(timestamp) - MIN(timestamp) AS treatment_duration FROM medications m JOIN (SELECT patient_id FROM diagnoses WHERE diagnosis ILIKE '%sepsis%') d ON m.patient_id = d.patient_id WHERE LOWER(medication) LIKE '%antibiotic%' GROUP BY m.patient_id"
+            }
+        ],
+        "Question ID": 22
+    },
+    {
+        "Question": "Is patient [ID]'s decreasing Glasgow Score correlated with sedative administration?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "nursing_assessment",
+                "task": "Retrieve coma scores",
+                "sql_query": "SELECT glasgow_coma_score, timestamp FROM nursing_assessment WHERE patient_id = '[ID]' ORDER BY timestamp"
+            },
+            {
+                "table": "medications",
+                "task": "Identify sedative administration",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%sedative%'"
+            }
+        ],
+        "Question ID": 23
+    },
+    {
+        "Question": "How does blood glucose variability differ across age groups?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "laboratory",
+                "task": "Calculate glucose variability",
+                "sql_query": "SELECT patient_id, STDDEV(value) AS glucose_variability FROM laboratory WHERE laboratory_reading_type = 'blood_glucose' GROUP BY patient_id"
+            },
+            {
+                "table": "admissions",
+                "task": "Group by age brackets",
+                "sql_query": "SELECT patient_id, CASE WHEN age < 18 THEN '<18' WHEN age BETWEEN 18-65 THEN '18-65' ELSE '>65' END AS age_group FROM admissions"
+            }
+        ],
+        "Question ID": 24
+    },
+    {
+        "Question": "Has patient [ID] developed electrolyte imbalances from diuretic therapy?",
+        "Category": "Individual",
+        "Retrieval tasks": [
+            {
+                "table": "medications",
+                "task": "Check diuretic administration",
+                "sql_query": "SELECT medication, timestamp FROM medications WHERE patient_id = '[ID]' AND LOWER(medication) LIKE '%diuretic%'"
+            },
+            {
+                "table": "laboratory",
+                "task": "Monitor electrolyte levels",
+                "sql_query": "SELECT laboratory_reading_type, value, timestamp FROM laboratory WHERE patient_id = '[ID]' AND laboratory_reading_type IN ('sodium', 'potassium', 'magnesium')"
+            }
+        ],
+        "Question ID": 25
+    },
+    {
+        "Question": "Is there a correlation between admission type and ICU stay duration?",
+        "Category": "Population",
+        "Retrieval tasks": [
+            {
+                "table": "admissions",
+                "task": "Analyze stay times",
+                "sql_query": "SELECT admission_type, AVG(stay_time::numeric) FROM admissions GROUP BY admission_type"
+            }
+        ],
+        "Question ID": 26
+    }
+]
