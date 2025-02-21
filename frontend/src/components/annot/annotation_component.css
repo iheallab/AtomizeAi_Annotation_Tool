@@ -1,0 +1,107 @@
+/* Card Styling */
+.annotation-card {
+  width: 95%;
+  /* style={{ width: "95%", minHeight: "300px" }} */
+  min-height: 300px;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Main Layout */
+.main-content {
+  display: flex;
+  min-height: 100%;
+}
+
+/* Left Section: Content */
+.content-column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Question Section */
+.question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  min-height: 90px;
+}
+
+.question-text {
+  white-space: pre-wrap; /* Ensures long text doesn't break layout */
+  word-wrap: break-word;
+  width: 100%;
+}
+
+.task-text {
+  white-space: normal;
+}
+
+/* Like/Dislike Buttons */
+.like-dislike-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.like-btn {
+  border-color: #d9d9d9;
+  color: #595959;
+}
+
+.dislike-btn {
+  border-color: #d9d9d9;
+  color: #595959;
+}
+
+.selected {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+.selected.dislike-btn {
+  border-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+}
+
+/* Divider */
+.divider {
+  margin: 10px 0;
+}
+
+.divider-column {
+  display: flex;
+  align-items: stretch;
+  border-right: 1px solid #f0f0f0;
+}
+
+/* Tasks Section */
+.tasks-section {
+  text-align: left;
+  padding: 0 20px;
+}
+
+.task-item {
+  margin-bottom: 15px;
+}
+
+.task-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: black;
+}
+
+.task-text.invalid {
+  color: #bfbfbf;
+  font-weight: 300;
+}
+
+/* Right Section: DB Info */
+.db-info-column {
+  padding: 10px;
+  text-align: center;
+}
