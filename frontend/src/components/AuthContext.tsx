@@ -1,44 +1,58 @@
 import React, { createContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
-export const AuthContext = createContext<any>(null);
+// Define AuthContext shape
+interface AuthContextType {
+  isAuthenticated: boolean;
+  login: (token: string) => void;
+  logout: () => void;
+}
+
+export const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  login: () => {},
+  logout: () => {},
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState(null);
+  interface DecodedToken {
+    exp: number;
+    username: string;
+  }
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const token = localStorage.getItem("jwt");
+    if (!token) return false;
+
+    try {
+      const decoded = jwtDecode<DecodedToken>(token);
+      return decoded.exp > Math.floor(Date.now() / 1000);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  // Effect to check token expiration on every refresh
   useEffect(() => {
     const token = localStorage.getItem("jwt");
-
     if (!token) {
       setIsAuthenticated(false);
       return;
     }
 
     try {
-      interface DecodedToken {
-        exp: number;
-        user?: any;
-      }
       const decoded = jwtDecode<DecodedToken>(token);
-      console.log("Decoded Token:", decoded);
-
-      if (decoded.exp * 1000 < Date.now()) {
+      if (decoded.exp < Math.floor(Date.now() / 1000)) {
         console.log("Token expired, logging out...");
-        localStorage.removeItem("jwt");
-        setIsAuthenticated(false);
-        setUser(null);
+        logout();
       } else {
         setIsAuthenticated(true);
-        setUser(decoded.user);
       }
     } catch (error) {
-      console.log("Invalid token, redirecting to login...");
-      localStorage.removeItem("jwt");
-      setIsAuthenticated(false);
-      setUser(null);
+      console.log("Invalid token, logging out...");
+      logout();
     }
   }, []);
 
@@ -53,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

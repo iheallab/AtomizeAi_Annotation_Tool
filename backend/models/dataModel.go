@@ -18,8 +18,7 @@ type Question struct {
 	Question 		string			 `json:"question" bson:"question"`
 	Category		string			 `json:"category" bson:"category"`
 	RetrievalTasks []RetrievalTask	`json:"retrieval_tasks" bson:"retrieval_tasks"`
-	// Annotated_By   map[string]string `json:"annotated_by" bson:"annotated_by"`
-
+	AnnotatedBy		int				 `json:"annotated_by" bson:"annotated_by"`
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 }
 

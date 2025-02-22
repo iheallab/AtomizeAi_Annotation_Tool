@@ -10,12 +10,13 @@ import (
 // replace in env vars
 var jwtSecret = []byte("my-secret-key")
 
-func GenerateJWTToken(username string) (string, error){
+func GenerateJWTToken(username string, user_id int) (string, error){
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &jwt.MapClaims{
 		"username" : username,
-		"expiry" : expirationTime.Unix(),
+		"user_id" : user_id,
+		"exp" : expirationTime.Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -29,13 +30,18 @@ func GenerateJWTToken(username string) (string, error){
 	return tokenString, nil
 }
 
-func validateJWT(tokenString string) (*jwt.Token, error){
+
+func ValidateJWT(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return jwtSecret, nil
 	})
+
+	if err != nil {
+		fmt.Println("JWT Validation Failed:", err) // ✅ Log error
+	}
 
 	return token, err
 }

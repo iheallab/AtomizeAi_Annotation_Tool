@@ -1,37 +1,52 @@
 import React, { useContext } from "react";
-import type { FormProps } from "antd";
+import { FormProps } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Button, Checkbox, Form, Input } from "antd";
+import { Button, Form, Input } from "antd";
 import { AuthContext } from "../AuthContext";
 
 type UserCreds = {
-  username?: string;
-  password?: string;
+  username: string;
+  password: string;
 };
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
-  const onFinish = (values: UserCreds) => {
-    console.log("Success:", values);
-    // navigate("/annotations");
+  const onFinish = async (values: UserCreds) => {
     try {
-      // get token from backend
-      const data =
-        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJEaW5vQ2hpZXNhLmdpdGh1Yi5pbyIsInN1YiI6Im1pbmciLCJhdWQiOiJhbG1hIiwiaWF0IjoxNzQwMDIwNzAyLCJleHAiOjE3NDAwMjEzMDJ9.U2h7oQGrjomI55uwEHZS7c6eLOqHj1bLRxTDGF-RS8oiu2isegYEj5FIe-HTvL-bvrLrs_ZCqw2PEFDqh6onx74HM7hu6q5DQGl8kKoozV0q_J99nE4q0N3qTUSJ_yVm0rjuHTAmWi7iKZnhgWDVfLNGmrCQI_Hc_mfxCHUTeTfy3NaMqv8GW_jbPXL7LUf8gsSnjpyDLZo49h85s0utxnCzp_ukIQ9MZU-thSi2_GhD3SdIx_8yeprfzOMVfJEFhDpsY7t4UAxr_zOmLuug1mWF-5ldWzg-N8clf7YA0iP0sA9wmLbHOj34p1qTOksNzmi17cOawx1vTyNRzVVKIQ";
-      login(data);
+      const response = await fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || "Login failed");
+      }
+
+      const data = await response.json();
+      console.log("Login successful. Received token:", data.token);
+
+      // Store JWT in localStorage and set AuthContext
+      login(data.token);
+
+      // Navigate to annotations page after login
       navigate("/annotations");
     } catch (error) {
-      console.error("Error fetching token:", error);
-      return;
+      console.error("Error during login:", error);
     }
   };
+
   const onFinishFailed: FormProps<UserCreds>["onFinishFailed"] = (
     errorInfo
   ) => {
     console.log("Failed:", errorInfo);
   };
+
   return (
     <Form
       name="basic"

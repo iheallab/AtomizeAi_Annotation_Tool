@@ -1,10 +1,11 @@
 package main
+
 import (
-	"fmt" //printing
-	"net/http" //for http server
-	"log"
-	"backend/routes"
 	"backend/db"
+	"backend/routes"
+	"fmt" //printing
+	"log"
+	"net/http" //for http server
 )
 
 func main() {

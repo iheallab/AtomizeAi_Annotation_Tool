@@ -13,7 +13,7 @@ import (
 var DB *mongo.Database
 
 func ConnectDB(){
-	clientOptions := options.Client().ApplyURI("mongodb://c0700a-s8.ufhpc")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 

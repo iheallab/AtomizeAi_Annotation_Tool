@@ -5,6 +5,10 @@ import { useContext } from "react";
 const ProtectedRoute = () => {
   const { isAuthenticated } = useContext(AuthContext);
 
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>; // Prevents redirection until check is complete
+  }
+
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
 

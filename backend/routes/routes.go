@@ -2,11 +2,14 @@ package routes
 
 import (
 	// "net/http"
-	"github.com/gorilla/mux"
 	"backend/controllers"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
-func InitializeRoutes() *mux.Router {
+func InitializeRoutes() http.Handler {
 	r := mux.NewRouter()
 
 	// Lab Member Access:
@@ -24,12 +27,22 @@ func InitializeRoutes() *mux.Router {
 
 	r.HandleFunc("/add_user", controllers.AddUser).Methods("POST")
 
+	r.HandleFunc("/annotations", controllers.GetQuestionsToAnnotate).Methods("GET")
+
 
 	// User Access:
 
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(r)
 	// r.HandleFunc("/get_annot_questions_list", controllers.)
 
-	return r
+	return handler
 }

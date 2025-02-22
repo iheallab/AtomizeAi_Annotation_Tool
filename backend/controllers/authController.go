@@ -1,15 +1,16 @@
 package controllers
 
 import (
-	"fmt"
-	"encoding/json"
-	"net/http"
-	"backend/utils"
 	"backend/db"
 	"backend/models"
+	"backend/utils"
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
-		"go.mongodb.org/mongo-driver/bson"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type LoginRequest struct {
@@ -19,19 +20,17 @@ type LoginRequest struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var loginData LoginRequest
+	fmt.Println("Login request received")
 
 	err := json.NewDecoder(r.Body).Decode(&loginData)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid Payload", http.StatusBadRequest)
 		return
 	}
 
 	collection := db.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	// pwd, _ := utils.HashPassword(loginData.Password)
-	// fmt.Println("Users pwd : " , pwd)
 
 	var user models.User
 	err = collection.FindOne(ctx, bson.M{"username": loginData.Username}).Decode(&user)
@@ -44,7 +43,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
-	token, err := utils.GenerateJWTToken(loginData.Username)
+	token, err := utils.GenerateJWTToken(loginData.Username, user.UserId)
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return

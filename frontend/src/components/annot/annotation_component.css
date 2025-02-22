@@ -2,7 +2,7 @@
 .annotation-card {
   width: 95%;
   /* style={{ width: "95%", minHeight: "300px" }} */
-  min-height: 300px;
+  min-height: 300;
   text-align: center;
   border-radius: 8px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
