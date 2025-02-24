@@ -1,15 +1,15 @@
 package controllers
 
 import (
+	"backend/db"
+	"backend/models"
+	"backend/utils"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"backend/models"
-	"backend/db"
-	"backend/utils"
 	"time"
-	"context"
-	
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -39,6 +39,10 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 
 		data.ID = primitive.NewObjectID() // Generate MongoDB ObjectID
 		data.QuestionID = questionID      // Assign unique QuestionID
+
+		for j := range data.RetrievalTasks {
+		data.RetrievalTasks[j].IsValid = false
+	}
 
 		insertDocs = append(insertDocs, data)
 		fmt.Printf("Prepared Question #%d → QuestionID: %d\n", i+1, questionID)

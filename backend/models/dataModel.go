@@ -6,10 +6,11 @@ import (
 
 // RetrievalTask represents a retrieval operation for a question
 type RetrievalTask struct {
-	Table        string   `json:"table" bson:"table"`
-	Task         string   `json:"task" bson:"task"`
-	SQLQuery     string   `json:"sql_query" bson:"sql_query"`
-	isValid 	  bool   `json:"valid" bson:"valid"`
+    ID       int    `json:"task_id" bson:"task_id"`  // Correct syntax
+    Table    string `json:"table" bson:"table"`
+    Task     string `json:"task" bson:"task"`
+    SQLQuery string `json:"sql_query" bson:"sql_query"`
+    IsValid  bool   `json:"valid" bson:"valid"`
 }
 
 type Question struct {

@@ -1,7 +1,6 @@
-/* Card Styling */
 .annotation-card {
   width: 95%;
-  /* style={{ width: "95%", minHeight: "300px" }} */
+
   min-height: 300;
   text-align: center;
   border-radius: 8px;
@@ -9,20 +8,19 @@
   padding: 20px;
 }
 
-/* Main Layout */
 .main-content {
   display: flex;
   min-height: 100%;
+  justify-content: space-between;
 }
 
-/* Left Section: Content */
 .content-column {
   display: flex;
   flex-direction: column;
   width: 100%;
+  padding: 10px;
 }
 
-/* Question Section */
 .question-row {
   display: flex;
   align-items: center;
@@ -32,7 +30,6 @@
 }
 
 .question-text {
-  white-space: pre-wrap; /* Ensures long text doesn't break layout */
   word-wrap: break-word;
   width: 100%;
 }
@@ -41,7 +38,6 @@
   white-space: normal;
 }
 
-/* Like/Dislike Buttons */
 .like-dislike-buttons {
   display: flex;
   justify-content: flex-end;
@@ -68,7 +64,6 @@
   color: #ff4d4f !important;
 }
 
-/* Divider */
 .divider {
   margin: 10px 0;
 }
@@ -79,7 +74,6 @@
   border-right: 1px solid #f0f0f0;
 }
 
-/* Tasks Section */
 .tasks-section {
   text-align: left;
   padding: 0 20px;
@@ -100,8 +94,55 @@
   font-weight: 300;
 }
 
-/* Right Section: DB Info */
 .db-info-column {
   padding: 10px;
   text-align: center;
+}
+
+.progress-grid {
+  padding: 10px;
+  text-align: center;
+  max-height: 250px; /* Restrict height */
+  overflow-y: auto; /* Enable scrolling */
+}
+
+.progress-grid h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-item {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.grid-item.completed {
+  background-color: #52c41a; /* Green for completed */
+  color: white;
+}
+
+.grid-item.pending {
+  background-color: #ff4d4f; /* Red for pending */
+  color: white;
+}
+
+.grid-item.current {
+  border: 2px solid #1890ff; /* Highlight current question */
 }
