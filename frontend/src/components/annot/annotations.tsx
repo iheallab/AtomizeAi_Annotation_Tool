@@ -122,7 +122,7 @@ const Annotations: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [completedQuestions, setCompletedQuestions] = useState<boolean[]>([]);
+  const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
 
   useEffect(() => {
     const fetchAnnotations = async () => {
@@ -155,7 +155,7 @@ const Annotations: React.FC = () => {
         console.log("Fetched annotations:", data);
 
         setQuestions(data.questions);
-        setCompletedQuestions(new Array(data.questions.length).fill(false));
+        setAnsweredQuestions(new Array(data.questions.length).fill(false));
       } catch (error) {
         console.error("Error fetching annotations:", error);
         setError(
@@ -170,7 +170,7 @@ const Annotations: React.FC = () => {
   }, []);
 
   const markAsDone = () => {
-    setCompletedQuestions((prev) => {
+    setAnsweredQuestions((prev) => {
       const updated = [...prev];
       updated[currentQuestionIndex] = true;
       return updated;
@@ -242,6 +242,9 @@ const Annotations: React.FC = () => {
       <AnnotationComponent
         key={questions[currentQuestionIndex]._id} // Force remount
         question={questions[currentQuestionIndex]}
+        questions_list={questions}
+        answeredQuestions={answeredQuestions}
+        currentQuestionIndex={currentQuestionIndex}
       />
 
       <Space size="middle" style={{ marginTop: 20 }}>

@@ -4,6 +4,7 @@ import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
 import "./annotation_component.css";
+import Grid from "./components/Grid";
 interface TaskData {
   task_id: number; // Change from string to number
   task: string;
@@ -19,10 +20,16 @@ interface QuestionData {
 
 interface AnnotationComponentProps {
   question: QuestionData;
+  questions_list: QuestionData[];
+  answeredQuestions: boolean[];
+  currentQuestionIndex: number;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   question,
+  questions_list,
+  answeredQuestions,
+  currentQuestionIndex,
 }) => {
   const [questionFeedback, setQuestionFeedback] = useState<
     "like" | "dislike" | null
@@ -92,7 +99,10 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
         <Col span={1} className="divider-column"></Col>
 
         <Col span={5} className="db-info-column">
-          DBINFO
+          <Grid
+            answeredQuestions={answeredQuestions}
+            currentQuestionIndex={currentQuestionIndex}
+          />
         </Col>
       </Row>
     </Card>
