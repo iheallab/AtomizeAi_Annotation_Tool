@@ -23,6 +23,7 @@ interface AnnotationComponentProps {
   questions_list: QuestionData[];
   answeredQuestions: boolean[];
   currentQuestionIndex: number;
+  setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
@@ -30,6 +31,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   questions_list,
   answeredQuestions,
   currentQuestionIndex,
+  setCurrentQuestionIndex,
 }) => {
   const [questionFeedback, setQuestionFeedback] = useState<
     "like" | "dislike" | null
@@ -68,40 +70,115 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   };
 
   return (
-    <Card className="annotation-card">
-      <Row className="main-content">
-        <Col span={18} className="content-column">
-          <Question
-            question={question.question}
-            questionFeedback={questionFeedback}
-            setQuestionFeedback={setQuestionFeedback}
-          />
+    // <Card>
+    // <Card
+    //   style={{
+    //     height: "70vh",
+    //     display: "flex",
+    //     flexDirection: "column",
+    //     width: "90vw",
+    //     maxWidth: "1080px",
+    //   }}
+    // >
+    //   {/* <Row className="main-content" > */}
+    //   <Row className="main-content" style={{ height: "100%" }}>
+    //     <Col span={18} className="content-column" style={{ flexGrow: 1 }}>
+    //       <Question
+    //         question={question.question}
+    //         questionFeedback={questionFeedback}
+    //         setQuestionFeedback={setQuestionFeedback}
+    //       />
+
+    //       <Divider className="divider" />
+
+    //       <Col span={24} className="tasks-section">
+    //         {question.retrieval_tasks.map((task) => (
+    //           <Task
+    //             key={`${question._id}-${task.task_id}`} // Unique key
+    //             id={task.task_id}
+    //             task={task.task}
+    //             isValid={taskValidity[task.task_id]}
+    //             onToggle={() => toggleValidity(task.task_id)}
+    //           />
+    //         ))}
+    //         <div style={{ padding: "10px 0" }} />
+    //         <Divider className="divider" />
+    //         <div style={{ padding: "10px 0" }} />
+    //         <Feedback />
+    //       </Col>
+    //     </Col>
+
+    //     <Col span={1} className="divider-column"></Col>
+
+    //     <Col span={5} className="db-info-column">
+    //       <Grid
+    //         answeredQuestions={answeredQuestions}
+    //         currentQuestionIndex={currentQuestionIndex}
+    //         onQuestionSelect={(index: number) => setCurrentQuestionIndex(index)}
+    //       />
+    //     </Col>
+    //   </Row>
+    // </Card>
+
+    <Card
+      style={{
+        height: "70vh",
+        display: "flex",
+        flexDirection: "column",
+        width: "90vw",
+        maxWidth: "1080px",
+      }}
+    >
+      <Row className="main-content" style={{ height: "100%" }}>
+        {/* LEFT SECTION (Question + Tasks + Feedback) */}
+        <Col
+          span={18}
+          className="content-column"
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
+        >
+          {/* QUESTION ROW */}
+          <Row style={{ height: "30%" }}>
+            <Question
+              question={question.question}
+              questionFeedback={questionFeedback}
+              setQuestionFeedback={setQuestionFeedback}
+            />
+          </Row>
 
           <Divider className="divider" />
 
-          <Col span={24} className="tasks-section">
-            {question.retrieval_tasks.map((task) => (
-              <Task
-                key={`${question._id}-${task.task_id}`} // Unique key
-                id={task.task_id}
-                task={task.task}
-                isValid={taskValidity[task.task_id]}
-                onToggle={() => toggleValidity(task.task_id)}
-              />
-            ))}
-            <div style={{ padding: "10px 0" }} />
-            <Divider className="divider" />
-            <div style={{ padding: "10px 0" }} />
+          {/* TASKS SECTION (SCROLLABLE) */}
+          <Row style={{ height: "50%", overflowY: "auto" }}>
+            <Col span={24} className="tasks-section">
+              {question.retrieval_tasks.map((task) => (
+                <Task
+                  key={`${question._id}-${task.task_id}`}
+                  id={task.task_id}
+                  task={task.task}
+                  isValid={taskValidity[task.task_id]}
+                  onToggle={() => toggleValidity(task.task_id)}
+                />
+              ))}
+            </Col>
+          </Row>
+
+          <Divider className="divider" />
+
+          {/* FEEDBACK ROW (Fixed Height) */}
+          <Row style={{ height: "20%" }}>
             <Feedback />
-          </Col>
+          </Row>
         </Col>
 
+        {/* MIDDLE DIVIDER */}
         <Col span={1} className="divider-column"></Col>
 
+        {/* RIGHT SECTION (GRID) */}
         <Col span={5} className="db-info-column">
           <Grid
             answeredQuestions={answeredQuestions}
             currentQuestionIndex={currentQuestionIndex}
+            onQuestionSelect={(index: number) => setCurrentQuestionIndex(index)}
           />
         </Col>
       </Row>

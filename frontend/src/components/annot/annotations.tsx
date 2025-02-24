@@ -245,6 +245,7 @@ const Annotations: React.FC = () => {
         questions_list={questions}
         answeredQuestions={answeredQuestions}
         currentQuestionIndex={currentQuestionIndex}
+        setCurrentQuestionIndex={setCurrentQuestionIndex}
       />
 
       <Space size="middle" style={{ marginTop: 20 }}>

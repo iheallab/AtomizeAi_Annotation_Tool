@@ -2,25 +2,29 @@ import React from "react";
 import { Row, Col } from "antd";
 
 interface GridComponentProps {
-  answeredQuestions: boolean[]; // Tracks answered status
-  currentQuestionIndex: number; // Tracks current question index
+  answeredQuestions: boolean[];
+  currentQuestionIndex: number;
+  onQuestionSelect: (index: number) => void; // Function to handle click
 }
 
 const Grid: React.FC<GridComponentProps> = ({
   answeredQuestions,
   currentQuestionIndex,
+  onQuestionSelect,
 }) => {
   return (
-    <div style={{ padding: 20 }}>
+    // <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, width: "100%", overflowX: "auto" }}>
       <Row gutter={[8, 8]} justify="center">
         {answeredQuestions.map((answered, index) => (
           <Col key={index}>
             <div
+              onClick={() => onQuestionSelect(index)} // Handle click
               style={{
                 width: 30,
                 height: 30,
                 backgroundColor:
-                  index == currentQuestionIndex
+                  index === currentQuestionIndex
                     ? "#0096FF"
                     : answered
                     ? "#4caf50"
@@ -32,7 +36,7 @@ const Grid: React.FC<GridComponentProps> = ({
                 fontSize: 14,
                 fontWeight: "bold",
                 color:
-                  index == currentQuestionIndex || answered
+                  index === currentQuestionIndex || answered
                     ? "#ffffff"
                     : "#000000",
                 cursor: "pointer",

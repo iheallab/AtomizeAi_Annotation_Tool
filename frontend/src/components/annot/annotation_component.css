@@ -19,6 +19,9 @@
   flex-direction: column;
   width: 100%;
   padding: 10px;
+  flex-grow: 1; /* Ensures it takes full width */
+  flex-basis: 0; /* Prevents sudden width changes */
+  min-width: 0; /* Helps with text overflow issues */
 }
 
 .question-row {
@@ -110,39 +113,4 @@
   margin-bottom: 10px;
   font-size: 16px;
   font-weight: bold;
-}
-
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
-}
-
-.grid-item {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  cursor: pointer;
-}
-
-.grid-item.completed {
-  background-color: #52c41a; /* Green for completed */
-  color: white;
-}
-
-.grid-item.pending {
-  background-color: #ff4d4f; /* Red for pending */
-  color: white;
-}
-
-.grid-item.current {
-  border: 2px solid #1890ff; /* Highlight current question */
 }
