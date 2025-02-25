@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Col, Row, Typography } from "antd";
 import { LikeOutlined, DislikeOutlined } from "@ant-design/icons";
 
-const { Text } = Typography;
+const { Title } = Typography;
 
 interface QuestionProps {
   question: string;
@@ -18,7 +18,18 @@ const Question: React.FC<QuestionProps> = ({
   return (
     <Row className="question-row">
       <Col span={18}>
-        <Text className="question-text">{question}</Text>
+        <Title
+          level={5}
+          className="question-text"
+          style={{
+            fontFamily: "Arial",
+            alignSelf: "left",
+            textJustify: "auto",
+            fontWeight: "bold",
+          }}
+        >
+          {question}
+        </Title>
       </Col>
       <Col span={6} className="like-dislike-buttons">
         <Button

@@ -1,38 +1,5 @@
-// import React from "react";
-// import { Row, Col, Switch, Typography } from "antd";
-
-// const { Text } = Typography;
-
-// interface TaskProps {
-//   task: string;
-//   isValid: boolean;
-//   toggleValidity: () => void;
-// }
-
-// const Task: React.FC<TaskProps> = ({ task, isValid, toggleValidity }) => {
-//   return (
-//     <Row justify="space-between" align="middle">
-//       <Col span={4}>
-//         <Switch
-//           checkedChildren="Valid"
-//           unCheckedChildren="Invalid"
-//           checked={isValid}
-//           onChange={() => toggleValidity()} // Ensure it correctly updates only this task
-//         />
-//       </Col>
-//       <Col span={20}>
-//         <Text className={isValid ? "task-text" : "task-text invalid"}>
-//           {task}
-//         </Text>
-//       </Col>
-//     </Row>
-//   );
-// };
-
-// export default Task;
-
 import React from "react";
-import { Row, Col, Switch, Typography } from "antd";
+import { Row, Col, Switch, Typography, Card } from "antd";
 
 const { Text } = Typography;
 
@@ -56,7 +23,10 @@ const Task: React.FC<TaskProps> = ({ id, task, isValid, onToggle }) => {
           />
         </Col>
         <Col span={20}>
-          <Text className={isValid ? "task-text" : "task-text invalid"}>
+          <Text
+            style={{ fontFamily: "Questrial" }}
+            className={isValid ? "task-text" : "task-text invalid"}
+          >
             {task}
           </Text>
         </Col>

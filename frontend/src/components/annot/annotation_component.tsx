@@ -70,59 +70,12 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   };
 
   return (
-    // <Card>
-    // <Card
-    //   style={{
-    //     height: "70vh",
-    //     display: "flex",
-    //     flexDirection: "column",
-    //     width: "90vw",
-    //     maxWidth: "1080px",
-    //   }}
-    // >
-    //   {/* <Row className="main-content" > */}
-    //   <Row className="main-content" style={{ height: "100%" }}>
-    //     <Col span={18} className="content-column" style={{ flexGrow: 1 }}>
-    //       <Question
-    //         question={question.question}
-    //         questionFeedback={questionFeedback}
-    //         setQuestionFeedback={setQuestionFeedback}
-    //       />
-
-    //       <Divider className="divider" />
-
-    //       <Col span={24} className="tasks-section">
-    //         {question.retrieval_tasks.map((task) => (
-    //           <Task
-    //             key={`${question._id}-${task.task_id}`} // Unique key
-    //             id={task.task_id}
-    //             task={task.task}
-    //             isValid={taskValidity[task.task_id]}
-    //             onToggle={() => toggleValidity(task.task_id)}
-    //           />
-    //         ))}
-    //         <div style={{ padding: "10px 0" }} />
-    //         <Divider className="divider" />
-    //         <div style={{ padding: "10px 0" }} />
-    //         <Feedback />
-    //       </Col>
-    //     </Col>
-
-    //     <Col span={1} className="divider-column"></Col>
-
-    //     <Col span={5} className="db-info-column">
-    //       <Grid
-    //         answeredQuestions={answeredQuestions}
-    //         currentQuestionIndex={currentQuestionIndex}
-    //         onQuestionSelect={(index: number) => setCurrentQuestionIndex(index)}
-    //       />
-    //     </Col>
-    //   </Row>
-    // </Card>
-
     <Card
+      // title={`Question ${currentQuestionIndex + 1}`}
+      variant="borderless"
+      className="annotation-card"
       style={{
-        height: "70vh",
+        height: "75vh",
         display: "flex",
         flexDirection: "column",
         width: "90vw",
@@ -137,7 +90,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
           style={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
           {/* QUESTION ROW */}
-          <Row style={{ height: "30%" }}>
+          <Row style={{ margin: "5px" }}>
             <Question
               question={question.question}
               questionFeedback={questionFeedback}
@@ -145,27 +98,37 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             />
           </Row>
 
-          <Divider className="divider" />
+          {/* <Divider className="divider" /> */}
 
           {/* TASKS SECTION (SCROLLABLE) */}
-          <Row style={{ height: "50%", overflowY: "auto" }}>
-            <Col span={24} className="tasks-section">
-              {question.retrieval_tasks.map((task) => (
-                <Task
-                  key={`${question._id}-${task.task_id}`}
-                  id={task.task_id}
-                  task={task.task}
-                  isValid={taskValidity[task.task_id]}
-                  onToggle={() => toggleValidity(task.task_id)}
-                />
-              ))}
-            </Col>
-          </Row>
+          <Card
+            hoverable={true}
+            type="inner"
+            style={{
+              height: "150px",
+              overflow: "hidden",
+              backgroundColor: "#fbfbfb",
+            }}
+          >
+            <Row style={{ height: "100%", overflowY: "auto" }}>
+              <Col span={24} className="tasks-section">
+                {question.retrieval_tasks.map((task) => (
+                  <Task
+                    key={`${question._id}-${task.task_id}`}
+                    id={task.task_id}
+                    task={task.task}
+                    isValid={taskValidity[task.task_id]}
+                    onToggle={() => toggleValidity(task.task_id)}
+                  />
+                ))}
+              </Col>
+            </Row>
+          </Card>
 
-          <Divider className="divider" />
+          {/* <Divider className="divider" /> */}
 
           {/* FEEDBACK ROW (Fixed Height) */}
-          <Row style={{ height: "20%" }}>
+          <Row style={{ marginTop: "10px" }}>
             <Feedback />
           </Row>
         </Col>
