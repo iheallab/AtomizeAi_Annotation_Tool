@@ -3,6 +3,7 @@ import { Button, Col, Row, Typography } from "antd";
 import { LikeOutlined, DislikeOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
+import "./question.css";
 
 interface QuestionProps {
   question: string;
@@ -18,16 +19,7 @@ const Question: React.FC<QuestionProps> = ({
   return (
     <Row className="question-row">
       <Col span={18}>
-        <Title
-          level={5}
-          className="question-text"
-          style={{
-            fontFamily: "Arial",
-            alignSelf: "left",
-            textJustify: "auto",
-            fontWeight: "bold",
-          }}
-        >
+        <Title className="question-text" level={5}>
           {question}
         </Title>
       </Col>

@@ -1,0 +1,32 @@
+.grid-container {
+  padding: 20px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.grid-item {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.grid-item.active {
+  background-color: #0096ff;
+  color: #ffffff;
+}
+
+.grid-item.answered {
+  background-color: #4caf50;
+  color: #ffffff;
+}
+
+.grid-item.default {
+  background-color: #e0e0e0;
+  color: #000000;
+}

@@ -3,6 +3,7 @@ import AnnotationComponent from "./annotation_component";
 import React, { useState, useEffect } from "react";
 import { Button, Space, Spin, Alert } from "antd";
 import { useNavigate } from "react-router-dom";
+import "./annotations.css";
 
 interface TaskData {
   task_id: number;
@@ -128,16 +129,123 @@ const Annotations: React.FC = () => {
     });
   };
 
+  //   if (isLoading) {
+  //     return (
+  //       <div
+  //         style={{
+  //           display: "flex",
+  //           justifyContent: "center",
+  //           alignItems: "center",
+  //           height: "100vh",
+  //         }}
+  //       >
+  //         <Spin size="large" />
+  //       </div>
+  //     );
+  //   }
+
+  //   if (error) {
+  //     return (
+  //       <div
+  //         style={{
+  //           display: "flex",
+  //           justifyContent: "center",
+  //           alignItems: "center",
+  //           height: "100vh",
+  //         }}
+  //       >
+  //         <Alert message="Error" description={error} type="error" showIcon />
+  //       </div>
+  //     );
+  //   }
+
+  //   if (!questions.length) {
+  //     return (
+  //       <div
+  //         style={{
+  //           display: "flex",
+  //           justifyContent: "center",
+  //           alignItems: "center",
+  //           height: "100vh",
+  //         }}
+  //       >
+  //         <Alert
+  //           message="No Questions"
+  //           description="No questions available."
+  //           type="info"
+  //           showIcon
+  //         />
+  //       </div>
+  //     );
+  //   }
+
+  //   return (
+  //     <div
+  //       style={{
+  //         display: "flex",
+  //         flexDirection: "column",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //         minHeight: "110vh",
+  //         width: "90%",
+  //         margin: "0 auto",
+  //       }}
+  //     >
+  //       {/* <AnnotationComponent
+  //         key={questions[currentQuestionIndex]._id} // Force remount
+  //         question={questions[currentQuestionIndex]}
+  //         questions_list={questions}
+  //         answeredQuestions={answeredQuestions}
+  //         currentQuestionIndex={currentQuestionIndex}
+  //         setCurrentQuestionIndex={setCurrentQuestionIndex}
+  //       /> */}
+  //       <AnnotationComponent
+  //         key={questions[currentQuestionIndex]._id} // Forces remount
+  //         question={questions[currentQuestionIndex]}
+  //         questions_list={questions}
+  //         answeredQuestions={answeredQuestions}
+  //         currentQuestionIndex={currentQuestionIndex}
+  //         setCurrentQuestionIndex={setCurrentQuestionIndex}
+  //         taskValidity={taskValidity}
+  //         setTaskValidity={setTaskValidity}
+  //         feedback={feedback}
+  //         setFeedback={setFeedback}
+  //       />
+
+  //       <Space size="middle" style={{ marginTop: 20 }}>
+  //         <Button
+  //           type="primary"
+  //           onClick={() =>
+  //             setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
+  //           }
+  //           disabled={currentQuestionIndex === 0}
+  //         >
+  //           Previous
+  //         </Button>
+
+  //         <Button type="primary" onClick={handleSubmit}>
+  //           Submit
+  //         </Button>
+
+  //         <Button
+  //           type="primary"
+  //           onClick={() =>
+  //             setCurrentQuestionIndex((prev) =>
+  //               Math.min(prev + 1, questions.length - 1)
+  //             )
+  //           }
+  //           disabled={currentQuestionIndex === questions.length - 1}
+  //         >
+  //           Next
+  //         </Button>
+  //       </Space>
+  //     </div>
+  //   );
+  // };
+
   if (isLoading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+      <div className="loading-container">
         <Spin size="large" />
       </div>
     );
@@ -145,14 +253,7 @@ const Annotations: React.FC = () => {
 
   if (error) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+      <div className="error-container">
         <Alert message="Error" description={error} type="error" showIcon />
       </div>
     );
@@ -160,14 +261,7 @@ const Annotations: React.FC = () => {
 
   if (!questions.length) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+      <div className="no-questions-container">
         <Alert
           message="No Questions"
           description="No questions available."
@@ -179,27 +273,9 @@ const Annotations: React.FC = () => {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "110vh",
-        width: "90%",
-        margin: "0 auto",
-      }}
-    >
-      {/* <AnnotationComponent
-        key={questions[currentQuestionIndex]._id} // Force remount
-        question={questions[currentQuestionIndex]}
-        questions_list={questions}
-        answeredQuestions={answeredQuestions}
-        currentQuestionIndex={currentQuestionIndex}
-        setCurrentQuestionIndex={setCurrentQuestionIndex}
-      /> */}
+    <div className="annotations-container">
       <AnnotationComponent
-        key={questions[currentQuestionIndex]._id} // Forces remount
+        key={questions[currentQuestionIndex]._id}
         question={questions[currentQuestionIndex]}
         questions_list={questions}
         answeredQuestions={answeredQuestions}
@@ -211,7 +287,7 @@ const Annotations: React.FC = () => {
         setFeedback={setFeedback}
       />
 
-      <Space size="middle" style={{ marginTop: 20 }}>
+      <Space size="middle" className="navigation-buttons">
         <Button
           type="primary"
           onClick={() =>
@@ -241,5 +317,4 @@ const Annotations: React.FC = () => {
     </div>
   );
 };
-
 export default Annotations;

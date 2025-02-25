@@ -1,0 +1,14 @@
+.task-item {
+  margin-bottom: 15px;
+}
+
+.task-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: black;
+}
+
+.task-text.invalid {
+  color: #bfbfbf;
+  font-weight: 300;
+}

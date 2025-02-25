@@ -2,7 +2,7 @@ import React from "react";
 import { Input, Row } from "antd";
 
 const { TextArea } = Input;
-
+import "./feedback.css";
 // const Feedback: React.FC = () => {
 //   return (
 //     <Row style={{ margin: "10px", width: "100%" }}>
@@ -25,12 +25,22 @@ interface FeedbackProps {
 
 const Feedback: React.FC<FeedbackProps> = ({ feedback, setFeedback }) => {
   return (
-    <Row style={{ margin: "10px", width: "100%" }}>
+    // <Row style={{ margin: "10px", width: "100%" }}>
+    //   <TextArea
+    //     rows={4}
+    //     placeholder="Enter feedback"
+    //     maxLength={500}
+    //     style={{ width: "100%", height: "100%" }}
+    //     value={feedback}
+    //     onChange={(e) => setFeedback(e.target.value)}
+    //   />
+    // </Row>
+    <Row className="feedback-container">
       <TextArea
         rows={4}
         placeholder="Enter feedback"
         maxLength={500}
-        style={{ width: "100%", height: "100%" }}
+        className="feedback-textarea"
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
       />

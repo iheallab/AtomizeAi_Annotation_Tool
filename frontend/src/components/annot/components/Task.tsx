@@ -2,7 +2,7 @@ import React from "react";
 import { Row, Col, Switch, Typography, Card } from "antd";
 
 const { Text } = Typography;
-
+import "./task.css";
 interface TaskProps {
   id: number;
   task: string;
@@ -23,10 +23,7 @@ const Task: React.FC<TaskProps> = ({ id, task, isValid, onToggle }) => {
           />
         </Col>
         <Col span={20}>
-          <Text
-            style={{ fontFamily: "Questrial" }}
-            className={isValid ? "task-text" : "task-text invalid"}
-          >
+          <Text className={isValid ? "task-text" : "task-text invalid"}>
             {task}
           </Text>
         </Col>
