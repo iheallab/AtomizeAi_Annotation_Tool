@@ -7,8 +7,8 @@ import (
 
 	"backend/db"
 	// "backend/models"
-	"context"
 	"backend/utils"
+	"context"
 	"encoding/json"
 
 	// "go.mongodb.org/mongo-driver/bson"
@@ -42,6 +42,9 @@ func UploadFile(w http.ResponseWriter, r *http.Request){
 
 	for _, data := range questions {
 		data.ID = primitive.NewObjectID()
+		for _, task := range data.RetrievalTasks {
+			task.IsValid = true
+		}
 		insertDocs = append(insertDocs, data)
 	}
 

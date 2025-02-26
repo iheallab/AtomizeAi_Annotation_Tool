@@ -40,9 +40,19 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 		data.ID = primitive.NewObjectID() // Generate MongoDB ObjectID
 		data.QuestionID = questionID      // Assign unique QuestionID
 
-		for j := range data.RetrievalTasks {
-		data.RetrievalTasks[j].IsValid = false
-	}
+		for idx := range data.RetrievalTasks {
+			fmt.Println("current id ", idx)
+			if data.RetrievalTasks[idx].ID == 0 {
+				data.RetrievalTasks[idx].ID = idx
+			}
+			fmt.Println("task id ", data.RetrievalTasks[idx].ID)
+			data.RetrievalTasks[idx].IsValid = true
+		}
+
+
+		data.MainFeedback = ""
+
+		fmt.Println("final data : ", data)
 
 		insertDocs = append(insertDocs, data)
 		fmt.Printf("Prepared Question #%d → QuestionID: %d\n", i+1, questionID)

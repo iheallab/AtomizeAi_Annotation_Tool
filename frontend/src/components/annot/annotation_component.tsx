@@ -17,7 +17,7 @@ interface QuestionData {
   question: string;
   question_id: number;
   retrieval_tasks: TaskData[];
-  feedback?: string;
+  main_feedback?: string;
 }
 
 // interface AnnotationComponentProps {
@@ -53,6 +53,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   feedback,
   setFeedback,
 }) => {
+  console.log("Answered Questions in Annotation Component", answeredQuestions);
   const [questionFeedback, setQuestionFeedback] = useState<
     "like" | "dislike" | null
   >(null);
@@ -74,7 +75,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
     setTaskValidity((prev) => ({
       ...prev,
       [question.question_id]: question.retrieval_tasks.reduce((acc, task) => {
-        acc[task.task_id] = task.valid ?? false; // Use existing validity if available
+        acc[task.task_id] = task.valid ?? true; // Use existing validity if available
         return acc;
       }, {} as Record<number, boolean>),
     }));

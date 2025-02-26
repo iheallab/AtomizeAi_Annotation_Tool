@@ -29,6 +29,8 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/annotations", controllers.GetQuestionsToAnnotate).Methods("GET")
 
+	r.HandleFunc("/annotations", controllers.AnnotateQuestion).Methods("POST")
+
 
 	// User Access:
 
