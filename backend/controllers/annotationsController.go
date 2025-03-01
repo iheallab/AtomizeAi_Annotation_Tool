@@ -6,7 +6,8 @@ import (
 	"backend/utils"
 	"context"
 	"encoding/json"
-	"fmt"
+
+	// "fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -15,58 +16,50 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+// =======================
+// 📌 GET QUESTIONS TO ANNOTATE
+// =======================
 func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		fmt.Println("Authorization header missing")
 		http.Error(w, "Authorization header missing", http.StatusUnauthorized)
 		return
 	}
 
 	tokenParts := strings.Split(authHeader, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		fmt.Println("Invalid token format:", authHeader)
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		http.Error(w, "Invalid token format", http.StatusUnauthorized)
 		return
 	}
 
 	tokenString := tokenParts[1]
-	fmt.Println("Trying to authenticate token:", tokenString) // ✅ Debugging log
-
 	token, err := utils.ValidateJWT(tokenString)
 	if err != nil || !token.Valid {
-		fmt.Println("Token validation failed:", err)
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	fmt.Println("Token authenticated successfully")
-
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		fmt.Println("Invalid token claims")
 		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 		return
 	}
 
-	userID, ok := claims["user_id"].(float64) // Ensure user_id exists in token
+	userID, ok := claims["user_id"].(float64)
 	if !ok {
-		fmt.Println("User ID not found in token")
 		http.Error(w, "Invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
 
-	fmt.Println("User authenticated:", userID)
-
 	assignmentCollection := db.GetCollection("assignments")
 	questionsCollection := db.GetCollection("questions")
-	annotationsCollection := db.GetCollection("annotations") // Add annotations collection
+	annotationsCollection := db.GetCollection("annotations")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	fmt.Println("Fetching assigned questions for user:", userID)
-
-	// Find assignment by user_id
+	// Find assigned questions for the user
 	var assignment struct {
 		QuestionIDs []primitive.ObjectID `bson:"question_ids"`
 	}
@@ -76,8 +69,8 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch all questions using the retrieved question_ids
-	var questions []bson.M
+	// Fetch assigned questions
+	var questions []models.Question
 	cursor, err := questionsCollection.Find(ctx, bson.M{"_id": bson.M{"$in": assignment.QuestionIDs}})
 	if err != nil {
 		http.Error(w, "Error retrieving questions", http.StatusInternalServerError)
@@ -91,7 +84,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch annotations for assigned questions
-	var annotations []bson.M
+	var annotations []models.Question
 	annotationCursor, err := annotationsCollection.Find(ctx, bson.M{"_id": bson.M{"$in": assignment.QuestionIDs}})
 	if err != nil {
 		http.Error(w, "Error retrieving annotations", http.StatusInternalServerError)
@@ -104,92 +97,77 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a map for quick lookup of annotations by question ID
-	annotationMap := make(map[primitive.ObjectID]bson.M)
+	// Create a map for quick annotation lookup
+	annotationMap := make(map[primitive.ObjectID]models.Question)
 	for _, annotation := range annotations {
-		id, _ := annotation["_id"].(primitive.ObjectID)
-		annotationMap[id] = annotation
+		annotationMap[annotation.ID] = annotation
 	}
 
 	// Merge annotations with questions
-	var finalQuestions []bson.M
+	var finalQuestions []models.Question
 	for _, question := range questions {
-		qID, _ := question["_id"].(primitive.ObjectID)
-		if annotatedData, exists := annotationMap[qID]; exists {
-			annotatedData["annotated"]=true
-			finalQuestions = append(finalQuestions, annotatedData) // Return annotated version
+		if annotatedData, exists := annotationMap[question.ID]; exists {
+			annotatedData.QuestionValid = true // Mark as annotated
+			finalQuestions = append(finalQuestions, annotatedData)
 		} else {
-			question["annotated"]=false
-			finalQuestions = append(finalQuestions, question) // Return original question
+			question.QuestionValid = false // Mark as not annotated
+			finalQuestions = append(finalQuestions, question)
 		}
 	}
 
-	// Create JSON response
-	response := map[string]interface{}{
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"user_id":     userID,
 		"assigned_at": time.Now().Unix(),
 		"questions":   finalQuestions,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-
-	fmt.Println("Returned assigned questions for user:", userID)
+	})
 }
 
-
+// =======================
+// 📌 ANNOTATE QUESTION
+// =======================
 func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		fmt.Println("Authorization header missing")
 		http.Error(w, "Authorization header missing", http.StatusUnauthorized)
 		return
 	}
 
 	tokenParts := strings.Split(authHeader, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		fmt.Println("Invalid token format:", authHeader)
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		http.Error(w, "Invalid token format", http.StatusUnauthorized)
 		return
 	}
 
 	tokenString := tokenParts[1]
-	fmt.Println("Trying to authenticate token:", tokenString)
-
 	token, err := utils.ValidateJWT(tokenString)
 	if err != nil || !token.Valid {
-		fmt.Println("Token validation failed:", err)
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 
-	fmt.Println("Token authenticated successfully")
-
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		fmt.Println("Invalid token claims")
 		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 		return
 	}
 
 	userID, ok := claims["user_id"].(float64)
 	if !ok {
-		fmt.Println("User ID not found in token")
 		http.Error(w, "Invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
 
-	fmt.Println("User authenticated:", userID)
-
 	// Parse the request body
 	var annotationReq models.Question
-	fmt.Print("Annotation Request: ", r.Body)
-	annotationReq.AnnotatedBy = int(userID)
 	err = json.NewDecoder(r.Body).Decode(&annotationReq)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
+	annotationReq.AnnotatedBy = int(userID) // Assign user ID
 
 	// Ensure the question ID is valid
 	if annotationReq.ID.IsZero() {
@@ -201,7 +179,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Check if annotation already exists for the given question
+	// Check if annotation already exists
 	filter := bson.M{"_id": annotationReq.ID}
 	var existingAnnotation models.Question
 	err = annotationsCollection.FindOne(ctx, filter).Decode(&existingAnnotation)
@@ -216,6 +194,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"retrieval_tasks": annotationReq.RetrievalTasks,
 				"annotated_by":    annotationReq.AnnotatedBy,
 				"main_feedback":   annotationReq.MainFeedback,
+				"question_valid":  true, // Mark as annotated
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)
@@ -223,20 +202,18 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error updating annotation", http.StatusInternalServerError)
 			return
 		}
-		fmt.Println("Updated annotation for question:", annotationReq.ID)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"message": "Annotation updated successfully"}`))
 		return
 	}
 
-	// Annotation does not exist, create a new one
+	// Insert new annotation
 	_, err = annotationsCollection.InsertOne(ctx, annotationReq)
 	if err != nil {
 		http.Error(w, "Error inserting annotation", http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println("Inserted new annotation for question:", annotationReq.ID)
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(`{"message": "Annotation created successfully"}`))
 }

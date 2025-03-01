@@ -18,7 +18,7 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 
 	var requestData struct {
 		Questions []models.Question `json:"questions"`
-	} 
+	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
@@ -29,7 +29,6 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 	collection := db.GetCollection("questions")
 	var insertDocs []interface{}
 
-	// fmt.Println("Parsed JSON:", requestData)
 	for i, data := range requestData.Questions {
 		questionID, err := utils.GetNextQuestionID()
 		if err != nil {
@@ -37,37 +36,40 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data.ID = primitive.NewObjectID() // Generate MongoDB ObjectID
-		data.QuestionID = questionID      // Assign unique QuestionID
+		// Assign unique MongoDB ObjectID and Question ID
+		data.ID = primitive.NewObjectID()
+		data.QuestionID = questionID
+		data.MainFeedback = "" // Default empty feedback
 
-		for idx := range data.RetrievalTasks {
-			fmt.Println("current id ", idx)
-			if data.RetrievalTasks[idx].ID == 0 {
-				data.RetrievalTasks[idx].ID = idx
+		// Ensure retrieval tasks and their variables are properly initialized
+		for taskIdx := range data.RetrievalTasks {
+			if data.RetrievalTasks[taskIdx].ID == 0 {
+				data.RetrievalTasks[taskIdx].ID = taskIdx + 1 // Ensure unique task IDs
 			}
-			fmt.Println("task id ", data.RetrievalTasks[idx].ID)
-			data.RetrievalTasks[idx].IsValid = true
+
+			// Initialize each variable with `IsValid`
+			for varIdx := range data.RetrievalTasks[taskIdx].Variables {
+				data.RetrievalTasks[taskIdx].Variables[varIdx].IsValid = true
+			}
 		}
 
-
-		data.MainFeedback = ""
-
-		fmt.Println("final data : ", data)
+		fmt.Printf("Prepared Question #%d → QuestionID: %d\n", i+1, questionID)
+		fmt.Println("Final Data:", data)
 
 		insertDocs = append(insertDocs, data)
-		fmt.Printf("Prepared Question #%d → QuestionID: %d\n", i+1, questionID)
 	}
 
+	// Insert into MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	result, err := collection.InsertMany(ctx, insertDocs)
-
 	if err != nil {
 		http.Error(w, "Error inserting data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Success Response
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message":      "Data inserted successfully",

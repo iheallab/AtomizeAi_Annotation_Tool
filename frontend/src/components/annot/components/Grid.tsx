@@ -12,7 +12,7 @@ const Grid: React.FC<GridComponentProps> = ({
   currentQuestionIndex,
   onQuestionSelect,
 }) => {
-  console.log("Answered Questions in Grid", answeredQuestions);
+  // console.log("Answered Questions in Grid", answeredQuestions);
   return (
     <div className="grid-container">
       <Row gutter={[8, 8]} justify="center">

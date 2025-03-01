@@ -5,10 +5,15 @@ import { Button, Space, Spin, Alert } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 
+interface TaskVars {
+  valid: boolean;
+  variable: string;
+}
 interface TaskData {
-  task_id: number;
+  task_id: number; // Change from string to number
   task: string;
   valid?: boolean;
+  variables: TaskVars[];
 }
 
 interface QuestionData {
@@ -29,28 +34,48 @@ const Annotations: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
 
-  const [taskValidity, setTaskValidity] = useState<
-    Record<number, Record<number, boolean>>
-  >({});
+  // const [taskValidity, setTaskValidity] = useState<
+  //   Record<number, Record<number, boolean>>
+  // >({});
+  const [variableValidity, setVariableValidity] = useState<boolean[][][]>([]);
+
   const [feedback, setFeedback] = useState<Record<string, string>>({});
+  // useEffect(() => {
+  //   if (questions.length > 0) {
+  //     // const initialValidity: Record<number, Record<number, boolean>> = {};
+  //     const initialFeedback: Record<string, string> = {};
+
+  //     // questions.forEach((q) => {
+  //     //   initialValidity[q.question_id] = q.retrieval_tasks.reduce(
+  //     //     (acc, task) => {
+  //     //       acc[task.task_id] = task.valid ?? true;
+  //     //       return acc;
+  //     //     },
+  //     //     {} as Record<number, boolean>
+  //     //   );
+  //     //   initialFeedback[q._id] = q.main_feedback || "";
+  //     // });
+
+  //     const initialValidity = questions.map((question) => {
+  //       question.retrieval_tasks.map((task) =>
+  //         task.variables.map((variable) => variable.valid ?? false)
+  //       );
+  //       setFeedback(initialFeedback);
+  //     });
+  //     setVariableValidity(initialValidity);
+  //     // setTaskValidity(initialValidity);
+  //   }
+  // }, [questions]);
   useEffect(() => {
     if (questions.length > 0) {
-      const initialValidity: Record<number, Record<number, boolean>> = {};
-      const initialFeedback: Record<string, string> = {};
-
-      questions.forEach((q) => {
-        initialValidity[q.question_id] = q.retrieval_tasks.reduce(
-          (acc, task) => {
-            acc[task.task_id] = task.valid ?? true;
-            return acc;
-          },
-          {} as Record<number, boolean>
-        );
-        initialFeedback[q._id] = q.main_feedback || "";
-      });
-
-      setTaskValidity(initialValidity);
-      setFeedback(initialFeedback);
+      const initialValidity = questions.map((question) =>
+        question.retrieval_tasks.map((task) =>
+          task.variables.length > 0
+            ? task.variables.map((variable) => variable.valid)
+            : []
+        )
+      );
+      setVariableValidity(initialValidity);
     }
   }, [questions]);
 
@@ -104,50 +129,38 @@ const Annotations: React.FC = () => {
     fetchAnnotations();
   }, []);
 
-  // const handleSubmit = () => {
-  //   setQuestions((prevQuestions) =>
-  //     prevQuestions.map((q) => {
-  //       if (q._id === questions[currentQuestionIndex]._id) {
-  //         return {
-  //           ...q,
-  //           retrieval_tasks: q.retrieval_tasks.map((task) => ({
-  //             ...task,
-  //             valid: taskValidity[q.question_id]?.[task.task_id] ?? false,
-  //           })),
-  //           feedback: feedback[q._id] || "",
-  //         };
-  //       }
-  //       return q;
-  //     })
-  //   );
-
-  //   setAnsweredQuestions((prev) => {
-  //     const updated = [...prev];
-  //     updated[currentQuestionIndex] = true;
-  //     return updated;
-  //   });
-
-  // };
-
   const handleSubmit = async () => {
     console.log("Submitting annotation");
     console.log("Current question index:", currentQuestionIndex);
     console.log("Feedback: ", feedback[questions[currentQuestionIndex]._id]);
+    // const updatedQuestion = {
+    //   ...questions[currentQuestionIndex],
+    //   retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
+    //     (task, task) => ({
+    //       ...task,
+    //       valid:
+    //         taskValidity[questions[currentQuestionIndex].question_id]?.[
+    //           task.task_id
+    //         ] ?? false,
+    //     })
+    //   ),
+    //   main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
+    //   // annotated_by: parseInt(localStorage.getItem("user_id") || "0"), // Ensuring annotator ID is saved
+    // };
     const updatedQuestion = {
       ...questions[currentQuestionIndex],
       retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
-        (task) => ({
+        (task, taskIndex) => ({
           ...task,
-          valid:
-            taskValidity[questions[currentQuestionIndex].question_id]?.[
-              task.task_id
-            ] ?? false,
+          variables: task.variables.map((variable, variableIndex) => ({
+            ...variable,
+            valid:
+              variableValidity[currentQuestionIndex][taskIndex][variableIndex],
+          })),
         })
       ),
       main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
-      // annotated_by: parseInt(localStorage.getItem("user_id") || "0"), // Ensuring annotator ID is saved
     };
-
     // Update local state
     setQuestions((prevQuestions) =>
       prevQuestions.map((q) =>
@@ -214,51 +227,51 @@ const Annotations: React.FC = () => {
   }
 
   return (
-    console.log("Answered Questions in Annotations", answeredQuestions),
-    (
-      <div className="annotations-container">
-        <AnnotationComponent
-          key={questions[currentQuestionIndex]._id}
-          question={questions[currentQuestionIndex]}
-          questions_list={questions}
-          answeredQuestions={answeredQuestions}
-          currentQuestionIndex={currentQuestionIndex}
-          setCurrentQuestionIndex={setCurrentQuestionIndex}
-          taskValidity={taskValidity}
-          setTaskValidity={setTaskValidity}
-          feedback={feedback}
-          setFeedback={setFeedback}
-        />
+    // console.log("Answered Questions in Annotations", answeredQuestions),
+    <div className="annotations-container">
+      <AnnotationComponent
+        key={questions[currentQuestionIndex]._id}
+        question={questions[currentQuestionIndex]}
+        questions_list={questions}
+        answeredQuestions={answeredQuestions}
+        currentQuestionIndex={currentQuestionIndex}
+        setCurrentQuestionIndex={setCurrentQuestionIndex}
+        // taskValidity={taskValidity}
+        // setTaskValidity={setTaskValidity}
+        variableValidity={variableValidity}
+        setVariableValidity={setVariableValidity}
+        feedback={feedback}
+        setFeedback={setFeedback}
+      />
 
-        <Space size="middle" className="navigation-buttons">
-          <Button
-            type="primary"
-            onClick={() =>
-              setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
-            }
-            disabled={currentQuestionIndex === 0}
-          >
-            Previous
-          </Button>
+      <Space size="middle" className="navigation-buttons">
+        <Button
+          type="primary"
+          onClick={() =>
+            setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
+          }
+          disabled={currentQuestionIndex === 0}
+        >
+          Previous
+        </Button>
 
-          <Button type="primary" onClick={handleSubmit}>
-            Submit
-          </Button>
+        <Button type="primary" onClick={handleSubmit}>
+          Submit
+        </Button>
 
-          <Button
-            type="primary"
-            onClick={() =>
-              setCurrentQuestionIndex((prev) =>
-                Math.min(prev + 1, questions.length - 1)
-              )
-            }
-            disabled={currentQuestionIndex === questions.length - 1}
-          >
-            Next
-          </Button>
-        </Space>
-      </div>
-    )
+        <Button
+          type="primary"
+          onClick={() =>
+            setCurrentQuestionIndex((prev) =>
+              Math.min(prev + 1, questions.length - 1)
+            )
+          }
+          disabled={currentQuestionIndex === questions.length - 1}
+        >
+          Next
+        </Button>
+      </Space>
+    </div>
   );
 };
 export default Annotations;

@@ -5,10 +5,16 @@ import Task from "./components/Task";
 import Feedback from "./components/Feedback";
 import "./annotation_component.css";
 import Grid from "./components/Grid";
+
+interface TaskVars {
+  valid: boolean;
+  variable: string;
+}
 interface TaskData {
   task_id: number; // Change from string to number
   task: string;
   valid?: boolean;
+  variables: TaskVars[];
 }
 
 interface QuestionData {
@@ -17,6 +23,7 @@ interface QuestionData {
   question: string;
   question_id: number;
   retrieval_tasks: TaskData[];
+  annotated?: boolean;
   main_feedback?: string;
 }
 
@@ -34,10 +41,8 @@ interface AnnotationComponentProps {
   answeredQuestions: boolean[];
   currentQuestionIndex: number;
   setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
-  taskValidity: Record<number, Record<number, boolean>>;
-  setTaskValidity: React.Dispatch<
-    React.SetStateAction<Record<number, Record<number, boolean>>>
-  >;
+  variableValidity: boolean[][][];
+  setVariableValidity: React.Dispatch<React.SetStateAction<boolean[][][]>>;
   feedback: Record<string, string>;
   setFeedback: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
@@ -48,12 +53,12 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   answeredQuestions,
   currentQuestionIndex,
   setCurrentQuestionIndex,
-  taskValidity,
-  setTaskValidity,
+  variableValidity,
+  setVariableValidity,
   feedback,
   setFeedback,
 }) => {
-  console.log("Answered Questions in Annotation Component", answeredQuestions);
+  // console.log("Answered Questions in Annotation Component", answeredQuestions);
   const [questionFeedback, setQuestionFeedback] = useState<
     "like" | "dislike" | null
   >(null);
@@ -69,30 +74,47 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   // );
 
   // Reset state when question changes
-  useEffect(() => {
-    setQuestionFeedback(null);
+  // useEffect(() => {
+  //   setQuestionFeedback(null);
 
-    setTaskValidity((prev) => ({
-      ...prev,
-      [question.question_id]: question.retrieval_tasks.reduce((acc, task) => {
-        acc[task.task_id] = task.valid ?? true; // Use existing validity if available
-        return acc;
-      }, {} as Record<number, boolean>),
-    }));
-  }, [question, setTaskValidity]);
+  //   setTaskValidity((prev) => ({
+  //     ...prev,
+  //     [question.question_id]: question.retrieval_tasks.reduce((acc, task) => {
+  //       acc[task.task_id] = task.valid ?? true; // Use existing validity if available
+  //       return acc;
+  //     }, {} as Record<number, boolean>),
+  //   }));
+  // }, [question, setTaskValidity]);
 
   if (!question) {
     return <div>Loading...</div>;
   }
+  useEffect(() => {
+    setVariableValidity((prev) => {
+      const newValidity = [...prev];
+      newValidity[currentQuestionIndex] = question.retrieval_tasks.map((task) =>
+        task.variables.map((variable) => variable.valid)
+      );
+      return newValidity;
+    });
+  }, [question, setVariableValidity]);
 
-  const toggleValidity = (taskId: number) => {
-    setTaskValidity((prev) => ({
-      ...prev,
-      [question.question_id]: {
-        ...prev[question.question_id],
-        [taskId]: !prev[question.question_id][taskId],
-      },
-    }));
+  // const toggleValidity = (taskId: number) => {
+  //   setTaskValidity((prev) => ({
+  //     ...prev,
+  //     [question.question_id]: {
+  //       ...prev[question.question_id],
+  //       [taskId]: !prev[question.question_id][taskId],
+  //     },
+  //   }));
+  // };
+  const toggleVariableValidity = (taskIndex: number, variableIndex: number) => {
+    setVariableValidity((prev) => {
+      const newValidity = [...prev];
+      newValidity[currentQuestionIndex][taskIndex][variableIndex] =
+        !newValidity[currentQuestionIndex][taskIndex][variableIndex];
+      return newValidity;
+    });
   };
 
   return (
@@ -132,7 +154,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             type="inner"
             style={{
               height: "150px",
-              overflow: "hidden",
+              overflow: "scroll",
               backgroundColor: "#fbfbfb",
             }}
           >
@@ -152,11 +174,13 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                     key={`${question._id}-${task.task_id}`}
                     id={task.task_id}
                     task={task.task}
-                    isValid={
-                      taskValidity[question.question_id]?.[task.task_id] ??
-                      false
-                    }
-                    onToggle={() => toggleValidity(task.task_id)}
+                    variables={task.variables}
+                    variableValidity={variableValidity}
+                    setVariableValidity={setVariableValidity}
+                    questionIndex={currentQuestionIndex}
+                    taskIndex={question.retrieval_tasks.findIndex(
+                      (t) => t.task_id === task.task_id
+                    )}
                   />
                 ))}
               </Col>

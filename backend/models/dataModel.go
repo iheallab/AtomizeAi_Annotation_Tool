@@ -5,12 +5,18 @@ import (
 )
 
 // RetrievalTask represents a retrieval operation for a question
+type RetrievalTaskVariable struct {
+	Variable string `json:"variable" bson:"variable"`
+	IsValid bool   `json:"valid" bson:"valid"`
+}
+
 type RetrievalTask struct {
-    ID       int    `json:"task_id" bson:"task_id"`  // Correct syntax
+    ID       int    `json:"task_id" bson:"task_id"  // Correct syntax`
     Table    string `json:"table" bson:"table"`
     Task     string `json:"task" bson:"task"`
     SQLQuery string `json:"sql_query" bson:"sql_query"`
-    IsValid  bool   `json:"valid" bson:"valid"`
+    // IsValid  []bool   `json:"valid" bson:"valid"`
+	Variables []RetrievalTaskVariable `json:"variables" bson:"variables"`
 }
 
 type Question struct {
@@ -20,6 +26,8 @@ type Question struct {
 	Category		string			 `json:"category" bson:"category"`
 	RetrievalTasks []RetrievalTask	`json:"retrieval_tasks" bson:"retrieval_tasks"`
 	AnnotatedBy		int				 `json:"annotated_by" bson:"annotated_by"`
+	Reasoning 		string			 `json:"reasoning" bson:"reasoning"`
+	QuestionValid	bool			 `json:"question_valid" bson:"question_valid"`
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 }
 

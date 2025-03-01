@@ -15,7 +15,7 @@ func InitializeRoutes() http.Handler {
 	// Lab Member Access:
 	r.HandleFunc("/insert_questions", controllers.InsertQuestions).Methods("POST")
 
-	r.HandleFunc("/upload", controllers.UploadFile).Methods("POST")
+	// r.HandleFunc("/upload", controllers.UploadFile).Methods("POST")
 
 	r.HandleFunc("/questions", controllers.GetQuestions).Methods("GET")
 
