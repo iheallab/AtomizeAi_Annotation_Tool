@@ -5,7 +5,7 @@ import Task from "./components/Task";
 import Feedback from "./components/Feedback";
 import "./annotation_component.css";
 import Grid from "./components/Grid";
-
+import Reasoning from "./components/Reasoning";
 interface TaskVars {
   valid: boolean;
   variable: string;
@@ -24,8 +24,10 @@ interface QuestionData {
   question: string;
   question_id: number;
   retrieval_tasks: TaskData[];
-  annotated?: boolean;
   main_feedback?: string;
+  // annotated?: boolean;
+  annotated_by?: number;
+  reasoning: string;
 }
 
 // interface AnnotationComponentProps {
@@ -124,7 +126,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
       variant="borderless"
       className="annotation-card"
       style={{
-        height: "75vh",
+        height: "90vh",
         display: "flex",
         flexDirection: "column",
         width: "90vw",
@@ -134,12 +136,13 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
       <Row className="main-content" style={{ height: "100%" }}>
         {/* LEFT SECTION (Question + Tasks + Feedback) */}
         <Col
-          span={18}
+          span={16}
           className="content-column"
           style={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
           {/* QUESTION ROW */}
-          <Row style={{ margin: "5px" }}>
+          <Row>
+            {/* < */}
             <Question
               question={question.question}
               questionFeedback={questionFeedback}
@@ -154,22 +157,11 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             hoverable={true}
             type="inner"
             style={{
-              height: "250px",
-              overflow: "scroll",
+              height: "300px",
+              // overflow: "scroll",
               // backgroundColor: "#fbfbfb",
             }}
           >
-            {/* <Row> */}
-            {/* <Col span={24} className="tasks-section"> */}
-            {/* {question.retrieval_tasks.map((task) => (
-                  <Task
-                    key={`${question._id}-${task.task_id}`}
-                    id={task.task_id}
-                    task={task.task}
-                    isValid={taskValidity[task.task_id]}
-                    onToggle={() => toggleValidity(task.task_id)}
-                  />
-                ))} */}
             {question.retrieval_tasks.map((task) => (
               <Task
                 key={`${question._id}-${task.task_id}`}
@@ -185,8 +177,6 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                 )}
               />
             ))}
-            {/* </Col> */}
-            {/* </Row> */}
           </Card>
 
           {/* <Divider className="divider" /> */}
@@ -210,12 +200,19 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
         <Col span={1} className="divider-column"></Col>
 
         {/* RIGHT SECTION (GRID) */}
-        <Col span={5} className="db-info-column">
-          <Grid
-            answeredQuestions={answeredQuestions}
-            currentQuestionIndex={currentQuestionIndex}
-            onQuestionSelect={(index: number) => setCurrentQuestionIndex(index)}
-          />
+        <Col span={7} className="db-info-column">
+          <Row>
+            <Grid
+              answeredQuestions={answeredQuestions}
+              currentQuestionIndex={currentQuestionIndex}
+              onQuestionSelect={(index: number) =>
+                setCurrentQuestionIndex(index)
+              }
+            />
+          </Row>
+          <Row>
+            <Reasoning reasoning={question.reasoning} />
+          </Row>
         </Col>
       </Row>
     </Card>

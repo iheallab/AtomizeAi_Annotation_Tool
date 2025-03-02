@@ -1,7 +1,7 @@
 .grid-container {
-  padding: 20px;
+  /* padding: 20px; */
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .grid-item {

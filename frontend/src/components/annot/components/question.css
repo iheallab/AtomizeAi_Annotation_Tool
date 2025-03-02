@@ -1,0 +1,5 @@
+.question-text {
+  word-wrap: break-word;
+  width: 100%;
+  text-align: justify;
+}

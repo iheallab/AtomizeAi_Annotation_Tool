@@ -24,7 +24,9 @@ interface QuestionData {
   question_id: number;
   retrieval_tasks: TaskData[];
   main_feedback?: string;
-  annotated?: boolean;
+  // annotated?: boolean;
+  annotated_by?: number;
+  reasoning: string;
 }
 
 const Annotations: React.FC = () => {
@@ -68,6 +70,7 @@ const Annotations: React.FC = () => {
   //   }
   // }, [questions]);
   useEffect(() => {
+    const initialFeedback: Record<string, string> = {};
     if (questions.length > 0) {
       const initialValidity = questions.map((question) =>
         question.retrieval_tasks.map((task) =>
@@ -76,7 +79,13 @@ const Annotations: React.FC = () => {
             : []
         )
       );
+
       setVariableValidity(initialValidity);
+
+      questions.forEach((q) => {
+        initialFeedback[q._id] = q.main_feedback || "";
+      });
+      setFeedback(initialFeedback);
     }
   }, [questions]);
 
@@ -110,7 +119,7 @@ const Annotations: React.FC = () => {
         const data = await response.json();
         console.log("Fetched annotations:", data);
         const initialAnsweredState = data.questions.map((q: QuestionData) => {
-          return q.annotated ?? false;
+          return q.annotated_by == 0 ? false ?? false : true;
           // console.log(q.annotated, " for this question ", q.question);
         });
         console.log("Initial answered state:", initialAnsweredState);
