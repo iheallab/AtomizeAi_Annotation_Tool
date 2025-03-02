@@ -12,6 +12,7 @@ interface TaskVars {
 interface TaskData {
   task_id: number; // Change from string to number
   task: string;
+  table: string;
   valid?: boolean;
   variables: TaskVars[];
 }

@@ -13,6 +13,7 @@ interface TaskVars {
 interface TaskData {
   task_id: number; // Change from string to number
   task: string;
+  table: string;
   valid?: boolean;
   variables: TaskVars[];
 }
@@ -153,14 +154,14 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             hoverable={true}
             type="inner"
             style={{
-              height: "150px",
+              height: "250px",
               overflow: "scroll",
-              backgroundColor: "#fbfbfb",
+              // backgroundColor: "#fbfbfb",
             }}
           >
-            <Row style={{ height: "100%", overflowY: "auto" }}>
-              <Col span={24} className="tasks-section">
-                {/* {question.retrieval_tasks.map((task) => (
+            {/* <Row> */}
+            {/* <Col span={24} className="tasks-section"> */}
+            {/* {question.retrieval_tasks.map((task) => (
                   <Task
                     key={`${question._id}-${task.task_id}`}
                     id={task.task_id}
@@ -169,22 +170,23 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                     onToggle={() => toggleValidity(task.task_id)}
                   />
                 ))} */}
-                {question.retrieval_tasks.map((task) => (
-                  <Task
-                    key={`${question._id}-${task.task_id}`}
-                    id={task.task_id}
-                    task={task.task}
-                    variables={task.variables}
-                    variableValidity={variableValidity}
-                    setVariableValidity={setVariableValidity}
-                    questionIndex={currentQuestionIndex}
-                    taskIndex={question.retrieval_tasks.findIndex(
-                      (t) => t.task_id === task.task_id
-                    )}
-                  />
-                ))}
-              </Col>
-            </Row>
+            {question.retrieval_tasks.map((task) => (
+              <Task
+                key={`${question._id}-${task.task_id}`}
+                id={task.task_id}
+                task={task.task}
+                table={task.table}
+                variables={task.variables}
+                variableValidity={variableValidity}
+                setVariableValidity={setVariableValidity}
+                questionIndex={currentQuestionIndex}
+                taskIndex={question.retrieval_tasks.findIndex(
+                  (t) => t.task_id === task.task_id
+                )}
+              />
+            ))}
+            {/* </Col> */}
+            {/* </Row> */}
           </Card>
 
           {/* <Divider className="divider" /> */}

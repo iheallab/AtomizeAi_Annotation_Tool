@@ -64,6 +64,7 @@ interface TaskVars {
 interface TaskProps {
   id: number;
   task: string;
+  table: string;
   variables: TaskVars[];
   variableValidity: boolean[][][];
   setVariableValidity: React.Dispatch<React.SetStateAction<boolean[][][]>>;
@@ -79,6 +80,7 @@ const TaskTree: React.FC<TaskProps> = ({
   variables,
   questionIndex,
   taskIndex,
+  table,
   // onToggle,
 }) => {
   // Handle switch toggle for each variable
@@ -100,18 +102,25 @@ const TaskTree: React.FC<TaskProps> = ({
   // Convert the single task into a tree data format with switches
   const treeData: TreeDataNode[] = [
     {
-      title: task,
+      title: table,
       key: `task-${id}`,
       children: variables.map((variable, variableIndex) => ({
         title: (
-          <span>
+          <span
+            className={
+              variableValidity[questionIndex]?.[taskIndex]?.[variableIndex]
+                ? "task-text"
+                : "task-text invalid"
+            }
+          >
             <Switch
               checked={
                 variableValidity[questionIndex]?.[taskIndex]?.[variableIndex] ??
                 false
               }
               onChange={() => handleVariableToggle(variableIndex)}
-            />{" "}
+            />
+            {"     "}
             {variable.variable}
           </span>
         ),
@@ -126,7 +135,9 @@ const TaskTree: React.FC<TaskProps> = ({
 
   return (
     <Tree
+      className="custom-tree"
       showLine
+      height={300}
       switcherIcon={<DownOutlined />}
       defaultExpandedKeys={[`task-${id}`]} // Expand task node by default
       onSelect={onSelect}
