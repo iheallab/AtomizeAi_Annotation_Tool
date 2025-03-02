@@ -13,7 +13,7 @@ const Reasoning: React.FC<ReasoningComponents> = (reasoning) => {
           message={
             <p style={{ textAlign: "justify" }}>{reasoning.reasoning}</p>
           }
-          type="success"
+          // type="error"
         />
       </Card>
       {/* <Alert

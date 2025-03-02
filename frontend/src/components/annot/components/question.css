@@ -3,3 +3,29 @@
   width: 100%;
   text-align: justify;
 }
+
+.like-dislike-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.like-btn {
+  border-color: #d9d9d9;
+  color: #595959;
+}
+
+.dislike-btn {
+  border-color: #d9d9d9;
+  color: #595959;
+}
+
+.selected {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+.selected.dislike-btn {
+  border-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+}

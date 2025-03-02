@@ -1,34 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Card, Col, Row, Divider } from "antd";
+import { Card, Col, Row, Divider, Tag, Tooltip } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
 import "./annotation_component.css";
 import Grid from "./components/Grid";
 import Reasoning from "./components/Reasoning";
-interface TaskVars {
-  valid: boolean;
-  variable: string;
-}
-interface TaskData {
-  task_id: number; // Change from string to number
-  task: string;
-  table: string;
-  valid?: boolean;
-  variables: TaskVars[];
-}
-
-interface QuestionData {
-  _id: string;
-  category: string;
-  question: string;
-  question_id: number;
-  retrieval_tasks: TaskData[];
-  main_feedback?: string;
-  // annotated?: boolean;
-  annotated_by?: number;
-  reasoning: string;
-}
+import { TaskVars, TaskData, QuestionData } from "./types";
 
 // interface AnnotationComponentProps {
 //   question: QuestionData;
@@ -48,6 +26,8 @@ interface AnnotationComponentProps {
   setVariableValidity: React.Dispatch<React.SetStateAction<boolean[][][]>>;
   feedback: Record<string, string>;
   setFeedback: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  questionValid: boolean[];
+  setQuestionValidity: React.Dispatch<React.SetStateAction<boolean[]>>;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
@@ -60,6 +40,8 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   setVariableValidity,
   feedback,
   setFeedback,
+  questionValid,
+  setQuestionValidity,
 }) => {
   // console.log("Answered Questions in Annotation Component", answeredQuestions);
   const [questionFeedback, setQuestionFeedback] = useState<
@@ -143,10 +125,18 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
           {/* QUESTION ROW */}
           <Row>
             {/* < */}
+            <Tooltip title="ICU-Type">
+              <Tag color="magenta">{question.icu_type}</Tag>
+            </Tooltip>
+            <Tooltip title="Category">
+              <Tag color="geekblue">{question.category}</Tag>
+            </Tooltip>
             <Question
+              question_idx={currentQuestionIndex}
               question={question.question}
-              questionFeedback={questionFeedback}
-              setQuestionFeedback={setQuestionFeedback}
+              // setQuestionFeedback={setQuestionFeedback}
+              questionValid={questionValid[currentQuestionIndex]}
+              setQuestionValidity={setQuestionValidity}
             />
           </Row>
 

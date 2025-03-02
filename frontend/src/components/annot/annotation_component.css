@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   padding: 10px;
-  min-height: 90px;
+  height: 20vh;
 }
 
 .task-text {

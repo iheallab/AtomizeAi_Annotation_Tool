@@ -4,30 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Button, Space, Spin, Alert } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
-
-interface TaskVars {
-  valid: boolean;
-  variable: string;
-}
-interface TaskData {
-  task_id: number; // Change from string to number
-  task: string;
-  table: string;
-  valid?: boolean;
-  variables: TaskVars[];
-}
-
-interface QuestionData {
-  _id: string;
-  category: string;
-  question: string;
-  question_id: number;
-  retrieval_tasks: TaskData[];
-  main_feedback?: string;
-  // annotated?: boolean;
-  annotated_by?: number;
-  reasoning: string;
-}
+import { TaskVars, TaskData, QuestionData } from "./types";
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 const Annotations: React.FC = () => {
   const navigate = useNavigate();
@@ -36,13 +14,14 @@ const Annotations: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
-
+  const [questionValid, setQuestionValidity] = useState<boolean[]>([]);
   // const [taskValidity, setTaskValidity] = useState<
   //   Record<number, Record<number, boolean>>
   // >({});
   const [variableValidity, setVariableValidity] = useState<boolean[][][]>([]);
 
   const [feedback, setFeedback] = useState<Record<string, string>>({});
+
   // useEffect(() => {
   //   if (questions.length > 0) {
   //     // const initialValidity: Record<number, Record<number, boolean>> = {};
@@ -71,6 +50,7 @@ const Annotations: React.FC = () => {
   // }, [questions]);
   useEffect(() => {
     const initialFeedback: Record<string, string> = {};
+    const initialQuestionValidity: boolean[] = [];
     if (questions.length > 0) {
       const initialValidity = questions.map((question) =>
         question.retrieval_tasks.map((task) =>
@@ -82,10 +62,13 @@ const Annotations: React.FC = () => {
 
       setVariableValidity(initialValidity);
 
-      questions.forEach((q) => {
+      questions.forEach((q, index) => {
         initialFeedback[q._id] = q.main_feedback || "";
+        initialQuestionValidity[index] = q.question_valid ?? false; // Ensuring it gets set
       });
+
       setFeedback(initialFeedback);
+      setQuestionValidity(initialQuestionValidity);
     }
   }, [questions]);
 
@@ -252,25 +235,31 @@ const Annotations: React.FC = () => {
         setVariableValidity={setVariableValidity}
         feedback={feedback}
         setFeedback={setFeedback}
+        questionValid={questionValid}
+        setQuestionValidity={setQuestionValidity}
       />
 
       <Space size="middle" className="navigation-buttons">
         <Button
-          type="primary"
+          // type="outlined"
+          variant="outlined"
+          color="danger"
           onClick={() =>
             setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
           }
           disabled={currentQuestionIndex === 0}
         >
-          Previous
+          <LeftOutlined />
         </Button>
 
-        <Button type="primary" onClick={handleSubmit}>
+        <Button variant="outlined" color="green" onClick={handleSubmit}>
           Submit
         </Button>
 
         <Button
-          type="primary"
+          // type="outlined"
+          variant="outlined"
+          color="danger"
           onClick={() =>
             setCurrentQuestionIndex((prev) =>
               Math.min(prev + 1, questions.length - 1)
@@ -278,7 +267,7 @@ const Annotations: React.FC = () => {
           }
           disabled={currentQuestionIndex === questions.length - 1}
         >
-          Next
+          <RightOutlined />
         </Button>
       </Space>
     </div>
