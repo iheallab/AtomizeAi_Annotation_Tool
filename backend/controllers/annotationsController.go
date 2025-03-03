@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"encoding/json"
+	"fmt"
 
 	// "fmt"
 	"net/http"
@@ -107,12 +108,26 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	var finalQuestions []models.Question
 	for _, question := range questions {
 		if annotatedData, exists := annotationMap[question.ID]; exists {
-			annotatedData.QuestionValid = true // Mark as annotated
+			// annotatedData.QuestionValid = true // Mark as annotated
+			// fmt.Println("Annotated Question Validity:", annotatedData.QuestionValid)
+			// annotatedData.QuestionValid = annotatedData.QuestionValid
 			finalQuestions = append(finalQuestions, annotatedData)
 		} else {
-			question.QuestionValid = false // Mark as not annotated
+			// question.QuestionValid = false // Mark as not annotated
 			finalQuestions = append(finalQuestions, question)
 		}
+	}
+	for _, question := range finalQuestions {
+		fmt.Println("Question ID:", question.QuestionID)
+		fmt.Println("Question:", question.Question)
+		fmt.Println("Category:", question.Category)
+		fmt.Println("ICU Type:", question.ICUType)
+		fmt.Println("Retrieval Tasks:", question.RetrievalTasks)
+		fmt.Println("Annotated By:", question.AnnotatedBy)
+		fmt.Println("Reasoning:", question.Reasoning)
+		fmt.Println("Question Valid:", question.QuestionValid)
+		fmt.Println("Main Feedback:", question.MainFeedback)
+		fmt.Println("-----")
 	}
 
 	// Send response
@@ -194,7 +209,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"retrieval_tasks": annotationReq.RetrievalTasks,
 				"annotated_by":    annotationReq.AnnotatedBy,
 				"main_feedback":   annotationReq.MainFeedback,
-				"question_valid":  true, // Mark as annotated
+				"question_valid":  annotationReq.QuestionValid, // Mark as annotated
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)

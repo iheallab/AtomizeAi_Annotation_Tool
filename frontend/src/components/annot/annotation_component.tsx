@@ -1,20 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Card, Col, Row, Divider, Tag, Tooltip } from "antd";
+import React, { useEffect } from "react";
+import { Card, Col, Row, Tag, Tooltip } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
 import "./annotation_component.css";
 import Grid from "./components/Grid";
 import Reasoning from "./components/Reasoning";
-import { TaskVars, TaskData, QuestionData } from "./types";
-
-// interface AnnotationComponentProps {
-//   question: QuestionData;
-//   questions_list: QuestionData[];
-//   answeredQuestions: boolean[];
-//   currentQuestionIndex: number;
-//   setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
-// }
+import { QuestionData } from "./types";
 
 interface AnnotationComponentProps {
   question: QuestionData;
@@ -32,7 +24,6 @@ interface AnnotationComponentProps {
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   question,
-  questions_list,
   answeredQuestions,
   currentQuestionIndex,
   setCurrentQuestionIndex,
@@ -43,34 +34,6 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   questionValid,
   setQuestionValidity,
 }) => {
-  // console.log("Answered Questions in Annotation Component", answeredQuestions);
-  const [questionFeedback, setQuestionFeedback] = useState<
-    "like" | "dislike" | null
-  >(null);
-
-  // Initialize taskValidity with all tasks set to true
-  // const [taskValidity, setTaskValidity] = useState<Record<number, boolean>>(
-  //   () => {
-  //     return question.retrieval_tasks.reduce((acc, task) => {
-  //       acc[task.task_id] = true;
-  //       return acc;
-  //     }, {} as Record<number, boolean>);
-  //   }
-  // );
-
-  // Reset state when question changes
-  // useEffect(() => {
-  //   setQuestionFeedback(null);
-
-  //   setTaskValidity((prev) => ({
-  //     ...prev,
-  //     [question.question_id]: question.retrieval_tasks.reduce((acc, task) => {
-  //       acc[task.task_id] = task.valid ?? true; // Use existing validity if available
-  //       return acc;
-  //     }, {} as Record<number, boolean>),
-  //   }));
-  // }, [question, setTaskValidity]);
-
   if (!question) {
     return <div>Loading...</div>;
   }
@@ -83,24 +46,6 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
       return newValidity;
     });
   }, [question, setVariableValidity]);
-
-  // const toggleValidity = (taskId: number) => {
-  //   setTaskValidity((prev) => ({
-  //     ...prev,
-  //     [question.question_id]: {
-  //       ...prev[question.question_id],
-  //       [taskId]: !prev[question.question_id][taskId],
-  //     },
-  //   }));
-  // };
-  const toggleVariableValidity = (taskIndex: number, variableIndex: number) => {
-    setVariableValidity((prev) => {
-      const newValidity = [...prev];
-      newValidity[currentQuestionIndex][taskIndex][variableIndex] =
-        !newValidity[currentQuestionIndex][taskIndex][variableIndex];
-      return newValidity;
-    });
-  };
 
   return (
     <Card

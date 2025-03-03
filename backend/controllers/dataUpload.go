@@ -39,6 +39,7 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 		// Assign unique MongoDB ObjectID and Question ID
 		data.ID = primitive.NewObjectID()
 		data.QuestionID = questionID
+		data.QuestionValid = true
 		data.MainFeedback = "" // Default empty feedback
 
 		// Ensure retrieval tasks and their variables are properly initialized

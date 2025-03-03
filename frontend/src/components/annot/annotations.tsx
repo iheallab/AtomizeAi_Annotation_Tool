@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Space, Spin, Alert } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
-import { TaskVars, TaskData, QuestionData } from "./types";
+import { QuestionData } from "./types";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 const Annotations: React.FC = () => {
@@ -64,7 +64,8 @@ const Annotations: React.FC = () => {
 
       questions.forEach((q, index) => {
         initialFeedback[q._id] = q.main_feedback || "";
-        initialQuestionValidity[index] = q.question_valid ?? false; // Ensuring it gets set
+        console.log("Question Validity", q.question_valid);
+        initialQuestionValidity[index] = q.question_valid; // Ensuring it gets set
       });
 
       setFeedback(initialFeedback);
@@ -153,6 +154,7 @@ const Annotations: React.FC = () => {
         })
       ),
       main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
+      question_valid: questionValid[currentQuestionIndex],
     };
     // Update local state
     setQuestions((prevQuestions) =>
