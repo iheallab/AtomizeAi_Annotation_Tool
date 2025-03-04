@@ -3,8 +3,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 110vh;
   width: 95%;
+  height: 90vh;
   margin: 0 auto;
 }
 

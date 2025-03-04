@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Card, Col, Row, Tag, Tooltip, Splitter } from "antd";
+import { Card, Col, Row, Tag, Tooltip, Splitter, Descriptions } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
@@ -53,36 +53,19 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
       // title={`Question ${currentQuestionIndex + 1}`}
       variant="borderless"
       className="annotation-card"
-      style={{
-        height: "90vh",
-        display: "flex",
-        flexDirection: "column",
-        width: "90vw",
-        maxWidth: "1080px",
-      }}
     >
-      <Row className="main-content" style={{ height: "100%" }}>
-        {/* LEFT SECTION (Question + Tasks + Feedback) */}
-        <Col
-          span={16}
-          className="content-column"
-          style={{ display: "flex", flexDirection: "column", height: "100%" }}
-        >
-          {/* QUESTION ROW */}
-          <Row>
-            {/* < */}
-            {/* <Card hoverable > */}
-            <Tooltip title="ICU-Type">
-              <Tag color="magenta" icon={<InfoCircleOutlined />}>
-                {question.icu_type}
-              </Tag>
-            </Tooltip>
-            {/* </Card> */}
-            <Tooltip title="Category">
-              <Tag color="geekblue" icon={<InfoCircleOutlined />}>
-                {question.category}
-              </Tag>
-            </Tooltip>
+      <Row className="main-content">
+        <Col span={16} className="content-column">
+          <Row className="question-row">
+            <Descriptions>
+              <Descriptions.Item label="ICU-Type">
+                <Tag color="magenta">{question.icu_type}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Category">
+                <Tag color="geekblue">{question.category}</Tag>
+              </Descriptions.Item>
+            </Descriptions>
+
             <Question
               question_idx={currentQuestionIndex}
               question={question.question}
@@ -95,15 +78,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
           {/* <Divider className="divider" /> */}
 
           {/* TASKS SECTION (SCROLLABLE) */}
-          <Card
-            hoverable={true}
-            type="inner"
-            style={{
-              height: "300px",
-              // overflow: "scroll",
-              // backgroundColor: "#fbfbfb",
-            }}
-          >
+          <Card hoverable={true} type="inner" className="tasks-card">
             {question.retrieval_tasks.map((task) => (
               <Task
                 key={`${question._id}-${task.task_id}`}
@@ -135,6 +110,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                   [question._id]: newFeedback,
                 }));
               }}
+              questionValid={questionValid[currentQuestionIndex]}
             />
           </Row>
         </Col>

@@ -116,7 +116,6 @@ const TaskTree: React.FC<TaskProps> = ({
     <Tree
       className="custom-tree"
       showLine
-      height={300}
       switcherIcon={<DownOutlined />}
       defaultExpandedKeys={[`task-${id}`]} // Expand task node by default
       onSelect={onSelect}

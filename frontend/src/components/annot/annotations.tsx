@@ -265,7 +265,15 @@ const Annotations: React.FC = () => {
           <LeftOutlined />
         </Button>
 
-        <Button variant="outlined" color="green" onClick={handleSubmit}>
+        <Button
+          variant="outlined"
+          color="green"
+          onClick={handleSubmit}
+          disabled={
+            !questionValid[currentQuestionIndex] &&
+            !feedback[questions[currentQuestionIndex]._id]
+          }
+        >
           Submit
         </Button>
 

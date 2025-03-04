@@ -12,3 +12,7 @@
   color: #bfbfbf;
   font-weight: 300;
 }
+.custom-tree {
+  height: 100%;
+  overflow-y: auto; /* Enables scrolling if needed */
+}
