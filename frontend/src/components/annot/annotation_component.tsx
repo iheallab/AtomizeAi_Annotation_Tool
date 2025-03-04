@@ -117,6 +117,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                 taskIndex={question.retrieval_tasks.findIndex(
                   (t) => t.task_id === task.task_id
                 )}
+                questionValid={questionValid[currentQuestionIndex]}
               />
             ))}
           </Card>

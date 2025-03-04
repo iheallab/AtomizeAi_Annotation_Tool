@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { DownOutlined } from "@ant-design/icons";
 import { Tree, Switch } from "antd";
 import type { TreeDataNode, TreeProps } from "antd";
@@ -17,6 +17,7 @@ interface TaskProps {
   setVariableValidity: React.Dispatch<React.SetStateAction<boolean[][][]>>;
   questionIndex: number;
   taskIndex: number;
+  questionValid: boolean;
 }
 
 const TaskTree: React.FC<TaskProps> = ({
@@ -28,6 +29,7 @@ const TaskTree: React.FC<TaskProps> = ({
   questionIndex,
   taskIndex,
   table,
+  questionValid,
   // on`Toggle`,
 }) => {
   // Handle switch toggle for each variable
@@ -45,6 +47,36 @@ const TaskTree: React.FC<TaskProps> = ({
       return newValidity;
     });
   };
+
+  useEffect(() => {
+    if (!questionValid) {
+      setVariableValidity((prev) => {
+        const newValidity = prev.map((q, qIndex) =>
+          qIndex === questionIndex
+            ? q.map((t, tIndex) =>
+                tIndex === taskIndex
+                  ? t.map(() => false) // ❌ Turn all switches off
+                  : t
+              )
+            : q
+        );
+        return newValidity;
+      });
+    } else {
+      setVariableValidity((prev) => {
+        const newValidity = prev.map((q, qIndex) =>
+          qIndex === questionIndex
+            ? q.map((t, tIndex) =>
+                tIndex === taskIndex
+                  ? t.map(() => true) // ✅ Turn all switches on
+                  : t
+              )
+            : q
+        );
+        return newValidity;
+      });
+    }
+  }, [questionValid, questionIndex, taskIndex, setVariableValidity]);
 
   // Convert the single task into a tree data format with switches
   const treeData: TreeDataNode[] = [
