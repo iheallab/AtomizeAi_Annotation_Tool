@@ -1,56 +1,3 @@
-// import React from "react";
-// import { Row, Col, Switch, Typography } from "antd";
-
-// const { Text } = Typography;
-// import "./task.css";
-
-// interface TaskVars {
-//   valid: boolean;
-//   variable: string;
-// }
-
-// interface TaskProps {
-//   id: number;
-//   task: string;
-//   isValid: boolean;
-//   variables: TaskVars[];
-//   onToggle: () => void;
-// }
-
-// const Task: React.FC<TaskProps> = ({
-//   id,
-//   task,
-//   isValid,
-//   variables,
-//   onToggle,
-// }) => {
-//   return (
-//     <div className="task-item">
-//       <Row justify="space-between" align="middle">
-//         <Col span={4}>
-//           <Switch
-//             checkedChildren="Valid"
-//             unCheckedChildren="Invalid"
-//             checked={isValid}
-//             onChange={onToggle}
-//           />
-//         </Col>
-//         <Col span={20}>
-//           <Text className={isValid ? "task-text" : "task-text invalid"}>
-//             {task}
-//           </Text>
-
-//           {/* Move the mapping outside the <Text> component */}
-//           {variables.map((variable, index) => (
-//             <p key={index}>{variable.variable}</p>
-//           ))}
-//         </Col>
-//       </Row>
-//     </div>
-//   );
-// };
-
-// export default Task;
 import React from "react";
 import { DownOutlined } from "@ant-design/icons";
 import { Tree, Switch } from "antd";
@@ -81,7 +28,7 @@ const TaskTree: React.FC<TaskProps> = ({
   questionIndex,
   taskIndex,
   table,
-  // onToggle,
+  // on`Toggle`,
 }) => {
   // Handle switch toggle for each variable
   const handleVariableToggle = (variableIndex: number) => {
@@ -102,7 +49,7 @@ const TaskTree: React.FC<TaskProps> = ({
   // Convert the single task into a tree data format with switches
   const treeData: TreeDataNode[] = [
     {
-      title: table,
+      title: task,
       key: `task-${id}`,
       children: variables.map((variable, variableIndex) => ({
         title: (

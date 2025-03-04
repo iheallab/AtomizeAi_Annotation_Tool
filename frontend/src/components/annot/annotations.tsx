@@ -1,11 +1,16 @@
 import AnnotationComponent from "./annotation_component";
 
-import React, { useState, useEffect } from "react";
-import { Button, Space, Spin, Alert } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import { Button, Space, Spin, Alert, FloatButton } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 import { QuestionData } from "./types";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
+import { AuthContext } from "../AuthContext";
 
 const Annotations: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +24,7 @@ const Annotations: React.FC = () => {
   //   Record<number, Record<number, boolean>>
   // >({});
   const [variableValidity, setVariableValidity] = useState<boolean[][][]>([]);
+  const { logout } = useContext(AuthContext);
 
   const [feedback, setFeedback] = useState<Record<string, string>>({});
 
@@ -239,6 +245,11 @@ const Annotations: React.FC = () => {
         setFeedback={setFeedback}
         questionValid={questionValid}
         setQuestionValidity={setQuestionValidity}
+      />
+      <FloatButton
+        icon={<ArrowLeftOutlined />}
+        onClick={() => logout()}
+        style={{ top: 20, right: 20 }}
       />
 
       <Space size="middle" className="navigation-buttons">

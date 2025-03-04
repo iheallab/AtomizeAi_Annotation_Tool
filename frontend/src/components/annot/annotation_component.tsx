@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Card, Col, Row, Tag, Tooltip } from "antd";
+import { Card, Col, Row, Tag, Tooltip, Splitter } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
@@ -7,6 +7,7 @@ import "./annotation_component.css";
 import Grid from "./components/Grid";
 import Reasoning from "./components/Reasoning";
 import { QuestionData } from "./types";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 interface AnnotationComponentProps {
   question: QuestionData;
@@ -70,11 +71,17 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
           {/* QUESTION ROW */}
           <Row>
             {/* < */}
+            {/* <Card hoverable > */}
             <Tooltip title="ICU-Type">
-              <Tag color="magenta">{question.icu_type}</Tag>
+              <Tag color="magenta" icon={<InfoCircleOutlined />}>
+                {question.icu_type}
+              </Tag>
             </Tooltip>
+            {/* </Card> */}
             <Tooltip title="Category">
-              <Tag color="geekblue">{question.category}</Tag>
+              <Tag color="geekblue" icon={<InfoCircleOutlined />}>
+                {question.category}
+              </Tag>
             </Tooltip>
             <Question
               question_idx={currentQuestionIndex}

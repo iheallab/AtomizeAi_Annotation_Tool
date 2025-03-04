@@ -64,6 +64,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	var assignment struct {
 		QuestionIDs []primitive.ObjectID `bson:"question_ids"`
 	}
+	fmt.Println("User ID:", userID)
 	err = assignmentCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&assignment)
 	if err != nil {
 		http.Error(w, "Assignment not found", http.StatusNotFound)
@@ -86,7 +87,11 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch annotations for assigned questions
 	var annotations []models.Question
-	annotationCursor, err := annotationsCollection.Find(ctx, bson.M{"_id": bson.M{"$in": assignment.QuestionIDs}})
+	annotationCursor, err := annotationsCollection.Find(ctx, bson.M{
+		"_id": bson.M{"$in": assignment.QuestionIDs},
+		"annotated_by": userID,
+	})
+
 	if err != nil {
 		http.Error(w, "Error retrieving annotations", http.StatusInternalServerError)
 		return
@@ -117,18 +122,18 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 			finalQuestions = append(finalQuestions, question)
 		}
 	}
-	for _, question := range finalQuestions {
-		fmt.Println("Question ID:", question.QuestionID)
-		fmt.Println("Question:", question.Question)
-		fmt.Println("Category:", question.Category)
-		fmt.Println("ICU Type:", question.ICUType)
-		fmt.Println("Retrieval Tasks:", question.RetrievalTasks)
-		fmt.Println("Annotated By:", question.AnnotatedBy)
-		fmt.Println("Reasoning:", question.Reasoning)
-		fmt.Println("Question Valid:", question.QuestionValid)
-		fmt.Println("Main Feedback:", question.MainFeedback)
-		fmt.Println("-----")
-	}
+	// for _, question := range finalQuestions {
+	// 	fmt.Println("Question ID:", question.QuestionID)
+	// 	fmt.Println("Question:", question.Question)
+	// 	fmt.Println("Category:", question.Category)
+	// 	fmt.Println("ICU Type:", question.ICUType)
+	// 	fmt.Println("Retrieval Tasks:", question.RetrievalTasks)
+	// 	fmt.Println("Annotated By:", question.AnnotatedBy)
+	// 	fmt.Println("Reasoning:", question.Reasoning)
+	// 	fmt.Println("Question Valid:", question.QuestionValid)
+	// 	fmt.Println("Main Feedback:", question.MainFeedback)
+	// 	fmt.Println("-----")
+	// }
 
 	// Send response
 	w.Header().Set("Content-Type", "application/json")
