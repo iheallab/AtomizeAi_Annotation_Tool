@@ -21,6 +21,8 @@ interface AnnotationComponentProps {
   setFeedback: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   questionValid: boolean[];
   setQuestionValidity: React.Dispatch<React.SetStateAction<boolean[]>>;
+  reasoningValid: boolean[];
+  setReasoningValid: React.Dispatch<React.SetStateAction<boolean[]>>;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
@@ -34,6 +36,8 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   setFeedback,
   questionValid,
   setQuestionValidity,
+  reasoningValid,
+  setReasoningValid,
 }) => {
   if (!question) {
     return <div>Loading...</div>;
@@ -130,7 +134,12 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             />
           </Row>
           <Row>
-            <Reasoning reasoning={question.reasoning} />
+            <Reasoning
+              reasoning={question.reasoning}
+              reasoningValid={reasoningValid[currentQuestionIndex]}
+              setReasoningValid={setReasoningValid}
+              questionIndex={currentQuestionIndex}
+            />
           </Row>
         </Col>
       </Row>

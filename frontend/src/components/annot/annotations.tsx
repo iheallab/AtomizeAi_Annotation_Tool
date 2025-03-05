@@ -1,7 +1,7 @@
 import AnnotationComponent from "./annotation_component";
 
 import React, { useState, useEffect, useContext } from "react";
-import { Button, Space, Spin, Alert, FloatButton } from "antd";
+import { Button, Space, Spin, Alert, FloatButton, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 import { QuestionData } from "./types";
@@ -20,6 +20,25 @@ const Annotations: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
   const [questionValid, setQuestionValidity] = useState<boolean[]>([]);
+  const [reasoningValid, setReasoningValidity] = useState<boolean[]>([]);
+
+  const [messageApi, contextHolder] = message.useMessage();
+  const success = () => {
+    console.log("Annotations Updated");
+    messageApi.open({
+      type: "success",
+      content: "Annotated successfully",
+      duration: 2,
+    });
+  };
+  const errorMsg = () => {
+    console.log("Error in Annotations");
+    messageApi.open({
+      type: "error",
+      content: "Something Went Wrong",
+      duration: 2,
+    });
+  };
   // const [taskValidity, setTaskValidity] = useState<
   //   Record<number, Record<number, boolean>>
   // >({});
@@ -57,6 +76,8 @@ const Annotations: React.FC = () => {
   useEffect(() => {
     const initialFeedback: Record<string, string> = {};
     const initialQuestionValidity: boolean[] = [];
+    const initialReasoningValidity: boolean[] = [];
+
     if (questions.length > 0) {
       const initialValidity = questions.map((question) =>
         question.retrieval_tasks.map((task) =>
@@ -72,10 +93,12 @@ const Annotations: React.FC = () => {
         initialFeedback[q._id] = q.main_feedback || "";
         console.log("Question Validity", q.question_valid);
         initialQuestionValidity[index] = q.question_valid; // Ensuring it gets set
+        initialReasoningValidity[index] = q.reasoning_valid ?? false;
       });
 
       setFeedback(initialFeedback);
       setQuestionValidity(initialQuestionValidity);
+      setReasoningValidity(initialReasoningValidity);
     }
   }, [questions]);
 
@@ -161,6 +184,7 @@ const Annotations: React.FC = () => {
       ),
       main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
       question_valid: questionValid[currentQuestionIndex],
+      reasoning_valid: reasoningValid[currentQuestionIndex],
     };
     // Update local state
     setQuestions((prevQuestions) =>
@@ -189,9 +213,10 @@ const Annotations: React.FC = () => {
       });
 
       if (!response.ok) {
+        errorMsg();
         throw new Error(`Failed to update annotation: ${response.status}`);
       }
-
+      success();
       console.log("Annotation updated successfully");
     } catch (error) {
       console.error("Error updating annotation:", error);
@@ -245,6 +270,8 @@ const Annotations: React.FC = () => {
         setFeedback={setFeedback}
         questionValid={questionValid}
         setQuestionValidity={setQuestionValidity}
+        reasoningValid={reasoningValid}
+        setReasoningValid={setReasoningValidity}
       />
       <FloatButton
         icon={<ArrowLeftOutlined />}
@@ -264,7 +291,7 @@ const Annotations: React.FC = () => {
         >
           <LeftOutlined />
         </Button>
-
+        {contextHolder}
         <Button
           variant="outlined"
           color="green"

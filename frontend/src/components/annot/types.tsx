@@ -21,5 +21,6 @@ export type QuestionData = {
   annotated_by?: number;
   reasoning: string;
   question_valid: boolean;
+  reasoning_valid: boolean;
 };
 // export { TaskVars, TaskData, QuestionData };
