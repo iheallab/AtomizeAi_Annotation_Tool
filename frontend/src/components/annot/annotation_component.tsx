@@ -19,10 +19,10 @@ interface AnnotationComponentProps {
   setVariableValidity: React.Dispatch<React.SetStateAction<boolean[][][]>>;
   feedback: Record<string, string>;
   setFeedback: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  questionValid: boolean[];
-  setQuestionValidity: React.Dispatch<React.SetStateAction<boolean[]>>;
-  reasoningValid: boolean[];
-  setReasoningValid: React.Dispatch<React.SetStateAction<boolean[]>>;
+  questionValid: (boolean | null)[];
+  setQuestionValidity: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
+  reasoningValid: (boolean | null)[];
+  setReasoningValid: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
@@ -62,7 +62,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
         <Col span={16} className="content-column">
           <Row className="question-row">
             <Descriptions>
-              <Descriptions.Item label="ICU-Type">
+              <Descriptions.Item label="ICU Unit Type">
                 <Tag color="magenta">{question.icu_type}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Category">
@@ -115,6 +115,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                 }));
               }}
               questionValid={questionValid[currentQuestionIndex]}
+              reasonValid={reasoningValid[currentQuestionIndex]}
             />
           </Row>
         </Col>

@@ -28,7 +28,8 @@ type Question struct {
 	RetrievalTasks []RetrievalTask	`json:"retrieval_tasks" bson:"retrieval_tasks"`
 	AnnotatedBy		int				 `json:"annotated_by" bson:"annotated_by"`
 	Reasoning 		string			 `json:"reasoning" bson:"reasoning"`
-	QuestionValid	bool			 `json:"question_valid" bson:"question_valid"`
+	QuestionValid	*bool			 `json:"question_valid" bson:"question_valid"`
+	ResoningValid	*bool			 `json:"reasoning_valid" bson:"reasoning_valid"`
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 }
 

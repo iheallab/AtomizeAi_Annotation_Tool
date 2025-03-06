@@ -20,7 +20,7 @@ export type QuestionData = {
   main_feedback?: string;
   annotated_by?: number;
   reasoning: string;
-  question_valid: boolean;
-  reasoning_valid: boolean;
+  question_valid: boolean | null;
+  reasoning_valid: boolean | null;
 };
 // export { TaskVars, TaskData, QuestionData };

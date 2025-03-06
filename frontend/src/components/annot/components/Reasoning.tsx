@@ -72,8 +72,8 @@ import { DislikeOutlined, LikeOutlined } from "@ant-design/icons";
 
 interface ReasoningComponents {
   reasoning: string;
-  reasoningValid: boolean;
-  setReasoningValid: React.Dispatch<React.SetStateAction<boolean[]>>;
+  reasoningValid: boolean | null;
+  setReasoningValid: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
   questionIndex: number;
 }
 
@@ -83,6 +83,7 @@ const Reasoning: React.FC<ReasoningComponents> = ({
   setReasoningValid,
   questionIndex,
 }) => {
+  console.log("Reasoning Validity", reasoningValid);
   return (
     <Card
       title="Reasoning"
@@ -92,27 +93,37 @@ const Reasoning: React.FC<ReasoningComponents> = ({
           {/* ✅ Subtle Like/Dislike icons */}
           <LikeOutlined
             style={{
-              color: reasoningValid ? "green" : "gray",
+              color:
+                reasoningValid === null
+                  ? "gray"
+                  : reasoningValid
+                  ? "green"
+                  : "gray", // ✅ Gray if null
               fontSize: "18px",
               cursor: "pointer",
               marginRight: "10px",
             }}
             onClick={() =>
-              setReasoningValid((prev: boolean[]) => {
+              setReasoningValid((prev: (boolean | null)[]) => {
                 const updated = [...prev];
                 updated[questionIndex] = true; // ✅ Mark as liked
                 return updated;
               })
             }
-          />
+          ></LikeOutlined>
           <DislikeOutlined
             style={{
-              color: !reasoningValid ? "red" : "gray",
+              color:
+                reasoningValid === null
+                  ? "gray"
+                  : reasoningValid === false
+                  ? "red"
+                  : "gray", // ✅ Gray if null
               fontSize: "18px",
               cursor: "pointer",
             }}
             onClick={() =>
-              setReasoningValid((prev: boolean[]) => {
+              setReasoningValid((prev: (boolean | null)[]) => {
                 const updated = [...prev];
                 updated[questionIndex] = false; // ✅ Mark as disliked
                 return updated;

@@ -19,8 +19,10 @@ const Annotations: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
-  const [questionValid, setQuestionValidity] = useState<boolean[]>([]);
-  const [reasoningValid, setReasoningValidity] = useState<boolean[]>([]);
+  const [questionValid, setQuestionValidity] = useState<(boolean | null)[]>([]);
+  const [reasoningValid, setReasoningValidity] = useState<(boolean | null)[]>(
+    []
+  );
 
   const [messageApi, contextHolder] = message.useMessage();
   const success = () => {
@@ -75,8 +77,8 @@ const Annotations: React.FC = () => {
   // }, [questions]);
   useEffect(() => {
     const initialFeedback: Record<string, string> = {};
-    const initialQuestionValidity: boolean[] = [];
-    const initialReasoningValidity: boolean[] = [];
+    const initialQuestionValidity: (boolean | null)[] = [];
+    const initialReasoningValidity: (boolean | null)[] = [];
 
     if (questions.length > 0) {
       const initialValidity = questions.map((question) =>
@@ -91,9 +93,12 @@ const Annotations: React.FC = () => {
 
       questions.forEach((q, index) => {
         initialFeedback[q._id] = q.main_feedback || "";
-        console.log("Question Validity", q.question_valid);
-        initialQuestionValidity[index] = q.question_valid; // Ensuring it gets set
-        initialReasoningValidity[index] = q.reasoning_valid ?? false;
+        // console.log("Question Validity", q.question_valid);
+        initialQuestionValidity[index] = q.question_valid ?? null; // Ensuring it gets set
+        // console.log("Reasoning Validity", q.reasoning_valid);
+        initialReasoningValidity[index] = q.reasoning_valid ?? null;
+        // initialReasoningValidity[index] = true;
+        // console.log("Initial Reasoning Validity", initialReasoningValidity);
       });
 
       setFeedback(initialFeedback);
@@ -283,7 +288,7 @@ const Annotations: React.FC = () => {
         <Button
           // type="outlined"
           variant="outlined"
-          color="danger"
+          color="primary"
           onClick={() =>
             setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
           }
@@ -298,7 +303,8 @@ const Annotations: React.FC = () => {
           onClick={handleSubmit}
           disabled={
             !questionValid[currentQuestionIndex] &&
-            !feedback[questions[currentQuestionIndex]._id]
+            !feedback[questions[currentQuestionIndex]._id] &&
+            !reasoningValid[currentQuestionIndex]
           }
         >
           Submit
@@ -307,7 +313,7 @@ const Annotations: React.FC = () => {
         <Button
           // type="outlined"
           variant="outlined"
-          color="danger"
+          color="primary"
           onClick={() =>
             setCurrentQuestionIndex((prev) =>
               Math.min(prev + 1, questions.length - 1)

@@ -17,7 +17,7 @@ interface TaskProps {
   setVariableValidity: React.Dispatch<React.SetStateAction<boolean[][][]>>;
   questionIndex: number;
   taskIndex: number;
-  questionValid: boolean;
+  questionValid: boolean | null;
 }
 
 const TaskTree: React.FC<TaskProps> = ({
@@ -49,7 +49,7 @@ const TaskTree: React.FC<TaskProps> = ({
   };
 
   useEffect(() => {
-    if (!questionValid) {
+    if (questionValid != null && !questionValid) {
       setVariableValidity((prev) => {
         const newValidity = prev.map((q, qIndex) =>
           qIndex === questionIndex
