@@ -100,7 +100,7 @@ const TaskTree: React.FC<TaskProps> = ({
               onChange={() => handleVariableToggle(variableIndex)}
             />
             {"     "}
-            {variable.variable}
+            {variable.variable.replace(/_/g, " ")}
           </span>
         ),
         key: `task-${taskIndex}-var-${variableIndex}`,

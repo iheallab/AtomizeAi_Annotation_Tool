@@ -123,12 +123,11 @@ const Question: React.FC<QuestionProps> = ({
     api.destroy(); // Prevent duplicate notifications
     api.open({
       message: "Please provide feedback",
-      description:
-        "You have selected 'Dislike'. Please provide feedback to justify your choice.",
+      // description: "Please Provide Feedback as to why the question is invalid",
       duration: 1,
       pauseOnHover,
       showProgress: true,
-      placement: "topRight",
+      placement: "bottomRight",
     });
   };
 

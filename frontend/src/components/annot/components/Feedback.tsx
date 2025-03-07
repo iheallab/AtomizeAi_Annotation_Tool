@@ -32,13 +32,15 @@ const Feedback: React.FC<FeedbackProps> = ({
       {contextHolder}
       <Form.Item
         validateStatus={
-          (questionValid == false || reasonValid === false) && !feedback
+          (questionValid === false || reasonValid === false) && !feedback
             ? "error"
             : ""
         }
         help={
-          (questionValid == false || reasonValid === false) && !feedback
-            ? "Please provide feedback"
+          (questionValid === false || reasonValid === false) && !feedback
+            ? `Please provide feedback on why ${
+                questionValid === false ? "question" : "reasoning"
+              } is invalid`
             : ""
         }
       >

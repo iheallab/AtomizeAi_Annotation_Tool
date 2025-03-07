@@ -66,8 +66,8 @@
 // };
 // export default Reasoning;
 
-import React from "react";
-import { Alert, Card } from "antd";
+import React, { useEffect } from "react";
+import { Alert, Card, notification } from "antd";
 import { DislikeOutlined, LikeOutlined } from "@ant-design/icons";
 
 interface ReasoningComponents {
@@ -84,13 +84,38 @@ const Reasoning: React.FC<ReasoningComponents> = ({
   questionIndex,
 }) => {
   console.log("Reasoning Validity", reasoningValid);
+  const [api, contextHolder] = notification.useNotification();
+
+  useEffect(() => {
+    if (reasoningValid === false) {
+      openNotification();
+    }
+  }, [reasoningValid]); // Run effect only when `questionValid` changes
+
+  const openNotification = (pauseOnHover: boolean = true) => {
+    api.destroy(); // Prevent duplicate notifications
+    api.open({
+      message: "Please provide feedback",
+      // description: "Please Provide Feedback as to why the question is invalid",
+      duration: 1,
+      pauseOnHover,
+      showProgress: true,
+      placement: "bottomRight",
+    });
+  };
   return (
     <Card
       title="Reasoning"
       hoverable
-      extra={
-        <>
-          {/* ✅ Subtle Like/Dislike icons */}
+      actions={[
+        <div
+          style={{
+            width: "100%",
+            textAlign: "right",
+            paddingRight: "15px", // Adjust spacing
+          }}
+        >
+          {contextHolder}
           <LikeOutlined
             style={{
               color:
@@ -98,7 +123,7 @@ const Reasoning: React.FC<ReasoningComponents> = ({
                   ? "gray"
                   : reasoningValid
                   ? "green"
-                  : "gray", // ✅ Gray if null
+                  : "gray",
               fontSize: "18px",
               cursor: "pointer",
               marginRight: "10px",
@@ -106,11 +131,11 @@ const Reasoning: React.FC<ReasoningComponents> = ({
             onClick={() =>
               setReasoningValid((prev: (boolean | null)[]) => {
                 const updated = [...prev];
-                updated[questionIndex] = true; // ✅ Mark as liked
+                updated[questionIndex] = true;
                 return updated;
               })
             }
-          ></LikeOutlined>
+          />
           <DislikeOutlined
             style={{
               color:
@@ -118,20 +143,21 @@ const Reasoning: React.FC<ReasoningComponents> = ({
                   ? "gray"
                   : reasoningValid === false
                   ? "red"
-                  : "gray", // ✅ Gray if null
+                  : "gray",
               fontSize: "18px",
               cursor: "pointer",
+              marginRight: "10px",
             }}
             onClick={() =>
               setReasoningValid((prev: (boolean | null)[]) => {
                 const updated = [...prev];
-                updated[questionIndex] = false; // ✅ Mark as disliked
+                updated[questionIndex] = false;
                 return updated;
               })
             }
           />
-        </>
-      }
+        </div>,
+      ]}
     >
       <Alert message={<p style={{ textAlign: "justify" }}>{reasoning}</p>} />
     </Card>

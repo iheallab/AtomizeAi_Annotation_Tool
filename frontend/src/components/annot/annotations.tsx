@@ -1,7 +1,15 @@
 import AnnotationComponent from "./annotation_component";
 
 import React, { useState, useEffect, useContext } from "react";
-import { Button, Space, Spin, Alert, FloatButton, message } from "antd";
+import {
+  Button,
+  Space,
+  Spin,
+  Alert,
+  FloatButton,
+  message,
+  Tooltip,
+} from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 import { QuestionData } from "./types";
@@ -278,11 +286,31 @@ const Annotations: React.FC = () => {
         reasoningValid={reasoningValid}
         setReasoningValid={setReasoningValidity}
       />
-      <FloatButton
+      {/* <FloatButton
         icon={<ArrowLeftOutlined />}
         onClick={() => logout()}
         style={{ top: 20, right: 20 }}
-      />
+      /> */}
+      {/* <FloatButton
+        // icon={<ArrowLeftOutlined />}
+        description="Logout"
+        shape="square"
+        onClick={() => logout()}
+        style={{ bottom: 20, left: 20 }}
+      /> */}
+      <Button
+        type="primary"
+        danger
+        onClick={logout}
+        style={{
+          position: "fixed",
+          bottom: 20,
+          left: 20,
+          zIndex: 1000,
+        }}
+      >
+        Logout
+      </Button>
 
       <Space size="middle" className="navigation-buttons">
         <Button
@@ -297,18 +325,50 @@ const Annotations: React.FC = () => {
           <LeftOutlined />
         </Button>
         {contextHolder}
-        <Button
-          variant="outlined"
-          color="green"
-          onClick={handleSubmit}
-          disabled={
-            !questionValid[currentQuestionIndex] &&
-            !feedback[questions[currentQuestionIndex]._id] &&
-            !reasoningValid[currentQuestionIndex]
+        <Tooltip
+          title={
+            reasoningValid[currentQuestionIndex] === null &&
+            questionValid[currentQuestionIndex] === null
+              ? "Please annotate reasoning and question validity."
+              : reasoningValid[currentQuestionIndex] === null &&
+                !feedback[questions[currentQuestionIndex]._id]
+              ? "Please annotate reasoning validity."
+              : questionValid[currentQuestionIndex] === null &&
+                !feedback[questions[currentQuestionIndex]._id]
+              ? "Please annotate question validity."
+              : (!reasoningValid[currentQuestionIndex] ||
+                  !questionValid[currentQuestionIndex]) &&
+                !feedback[questions[currentQuestionIndex]._id]
+              ? `Please provide feedback on why ${
+                  !reasoningValid[currentQuestionIndex] &&
+                  !questionValid[currentQuestionIndex]
+                    ? "both reasoning and question validity"
+                    : !reasoningValid[currentQuestionIndex]
+                    ? "reasoning validity"
+                    : "question validity"
+                } is marked as false.`
+              : !reasoningValid[currentQuestionIndex] &&
+                !feedback[questions[currentQuestionIndex]._id]
+              ? "Please provide feedback on why reasoning is marked as false."
+              : !questionValid[currentQuestionIndex] &&
+                !feedback[questions[currentQuestionIndex]._id]
+              ? "Please provide feedback on why question validity is marked as false."
+              : ""
           }
         >
-          Submit
-        </Button>
+          <Button
+            variant="outlined"
+            color="green"
+            onClick={handleSubmit}
+            disabled={
+              !feedback[questions[currentQuestionIndex]._id] &&
+              (!reasoningValid[currentQuestionIndex] ||
+                !questionValid[currentQuestionIndex])
+            }
+          >
+            Submit
+          </Button>
+        </Tooltip>
 
         <Button
           // type="outlined"

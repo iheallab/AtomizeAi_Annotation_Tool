@@ -45,7 +45,7 @@
 }
 
 .tasks-card {
-  height: 350px;
+  height: 360px;
   flex-direction: column;
   overflow: hidden;
 }
