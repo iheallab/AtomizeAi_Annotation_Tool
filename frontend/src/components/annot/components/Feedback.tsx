@@ -1,5 +1,5 @@
 import React from "react";
-import { Input, Row, Form, notification } from "antd";
+import { Input, Row, Form } from "antd";
 
 const { TextArea } = Input;
 import "./feedback.css";
@@ -16,20 +16,20 @@ const Feedback: React.FC<FeedbackProps> = ({
   questionValid,
   reasonValid,
 }) => {
-  const [api, contextHolder] = notification.useNotification();
+  // const [api, contextHolder] = notification.useNotification();
 
-  const openNotification = (pauseOnHover: boolean) => () => {
-    api.open({
-      message: "Notification Title",
-      description:
-        "This is the content of the notification. This is the content of the notification. This is the content of the notification.",
-      showProgress: true,
-      pauseOnHover,
-    });
-  };
+  // const openNotification = (pauseOnHover: boolean) => () => {
+  //   api.open({
+  //     message: "Notification Title",
+  //     description:
+  //       "This is the content of the notification. This is the content of the notification. This is the content of the notification.",
+  //     showProgress: true,
+  //     pauseOnHover,
+  //   });
+  // };
   return (
     <Row className="feedback-container">
-      {contextHolder}
+      {/* {contextHolder} */}
       <Form.Item
         validateStatus={
           (questionValid === false || reasonValid === false) && !feedback

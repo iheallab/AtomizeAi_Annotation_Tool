@@ -41,11 +41,7 @@
 
 import React, { useState } from "react";
 import { Row, Col, Drawer, FloatButton } from "antd";
-import {
-  CaretLeftFilled,
-  FileTextOutlined,
-  MenuOutlined,
-} from "@ant-design/icons";
+import { MenuOutlined } from "@ant-design/icons";
 import "./grid.css";
 
 interface GridComponentProps {

@@ -102,7 +102,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	_, err = collection.InsertOne(ctx, newUser)
 	if err != nil {
-		http.Error(w, "Error adding user", http.StatusInternalServerError)
+		http.Error(w, "Error adding user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

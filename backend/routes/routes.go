@@ -31,6 +31,8 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/annotations", controllers.AnnotateQuestion).Methods("POST")
 
+	r.HandleFunc("/ping", controllers.Ping).Methods("GET")
+
 
 	// User Access:
 

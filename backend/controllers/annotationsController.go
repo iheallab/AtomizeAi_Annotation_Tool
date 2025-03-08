@@ -17,6 +17,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+func Ping(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("welcome"))
+}
 
 // =======================
 // 📌 GET QUESTIONS TO ANNOTATE

@@ -28,7 +28,6 @@ const TaskTree: React.FC<TaskProps> = ({
   variables,
   questionIndex,
   taskIndex,
-  table,
   questionValid,
   // on`Toggle`,
 }) => {

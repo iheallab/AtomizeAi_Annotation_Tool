@@ -1,0 +1,14 @@
+runtime: nodejs18 # Use the latest supported Node.js runtime
+service: frontend # This is your frontend service
+
+handlers:
+  - url: /api/*
+    script: auto # This will be routed later in dispatch.yaml
+
+  - url: /(.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot|ttf|map|json))$
+    static_files: dist/\1
+    upload: dist/.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot|ttf|map|json)
+
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html

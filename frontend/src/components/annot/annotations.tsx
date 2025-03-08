@@ -1,23 +1,11 @@
 import AnnotationComponent from "./annotation_component";
 
 import React, { useState, useEffect, useContext } from "react";
-import {
-  Button,
-  Space,
-  Spin,
-  Alert,
-  FloatButton,
-  message,
-  Tooltip,
-} from "antd";
+import { Button, Space, Spin, Alert, message, Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 import { QuestionData } from "./types";
-import {
-  ArrowLeftOutlined,
-  LeftOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { AuthContext } from "../AuthContext";
 
 const Annotations: React.FC = () => {
@@ -145,7 +133,9 @@ const Annotations: React.FC = () => {
         const data = await response.json();
         console.log("Fetched annotations:", data);
         const initialAnsweredState = data.questions.map((q: QuestionData) => {
-          return q.annotated_by == 0 ? false ?? false : true;
+          // return q.annotated_by == 0 ? false ?? false : true;
+          return q.annotated_by == 0 ? false : true;
+
           // console.log(q.annotated, " for this question ", q.question);
         });
         console.log("Initial answered state:", initialAnsweredState);

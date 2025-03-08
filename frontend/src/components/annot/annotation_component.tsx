@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Card, Col, Row, Tag, Tooltip, Splitter, Descriptions } from "antd";
+import { Card, Col, Row, Tag, Descriptions } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
@@ -7,7 +7,6 @@ import "./annotation_component.css";
 import Grid from "./components/Grid";
 import Reasoning from "./components/Reasoning";
 import { QuestionData } from "./types";
-import { InfoCircleOutlined } from "@ant-design/icons";
 
 interface AnnotationComponentProps {
   question: QuestionData;

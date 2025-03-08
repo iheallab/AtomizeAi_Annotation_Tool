@@ -1,0 +1,6 @@
+runtime: python39
+service: default
+handlers:
+  - url: /.*
+    static_files: gs://default-homepage-ehr/index.html
+    upload: gs://default-homepage-ehr/index.html
