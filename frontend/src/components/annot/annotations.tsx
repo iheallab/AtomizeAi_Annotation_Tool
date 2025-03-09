@@ -7,6 +7,7 @@ import "./annotations.css";
 import { QuestionData } from "./types";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { AuthContext } from "../AuthContext";
+import { backendURI } from "../commons";
 
 const Annotations: React.FC = () => {
   const navigate = useNavigate();
@@ -118,16 +119,13 @@ const Annotations: React.FC = () => {
       }
 
       try {
-        const response = await fetch(
-          "https://backend-dot-ehr-chat-bot.uc.r.appspot.com/annotations",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(backendURI + "annotations", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -209,17 +207,14 @@ const Annotations: React.FC = () => {
     const token = localStorage.getItem("jwt");
 
     try {
-      const response = await fetch(
-        "https://backend-dot-ehr-chat-bot.uc.r.appspot.com/annotations",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedQuestion),
-        }
-      );
+      const response = await fetch(backendURI + "annotations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedQuestion),
+      });
 
       if (!response.ok) {
         errorMsg();

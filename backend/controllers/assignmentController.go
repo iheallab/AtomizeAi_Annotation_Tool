@@ -1,20 +1,22 @@
 package controllers
 
 import (
-	"net/http"
+	"backend/db"
+	"backend/models"
+	"context"
 	"encoding/json"
 	"fmt"
-	"backend/models"
-	"backend/db"
-	"context"
-	"time"
+	"net/http"
 	"strconv"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // AddAssignment assigns questions in a given range to a user (UserID is an int)
+// If the assignment already exists, it updates the question list instead of creating a new entry.
 func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	collection := db.GetCollection("assignments")
 	questionCollection := db.GetCollection("questions")
@@ -45,6 +47,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Fetch questions in the given range
 	filter := bson.M{"question_id": bson.M{"$gte": requestData.Start, "$lte": requestData.End}}
 	cursor, err := questionCollection.Find(ctx, filter)
 	if err != nil {
@@ -59,50 +62,39 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract QuestionIDs from fetched questions
+	// Extract QuestionIDs
 	var questionIDs []primitive.ObjectID
 	for _, question := range questions {
 		questionIDs = append(questionIDs, question.ID)
 	}
 
-	// **Check for duplicate assignments**
-	assignedFilter := bson.M{
-		"user_id": userID,
-		"question_ids": bson.M{
-			"$in": questionIDs, // Check if any of these questions are already assigned
-		},
+	// Query to check if an assignment exists for this user
+	updateFilter := bson.M{"user_id": userID}
+
+	// Update document:
+	update := bson.M{
+		"$addToSet": bson.M{"question_ids": bson.M{"$each": questionIDs}}, // Merge new question IDs
+		"$set": bson.M{"assigned_at": time.Now().Unix()}, // Always update timestamp
 	}
-	existingAssignments, err := collection.CountDocuments(ctx, assignedFilter)
+
+	// Ensure upsert works correctly
+	opts := options.Update().SetUpsert(true)
+
+	// Perform update
+	updateResult, err := collection.UpdateOne(ctx, updateFilter, update, opts)
 	if err != nil {
-		http.Error(w, "Error checking existing assignments", http.StatusInternalServerError)
-		return
-	}
-
-	if existingAssignments > 0 {
-		http.Error(w, "Some or all of these questions are already assigned to this user", http.StatusConflict)
-		return
-	}
-
-	// Create assignment record
-	assignment := models.AnnotationAssignment{
-		ID:          primitive.NewObjectID(),
-		UserID:      userID,  // ✅ Now an int, not ObjectID
-		QuestionIDs: questionIDs,
-		AssignedAt:  time.Now().Unix(),
-	}
-
-	_, err = collection.InsertOne(ctx, assignment)
-	if err != nil {
-		http.Error(w, "Error inserting assignment", http.StatusInternalServerError)
+		http.Error(w, "Error updating assignment", http.StatusInternalServerError)
 		return
 	}
 
 	// Return success response
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message":       "Assignment created successfully",
+		"message":       "Assignment updated successfully",
 		"user_id":       userID,
 		"assigned_ids":  questionIDs,
+		"modifiedCount": updateResult.ModifiedCount,
+		"upsertedCount": updateResult.UpsertedCount,
 	})
-	fmt.Println("Assigned questions:", questionIDs, "to user:", userID)
+	fmt.Println("Updated assignment for user:", userID, "with questions:", questionIDs)
 }

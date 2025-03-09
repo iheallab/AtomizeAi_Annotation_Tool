@@ -3,6 +3,7 @@ import { FormProps } from "antd";
 import { useNavigate } from "react-router-dom";
 import { Button, Form, Input } from "antd";
 import { AuthContext } from "../AuthContext";
+import { backendURI } from "../commons";
 
 type UserCreds = {
   username: string;
@@ -15,16 +16,13 @@ const LoginForm: React.FC = () => {
 
   const onFinish = async (values: UserCreds) => {
     try {
-      const response = await fetch(
-        "https://backend-dot-ehr-chat-bot.uc.r.appspot.com/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
+      const response = await fetch(backendURI + "login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
       if (!response.ok) {
         const errorMessage = await response.text();

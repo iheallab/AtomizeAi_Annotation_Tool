@@ -12,9 +12,8 @@ type RetrievalTaskVariable struct {
 
 type RetrievalTask struct {
     ID       int    `json:"task_id" bson:"task_id"  // Correct syntax`
-    Table    string `json:"table" bson:"table"`
     Task     string `json:"task" bson:"task"`
-    SQLQuery string `json:"sql_query" bson:"sql_query"`
+    // SQLQuery string `json:"sql_query" bson:"sql_query"`
     // IsValid  []bool   `json:"valid" bson:"valid"`
 	Variables []RetrievalTaskVariable `json:"variables" bson:"variables"`
 }

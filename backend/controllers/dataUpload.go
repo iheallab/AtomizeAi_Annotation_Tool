@@ -8,74 +8,102 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func InsertQuestions(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+    defer r.Body.Close()
 
-	var requestData struct {
-		Questions []models.Question `json:"questions"`
-	}
+    // Temporary struct matching JSON input format
+    var requestData struct {
+        Questions []struct {
+            Question      string    `json:"question"`
+            Context       string    `json:"context"`  // Added context field
+            Category      []string  `json:"category"` // Changed to slice
+            ICUType       []string  `json:"icu_type"` // Changed to slice
+            RetrievalTasks []struct {
+                Task     string   `json:"task"`
+                Variables []string `json:"variables"`
+            } `json:"retrieval_tasks"`
+            Reasoning string `json:"reasoning"`
+        } `json:"questions"`
+    }
 
-	err := json.NewDecoder(r.Body).Decode(&requestData)
-	if err != nil {
-		http.Error(w, "Invalid JSON Format", http.StatusBadRequest)
-		return
-	}
+    decoder := json.NewDecoder(r.Body)
+    decoder.DisallowUnknownFields() // Strict parsing
+    err := decoder.Decode(&requestData)
+    if err != nil {
+        http.Error(w, "Invalid JSON Format: " + err.Error(), http.StatusBadRequest)
+        return
+    }
 
-	collection := db.GetCollection("questions")
-	var insertDocs []interface{}
+    collection := db.GetCollection("questions")
+    var insertDocs []interface{}
 
-	for i, data := range requestData.Questions {
-		questionID, err := utils.GetNextQuestionID()
-		if err != nil {
-			http.Error(w, "Error generating QuestionID", http.StatusInternalServerError)
-			return
-		}
+    for i, data := range requestData.Questions {
+        questionID, err := utils.GetNextQuestionID()
+        if err != nil {
+            http.Error(w, "Error generating QuestionID", http.StatusInternalServerError)
+            return
+        }
 
-		// Assign unique MongoDB ObjectID and Question ID
-		data.ID = primitive.NewObjectID()
-		data.QuestionID = questionID
-		data.QuestionValid = nil
-		data.MainFeedback = "" // Default empty feedback
-		data.ResoningValid = nil
+        // Convert array fields to comma-separated strings
+        category := strings.Join(data.Category, ", ")
+        icuType := strings.Join(data.ICUType, ", ")
 
-		// Ensure retrieval tasks and their variables are properly initialized
-		for taskIdx := range data.RetrievalTasks {
-			if data.RetrievalTasks[taskIdx].ID == 0 {
-				data.RetrievalTasks[taskIdx].ID = taskIdx + 1 // Ensure unique task IDs
-			}
+        // Create proper Question model
+        question := models.Question{
+            ID:            primitive.NewObjectID(),
+            QuestionID:    questionID,
+            Question:      data.Question,
+            Category:      category,
+            ICUType:       icuType,
+            Reasoning:     data.Reasoning,
+            QuestionValid: nil,
+            ResoningValid: nil,
+            MainFeedback:  "",
+            RetrievalTasks: []models.RetrievalTask{},
+        }
 
-			// Initialize each variable with `IsValid`
-			for varIdx := range data.RetrievalTasks[taskIdx].Variables {
-				data.RetrievalTasks[taskIdx].Variables[varIdx].IsValid = true
-			}
-		}
+        // Convert retrieval tasks
+        for taskIdx, task := range data.RetrievalTasks {
+            var taskVars []models.RetrievalTaskVariable
+            for _, v := range task.Variables {
+                taskVars = append(taskVars, models.RetrievalTaskVariable{
+                    Variable: strings.TrimSpace(v),
+                    IsValid:  true, // Set default value instead of nil
+                })
+            }
 
-		fmt.Printf("Prepared Question #%d → QuestionID: %d\n", i+1, questionID)
-		fmt.Println("Final Data:", data)
+            rt := models.RetrievalTask{
+                ID:       taskIdx + 1,
+                Task:     task.Task,
+                Variables: taskVars,
+            }
 
-		insertDocs = append(insertDocs, data)
-	}
+            question.RetrievalTasks = append(question.RetrievalTasks, rt)
+        }
 
-	// Insert into MongoDB
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+        fmt.Printf("Processed Question #%d → QuestionID: %d\n", i+1, questionID)
+        insertDocs = append(insertDocs, question)
+    }
 
-	result, err := collection.InsertMany(ctx, insertDocs)
-	if err != nil {
-		http.Error(w, "Error inserting data: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+    // Insert into MongoDB
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
 
-	// Success Response
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message":      "Data inserted successfully",
-		"inserted_ids": result.InsertedIDs,
-	})
-	fmt.Println("Data inserted successfully:", result.InsertedIDs)
+    result, err := collection.InsertMany(ctx, insertDocs)
+    if err != nil {
+        http.Error(w, "Error inserting data: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "message":      "Data inserted successfully",
+        "inserted_ids": result.InsertedIDs,
+    })
 }
