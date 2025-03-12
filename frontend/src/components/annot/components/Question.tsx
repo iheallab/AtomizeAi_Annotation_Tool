@@ -1,104 +1,14 @@
-// import React from "react";
-// import { Col, Row, Typography, Radio, notification } from "antd";
-// import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-
-// const { Title } = Typography;
-// import "./question.css";
-
-// interface QuestionProps {
-//   question_idx: number;
-//   question: string;
-//   questionValid: boolean | null;
-//   setQuestionValidity: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
-// }
-
-// const Question: React.FC<QuestionProps> = ({
-//   question_idx,
-//   question,
-//   questionValid,
-//   setQuestionValidity,
-// }) => {
-//   const [api, contextHolder] = notification.useNotification();
-//   console.log("Question Validity in Question.tsx", questionValid);
-//   const openNotification = (pauseOnHover: boolean) => () => {
-//     api.open({
-//       message: "Notification Title",
-//       description:
-//         "This is the content of the notification. This is the content of the notification. This is the content of the notification.",
-//       showProgress: true,
-//       pauseOnHover,
-//     });
-//   };
-//   return (
-//     <Row className="question-row">
-//       {contextHolder}
-//       <Col span={18}>
-//         <Title className="question-text" level={5}>
-//           {question}
-//         </Title>
-//       </Col>
-//       <Col span={6} className="like-dislike-buttons">
-//         <Radio.Group
-//           value={
-//             questionValid === true
-//               ? "like"
-//               : questionValid === false
-//               ? "dislike"
-//               : undefined
-//           } // Ensure no selection when null
-//           onChange={(e) =>
-//             setQuestionValidity((prev) => {
-//               const updatedValidity = [...prev];
-//               updatedValidity[question_idx] =
-//                 e.target.value === "like"
-//                   ? true
-//                   : e.target.value === "dislike"
-//                   ? false
-//                   : null;
-//               console.log(
-//                 "Updated the new validity",
-//                 updatedValidity[question_idx]
-//               );
-//               if (updatedValidity[question_idx] === false) {
-//                 openNotification(true);
-//               }
-//               return updatedValidity;
-//             })
-//           }
-//           buttonStyle="solid"
-//         >
-//           {/* Tick Button (Green) */}
-//           <Radio.Button
-//             value="like"
-//             style={{
-//               backgroundColor:
-//                 questionValid === true ? "#52c41a" : "transparent",
-//               color: questionValid === true ? "white" : "",
-//             }}
-//           >
-//             <CheckOutlined />
-//           </Radio.Button>
-
-//           {/* Cross Button (Red) */}
-//           <Radio.Button
-//             value="dislike"
-//             style={{
-//               backgroundColor:
-//                 questionValid === false ? "#ff4d4f" : "transparent",
-//               color: questionValid === false ? "white" : "",
-//             }}
-//           >
-//             <CloseOutlined />
-//           </Radio.Button>
-//         </Radio.Group>
-//       </Col>
-//     </Row>
-//   );
-// };
-
-// export default Question;
 import React, { useEffect } from "react";
-import { Col, Row, Typography, Radio, notification } from "antd";
+import {
+  Col,
+  Row,
+  Card,
+  Typography,
+  Radio,
+  notification,
+  Descriptions,
+  Tag,
+} from "antd";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
@@ -109,6 +19,9 @@ interface QuestionProps {
   question: string;
   questionValid: boolean | null;
   setQuestionValidity: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
+  category: string[];
+  icu_type: string[];
+  context: string;
 }
 
 const Question: React.FC<QuestionProps> = ({
@@ -116,89 +29,106 @@ const Question: React.FC<QuestionProps> = ({
   question,
   questionValid,
   setQuestionValidity,
+  category,
+  icu_type,
+  context,
 }) => {
   const [api, contextHolder] = notification.useNotification();
 
   const openNotification = (pauseOnHover: boolean = true) => {
-    api.destroy(); // Prevent duplicate notifications
+    api.destroy();
     api.open({
       message: "Please provide feedback",
-      // description: "Please Provide Feedback as to why the question is invalid",
       duration: 1,
       pauseOnHover,
-      showProgress: true,
       placement: "bottomRight",
     });
   };
 
-  // Use `useEffect` to detect changes and trigger notification only when `questionValid` changes to `false`
   useEffect(() => {
     if (questionValid === false) {
       openNotification();
     }
-  }, [questionValid]); // Run effect only when `questionValid` changes
+  }, [questionValid]);
 
   return (
-    <Row className="question-row">
+    <Card hoverable className="question-card">
       {contextHolder}
-      <Col span={18}>
-        <Title className="question-text" level={5}>
-          {question}
-        </Title>
-      </Col>
-      <Col span={6} className="like-dislike-buttons">
-        <Radio.Group
-          value={
-            questionValid === true
-              ? "like"
-              : questionValid === false
-              ? "dislike"
-              : undefined
-          }
-          onChange={(e) =>
-            setQuestionValidity((prev) => {
-              const updatedValidity = [...prev];
-              updatedValidity[question_idx] =
-                e.target.value === "like"
-                  ? true
-                  : e.target.value === "dislike"
-                  ? false
-                  : null;
-              console.log(
-                "Updated the new validity",
-                updatedValidity[question_idx]
-              );
-              return updatedValidity;
-            })
-          }
-          buttonStyle="solid"
-        >
-          {/* Tick Button (Green) */}
-          <Radio.Button
-            value="like"
-            style={{
-              backgroundColor:
-                questionValid === true ? "#52c41a" : "transparent",
-              color: questionValid === true ? "white" : "",
-            }}
-          >
-            <CheckOutlined />
-          </Radio.Button>
 
-          {/* Cross Button (Red) */}
-          <Radio.Button
-            value="dislike"
-            style={{
-              backgroundColor:
-                questionValid === false ? "#ff4d4f" : "transparent",
-              color: questionValid === false ? "white" : "",
-            }}
+      {/* ICU Type & Category - Properly Aligned */}
+      <Descriptions column={1} layout="horizontal" className="question-tags">
+        <Descriptions.Item label="ICU Unit Type">
+          {icu_type.map((icuType) => (
+            <Tag color="magenta" key={icuType}>
+              {icuType}
+            </Tag>
+          ))}
+        </Descriptions.Item>
+        <Descriptions.Item label="Category">
+          {category.map((cat) => (
+            <Tag color="geekblue" key={cat}>
+              {cat}
+            </Tag>
+          ))}
+        </Descriptions.Item>
+      </Descriptions>
+
+      {/* Question and Context */}
+      <Row gutter={[16, 16]} align="middle">
+        <Col span={20} style={{ textAlign: "left" }}>
+          <Title level={5} style={{ marginBottom: "4px", textAlign: "left" }}>
+            {question}
+          </Title>
+          <Typography.Text type="secondary">
+            <b>Context </b>: {context}
+          </Typography.Text>
+        </Col>
+
+        {/* Validation Buttons - Always Right-Aligned */}
+        <Col span={4} style={{ textAlign: "right" }}>
+          <Radio.Group
+            value={
+              questionValid === true
+                ? "like"
+                : questionValid === false
+                ? "dislike"
+                : undefined
+            }
+            onChange={(e) =>
+              setQuestionValidity((prev) => {
+                const updatedValidity = [...prev];
+                updatedValidity[question_idx] =
+                  e.target.value === "like"
+                    ? true
+                    : e.target.value === "dislike"
+                    ? false
+                    : null;
+                return updatedValidity;
+              })
+            }
+            buttonStyle="solid"
           >
-            <CloseOutlined />
-          </Radio.Button>
-        </Radio.Group>
-      </Col>
-    </Row>
+            <Radio.Button
+              value="like"
+              className={`valid-btn ${
+                questionValid === true ? "selected" : ""
+              }`}
+            >
+              <CheckOutlined />
+            </Radio.Button>
+
+            <Radio.Button
+              value="dislike"
+              className={`invalid-btn ${
+                questionValid === false ? "selected" : ""
+              }`}
+            >
+              <CloseOutlined />
+            </Radio.Button>
+          </Radio.Group>
+        </Col>
+      </Row>
+    </Card>
   );
 };
 

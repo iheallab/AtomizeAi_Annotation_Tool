@@ -12,8 +12,8 @@ export type TaskData = {
 
 export type QuestionData = {
   _id: string;
-  category: string;
-  icu_type: string;
+  category: string[];
+  icu_type: string[];
   question: string;
   question_id: number;
   retrieval_tasks: TaskData[];
@@ -22,5 +22,7 @@ export type QuestionData = {
   reasoning: string;
   question_valid: boolean | null;
   reasoning_valid: boolean | null;
+  context: string;
+  tasks_complete: boolean;
 };
 // export { TaskVars, TaskData, QuestionData };

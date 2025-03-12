@@ -1,10 +1,10 @@
 .feedback-container {
-  height: 25%;
+  /* height: 100%; */
   width: 100%;
   display: flex;
   flex-direction: column;
 }
-.feedback-textarea {
+/* .feedback-textarea {
   width: 100%;
 }
 
@@ -16,8 +16,4 @@
 .feedback-container .ant-form-item {
   margin-bottom: 0;
   width: 100%;
-}
-
-.feedback-container .ant-form-item-explain {
-  margin-top: 5px; /* Adjust if necessary */
-}
+} */

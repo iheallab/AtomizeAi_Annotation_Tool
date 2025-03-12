@@ -20,7 +20,7 @@ const Annotations: React.FC = () => {
   const [reasoningValid, setReasoningValidity] = useState<(boolean | null)[]>(
     []
   );
-
+  const [tasksComplete, setTasksComplete] = useState<boolean[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const success = () => {
     console.log("Annotations Updated");
@@ -76,6 +76,7 @@ const Annotations: React.FC = () => {
     const initialFeedback: Record<string, string> = {};
     const initialQuestionValidity: (boolean | null)[] = [];
     const initialReasoningValidity: (boolean | null)[] = [];
+    const initialTasksComplete: boolean[] = [];
 
     if (questions.length > 0) {
       const initialValidity = questions.map((question) =>
@@ -94,6 +95,7 @@ const Annotations: React.FC = () => {
         initialQuestionValidity[index] = q.question_valid ?? null; // Ensuring it gets set
         // console.log("Reasoning Validity", q.reasoning_valid);
         initialReasoningValidity[index] = q.reasoning_valid ?? null;
+        initialTasksComplete[index] = q.tasks_complete;
         // initialReasoningValidity[index] = true;
         // console.log("Initial Reasoning Validity", initialReasoningValidity);
       });
@@ -101,6 +103,7 @@ const Annotations: React.FC = () => {
       setFeedback(initialFeedback);
       setQuestionValidity(initialQuestionValidity);
       setReasoningValidity(initialReasoningValidity);
+      setTasksComplete(initialTasksComplete);
     }
   }, [questions]);
 
@@ -156,24 +159,87 @@ const Annotations: React.FC = () => {
     fetchAnnotations();
   }, []);
 
+  // const handleSubmit = async () => {
+  //   console.log("Submitting annotation");
+  //   console.log("Current question index:", currentQuestionIndex);
+  //   console.log("Feedback: ", feedback[questions[currentQuestionIndex]._id]);
+  //   // const updatedQuestion = {
+  //   //   ...questions[currentQuestionIndex],
+  //   //   retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
+  //   //     (task, task) => ({
+  //   //       ...task,
+  //   //       valid:
+  //   //         taskValidity[questions[currentQuestionIndex].question_id]?.[
+  //   //           task.task_id
+  //   //         ] ?? false,
+  //   //     })
+  //   //   ),
+  //   //   main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
+  //   //   // annotated_by: parseInt(localStorage.getItem("user_id") || "0"), // Ensuring annotator ID is saved
+  //   // };
+  //   const updatedQuestion = {
+  //     ...questions[currentQuestionIndex],
+  //     retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
+  //       (task, taskIndex) => ({
+  //         ...task,
+  //         variables: task.variables.map((variable, variableIndex) => ({
+  //           ...variable,
+  //           valid:
+  //             variableValidity[currentQuestionIndex][taskIndex][variableIndex],
+  //         })),
+  //       })
+  //     ),
+  //     main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
+  //     question_valid: questionValid[currentQuestionIndex],
+  //     reasoning_valid: reasoningValid[currentQuestionIndex],
+  //     tasksComplete: tasksComplete[currentQuestionIndex], // 🔥 Fix: Ensure it correctly reflects switch value
+  //   };
+
+  //   // Update local state
+  //   setQuestions((prevQuestions) =>
+  //     prevQuestions.map((q) =>
+  //       q._id === questions[currentQuestionIndex]._id ? updatedQuestion : q
+  //     )
+  //   );
+
+  //   setAnsweredQuestions((prev) => {
+  //     const updated = [...prev];
+  //     updated[currentQuestionIndex] = true;
+  //     return updated;
+  //   });
+
+  //   // Send the update to the backend
+  //   const token = localStorage.getItem("jwt");
+
+  //   try {
+  //     const response = await fetch(backendURI + "annotations", {
+  //       method: "POST",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(updatedQuestion),
+  //     });
+
+  //     if (!response.ok) {
+  //       errorMsg();
+  //       throw new Error(`Failed to update annotation: ${response.status}`);
+  //     }
+  //     success();
+  //     console.log("Annotation updated successfully");
+  //   } catch (error) {
+  //     console.error("Error updating annotation:", error);
+  //   }
+  // };
   const handleSubmit = async () => {
     console.log("Submitting annotation");
     console.log("Current question index:", currentQuestionIndex);
     console.log("Feedback: ", feedback[questions[currentQuestionIndex]._id]);
-    // const updatedQuestion = {
-    //   ...questions[currentQuestionIndex],
-    //   retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
-    //     (task, task) => ({
-    //       ...task,
-    //       valid:
-    //         taskValidity[questions[currentQuestionIndex].question_id]?.[
-    //           task.task_id
-    //         ] ?? false,
-    //     })
-    //   ),
-    //   main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
-    //   // annotated_by: parseInt(localStorage.getItem("user_id") || "0"), // Ensuring annotator ID is saved
-    // };
+    console.log(
+      "Tasks Complete before submit:",
+      tasksComplete[currentQuestionIndex]
+    );
+
     const updatedQuestion = {
       ...questions[currentQuestionIndex],
       retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
@@ -189,8 +255,12 @@ const Annotations: React.FC = () => {
       main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
       question_valid: questionValid[currentQuestionIndex],
       reasoning_valid: reasoningValid[currentQuestionIndex],
+      tasks_complete: tasksComplete[currentQuestionIndex], // ✅ Ensure correct value is included
     };
-    // Update local state
+
+    console.log("Updated question before API call:", updatedQuestion);
+
+    // Update local state optimistically
     setQuestions((prevQuestions) =>
       prevQuestions.map((q) =>
         q._id === questions[currentQuestionIndex]._id ? updatedQuestion : q
@@ -220,8 +290,18 @@ const Annotations: React.FC = () => {
         errorMsg();
         throw new Error(`Failed to update annotation: ${response.status}`);
       }
+
+      const responseData = await response.json();
+      console.log("Annotation updated successfully", responseData);
+
+      // ✅ Ensure we update tasksComplete based on response
+      setTasksComplete((prev) => {
+        const updated = [...prev];
+        updated[currentQuestionIndex] = responseData.tasks_complete; // Ensure it reflects backend value
+        return updated;
+      });
+
       success();
-      console.log("Annotation updated successfully");
     } catch (error) {
       console.error("Error updating annotation:", error);
     }
@@ -276,6 +356,8 @@ const Annotations: React.FC = () => {
         setQuestionValidity={setQuestionValidity}
         reasoningValid={reasoningValid}
         setReasoningValid={setReasoningValidity}
+        tasksComplete={tasksComplete}
+        setTasksComplete={setTasksComplete}
       />
       {/* <FloatButton
         icon={<ArrowLeftOutlined />}
@@ -295,8 +377,9 @@ const Annotations: React.FC = () => {
         onClick={logout}
         style={{
           position: "fixed",
-          bottom: 20,
-          left: 20,
+          // top: 10,
+          bottom: 10,
+          left: 10,
           zIndex: 1000,
         }}
       >

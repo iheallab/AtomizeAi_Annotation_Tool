@@ -105,6 +105,7 @@ const Reasoning: React.FC<ReasoningComponents> = ({
   };
   return (
     <Card
+      style={{ alignSelf: "center" }}
       title="Reasoning"
       hoverable
       actions={[

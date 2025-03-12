@@ -14,5 +14,5 @@
 }
 .custom-tree {
   height: 100%;
-  overflow-y: auto; /* Enables scrolling if needed */
+  overflow-y: scroll; /* Enables scrolling if needed */
 }

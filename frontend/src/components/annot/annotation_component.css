@@ -4,10 +4,8 @@
   text-align: center;
   border-radius: 18px;
   box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-  display: "flex";
-  flex-direction: "column";
-  /* padding: 1px; */
 }
+
 .tasks-card .ant-card-body {
   flex: 1;
   display: flex;
@@ -18,14 +16,11 @@
 .main-content {
   display: flex;
   height: 100%;
-  flex: 1;
   min-height: 0;
   justify-content: space-between;
 }
 
-.content-column {
-  display: flex;
-  flex-direction: column;
+.column-content {
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -36,28 +31,15 @@
 }
 
 .question-row {
-  display: flex;
-  flex: 100 100 20%;
   align-items: center;
-  padding: 2px;
-  min-height: 0;
-  height: 20%;
+  width: 100%;
+  height: 30vh;
 }
 
 .tasks-card {
-  height: 360px;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.task-text {
-  white-space: normal;
-}
-
-.like-dislike-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  height: 40vh;
+  margin-top: 10px;
+  overflow: scroll;
 }
 
 .like-btn {
@@ -126,4 +108,8 @@
   margin-bottom: 10px;
   font-size: 16px;
   font-weight: bold;
+}
+
+.feedback-box {
+  margin-top: 10px;
 }

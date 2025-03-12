@@ -51,8 +51,10 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
         }
 
         // Convert array fields to comma-separated strings
-        category := strings.Join(data.Category, ", ")
-        icuType := strings.Join(data.ICUType, ", ")
+        // category := strings.Join(data.Category, ", ")
+        // icuType := strings.Join(data.ICUType, ", ")
+        category := data.Category
+        icuType := data.ICUType
 
         // Create proper Question model
         question := models.Question{
@@ -66,6 +68,8 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
             ResoningValid: nil,
             MainFeedback:  "",
             RetrievalTasks: []models.RetrievalTask{},
+            Context: data.Context,
+            TasksComplete: true,
         }
 
         // Convert retrieval tasks

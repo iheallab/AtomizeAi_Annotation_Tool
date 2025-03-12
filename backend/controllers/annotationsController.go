@@ -217,7 +217,8 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"retrieval_tasks": annotationReq.RetrievalTasks,
 				"annotated_by":    annotationReq.AnnotatedBy,
 				"main_feedback":   annotationReq.MainFeedback,
-				"question_valid":  annotationReq.QuestionValid, // Mark as annotated
+				"question_valid":  annotationReq.QuestionValid,
+				"tasks_complete": annotationReq.TasksComplete,
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)

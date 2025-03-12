@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Card, Col, Row, Tag, Descriptions } from "antd";
+import { Card, Col, Row, Switch } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
@@ -22,6 +22,8 @@ interface AnnotationComponentProps {
   setQuestionValidity: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
   reasoningValid: (boolean | null)[];
   setReasoningValid: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
+  tasksComplete: boolean[];
+  setTasksComplete: React.Dispatch<React.SetStateAction<boolean[]>>;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
@@ -37,6 +39,8 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   setQuestionValidity,
   reasoningValid,
   setReasoningValid,
+  tasksComplete,
+  setTasksComplete,
 }) => {
   if (!question) {
     return <div>Loading...</div>;
@@ -58,30 +62,23 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
       className="annotation-card"
     >
       <Row className="main-content">
-        <Col span={16} className="content-column">
+        <Col span={14} className="column-content">
           <Row className="question-row">
-            <Descriptions>
-              <Descriptions.Item label="ICU Unit Type">
-                <Tag color="magenta">{question.icu_type}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Category">
-                <Tag color="geekblue">{question.category}</Tag>
-              </Descriptions.Item>
-            </Descriptions>
-
             <Question
               question_idx={currentQuestionIndex}
               question={question.question}
-              // setQuestionFeedback={setQuestionFeedback}
               questionValid={questionValid[currentQuestionIndex]}
               setQuestionValidity={setQuestionValidity}
+              icu_type={question.icu_type}
+              category={question.category}
+              context={question.context}
             />
           </Row>
 
           {/* <Divider className="divider" /> */}
 
           {/* TASKS SECTION (SCROLLABLE) */}
-          <Card hoverable={true} type="inner" className="tasks-card">
+          {/* <Card hoverable={true} type="inner" className="tasks-card">
             {question.retrieval_tasks.map((task) => (
               <Task
                 key={`${question._id}-${task.task_id}`}
@@ -98,12 +95,40 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
                 questionValid={questionValid[currentQuestionIndex]}
               />
             ))}
+          </Card> */}
+          <Card
+            className="tasks-card"
+            hoverable={true}
+            // style={{
+            //   height: "100%", // Keeps task height fixed
+            //   overflow: "hidden", // Prevents content from breaking out
+            //   display: "flex",
+            //   flexDirection: "column",
+            // }}
+          >
+            <Row gutter={[16, 16]}>
+              {question.retrieval_tasks.map((task, index) => (
+                <Col xs={24} sm={12} key={`${question._id}-${task.task_id}`}>
+                  <Task
+                    id={task.task_id}
+                    task={task.task}
+                    table={task.table}
+                    variables={task.variables}
+                    variableValidity={variableValidity}
+                    setVariableValidity={setVariableValidity}
+                    questionIndex={currentQuestionIndex}
+                    taskIndex={index}
+                    questionValid={questionValid[currentQuestionIndex]}
+                  />
+                </Col>
+              ))}
+            </Row>
           </Card>
 
           {/* <Divider className="divider" /> */}
 
           {/* FEEDBACK ROW (Fixed Height) */}
-          <Row style={{ marginTop: "10px" }}>
+          <Row className="feedback-box">
             {/* <Feedback /> */}
             <Feedback
               feedback={feedback[question._id] || ""}
@@ -123,7 +148,17 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
         <Col span={1} className="divider-column"></Col>
 
         {/* RIGHT SECTION (GRID) */}
-        <Col span={7} className="db-info-column">
+        <Col
+          span={9}
+          style={{
+            // justifyContent: "center",
+            display: "flex",
+            // alignItems: "center",
+            flexDirection: "column",
+            marginLeft: "10px",
+            width: "100%",
+          }}
+        >
           <Row>
             <Grid
               answeredQuestions={answeredQuestions}
@@ -140,6 +175,52 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
               setReasoningValid={setReasoningValid}
               questionIndex={currentQuestionIndex}
             />
+          </Row>
+          <Row>
+            {/* Card Below Reasoning with Yes/No Switch */}
+            <Card
+              className="tasks-card"
+              hoverable={true}
+              title="Tasks Complete?"
+              style={{
+                marginTop: "10px",
+                padding: "10px",
+                height: "200px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between", // ✅ Ensures switch stays at the bottom
+              }}
+            >
+              <Card.Meta
+                description={
+                  <div style={{ textAlign: "left" }}>
+                    <b>
+                      Do the tasks retrieve all relevant data that you would
+                      search on an EHR system to answer the question?
+                    </b>
+                  </div>
+                }
+              />
+
+              <Row justify="end">
+                <Switch
+                  checked={tasksComplete[currentQuestionIndex]}
+                  checkedChildren="Yes"
+                  unCheckedChildren="No"
+                  onChange={(checked) => {
+                    console.log("Turning " + checked);
+                    setTasksComplete((prev) => {
+                      const updatedTasks = [...prev];
+                      updatedTasks[currentQuestionIndex] = checked;
+                      return updatedTasks;
+                    });
+                    console.log(
+                      "final val : " + tasksComplete[currentQuestionIndex]
+                    );
+                  }}
+                />
+              </Row>
+            </Card>
           </Row>
         </Col>
       </Row>
