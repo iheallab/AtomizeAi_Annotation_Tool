@@ -22,7 +22,7 @@ const Grid: React.FC<GridComponentProps> = ({
       <FloatButton
         icon={<MenuOutlined />} // Simple icon
         onClick={() => setOpen(true)} // Opens the Drawer
-        style={{ right: 10, bottom: 10 }} // Positioned at bottom-right
+        style={{ right: 10, top: 10 }} // Positioned at bottom-right
       />
 
       {/* Drawer to Display Grid */}

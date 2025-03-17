@@ -1,20 +1,6 @@
-import React, { useEffect } from "react";
-import {
-  Col,
-  Row,
-  Card,
-  Typography,
-  Radio,
-  notification,
-  Descriptions,
-  Tag,
-} from "antd";
-import {
-  CheckOutlined,
-  CloseOutlined,
-  DislikeOutlined,
-  LikeOutlined,
-} from "@ant-design/icons";
+import React from "react";
+import { Col, Row, Card, Typography, Radio, Descriptions, Tag } from "antd";
+import { DislikeOutlined, LikeOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 import "./question.css";
@@ -38,17 +24,17 @@ const Question: React.FC<QuestionProps> = ({
   icu_type,
   context,
 }) => {
-  const [api, contextHolder] = notification.useNotification();
+  // const [api, contextHolder] = notification.useNotification();
 
-  const openNotification = (pauseOnHover: boolean = true) => {
-    api.destroy();
-    api.open({
-      message: "Please provide feedback",
-      duration: 1,
-      pauseOnHover,
-      placement: "bottomRight",
-    });
-  };
+  // const openNotification = (pauseOnHover: boolean = true) => {
+  //   api.destroy();
+  //   api.open({
+  //     message: "Please provide feedback",
+  //     duration: 1,
+  //    c pauseOnHover,
+  //     placement: "bottomRight",
+  //   });
+  // };
 
   // useEffect(() => {
   //   if (questionValid === false) {
@@ -64,7 +50,7 @@ const Question: React.FC<QuestionProps> = ({
         border: "0.1px solid rgba(128, 128, 128, 0.5)",
       }}
     >
-      {contextHolder}
+      {/* {contextHolder} */}
 
       {/* ICU Type & Category - Properly Aligned */}
       <Descriptions column={1} layout="horizontal" className="question-tags">

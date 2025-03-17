@@ -1,16 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Divider,
-  GetRef,
-  Row,
-  Switch,
-  Tour,
-  TourProps,
-  Space,
-} from "antd";
+import React, { useEffect, useRef } from "react";
+import { Card, Col, Divider, GetRef, Row, Tour, TourProps, Space } from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
@@ -64,27 +53,44 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   const tasksRef = useRef<GetRef<typeof Card>>(null);
   const feedbackRef = useRef<GetRef<typeof Row>>(null);
   const questionRef = useRef<GetRef<typeof Row>>(null);
+  const reasoningRef = useRef<GetRef<typeof Row>>(null);
+  const tasksCompleteRef = useRef<GetRef<typeof Row>>(null);
+
   // const navigationRef = useRef<GetRef<typeof Row>>(null);
 
   // const [openTour, setOpenTour] = useState<boolean>(false);
 
   const steps: TourProps["steps"] = [
     {
-      title: "Is the Question Valid?",
+      title: "Is the question valid?",
       description:
-        "I would ask this question when caring for a patient in the given context in an ICU setting",
+        "I would ask this question when caring for a patient in the given ICU context.",
       target: () => questionRef.current!,
     },
+
     {
-      title: "Is the data good?",
+      title: "Are these data points correct?",
       description:
-        "To answer this question, I would find the following data in the EHR system : ",
+        "To answer this question, I would look for the following data in the patient's EHR record : ",
       target: () => tasksRef.current!,
     },
+
     {
-      title: "Anything wrong or invalid?",
-      description: "Please give the feedback here!",
+      title: "Anything we can improve?",
+      description:
+        "Please give provide the feedback here! Feedback can include validity of the question and data points, reasoning, completeness of data points, or the category/ICU unit type tags.",
       target: () => feedbackRef.current!,
+    },
+    {
+      title: "How did we come up with these Data?",
+      description:
+        "This provides the summary as to why we need to look up only this data",
+      target: () => reasoningRef.current!,
+    },
+    {
+      title: "Did we miss out any data points?",
+      description: "",
+      target: () => tasksCompleteRef.current!,
     },
     // {
     //   title: "Navigate!",
@@ -104,9 +110,9 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   }, [question, setVariableValidity]);
 
   return (
-    <Card
+    <div
       // title={`Question ${currentQuestionIndex + 1}`}
-      variant="borderless"
+      // variant="borderless"
       className="annotation-card"
     >
       <Tour
@@ -228,7 +234,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
               }
             />
           </Row>
-          <Row>
+          <Row ref={reasoningRef}>
             <Reasoning
               reasoning={question.reasoning}
               reasoningValid={reasoningValid[currentQuestionIndex]}
@@ -236,7 +242,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
               questionIndex={currentQuestionIndex}
             />
           </Row>
-          <Row>
+          <Row ref={tasksCompleteRef}>
             {/* Card Below Reasoning with Like/Dislike Buttons */}
             <Card
               className="tasks-card"
@@ -303,7 +309,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
           </Row>
         </Col>
       </Row>
-    </Card>
+    </div>
   );
 };
 

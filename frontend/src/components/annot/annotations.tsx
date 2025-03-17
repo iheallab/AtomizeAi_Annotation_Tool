@@ -5,7 +5,7 @@ import { Button, Space, Spin, Alert, message, Tooltip, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 import { QuestionData } from "./types";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { StepBackwardFilled, StepForwardOutlined } from "@ant-design/icons";
 import { AuthContext } from "../AuthContext";
 import { backendURI } from "../commons";
 
@@ -240,135 +240,288 @@ const Annotations: React.FC = () => {
     );
   }
 
+  // return (
+  //   // console.log("Answered Questions in Annotations", answeredQuestions),
+  //   <div className="annotations-container">
+  //     <AnnotationComponent
+  //       key={questions[currentQuestionIndex]._id}
+  //       question={questions[currentQuestionIndex]}
+  //       questions_list={questions}
+  //       answeredQuestions={answeredQuestions}
+  //       currentQuestionIndex={currentQuestionIndex}
+  //       setCurrentQuestionIndex={setCurrentQuestionIndex}
+  //       // taskValidity={taskValidity}
+  //       // setTaskValidity={setTaskValidity}
+  //       variableValidity={variableValidity}
+  //       setVariableValidity={setVariableValidity}
+  //       feedback={feedback}
+  //       setFeedback={setFeedback}
+  //       questionValid={questionValid}
+  //       setQuestionValidity={setQuestionValidity}
+  //       reasoningValid={reasoningValid}
+  //       setReasoningValid={setReasoningValidity}
+  //       tasksComplete={tasksComplete}
+  //       setTasksComplete={setTasksComplete}
+  //       openTour={openTour}
+  //       setOpenTour={setOpenTour}
+  //     />
+  //     {/* <FloatButton
+  //       icon={<ArrowLeftOutlined />}
+  //       onClick={() => logout()}
+  //       style={{ top: 20, right: 20 }}
+  //     /> */}
+  //     {/* <FloatButton
+  //       // icon={<ArrowLeftOutlined />}
+  //       description="Logout"
+  //       shape="square"
+  //       onClick={() => logout()}
+  //       style={{ bottom: 20, left: 20 }}
+  //     /> */}
+  //     <Row
+  //       style={{
+  //         position: "fixed",
+  //         bottom: 10,
+  //         left: 10,
+  //         zIndex: 1000,
+  //       }}
+  //     >
+  //       <Col style={{ marginRight: 10 }}>
+  //         <Button type="primary" danger onClick={logout}>
+  //           Logout
+  //         </Button>
+  //       </Col>
+  //       <Col>
+  //         <Button type="primary" danger onClick={() => setOpenTour(true)}>
+  //           Need Help?
+  //         </Button>
+  //       </Col>
+  //     </Row>
+
+  //     <Space size="middle" className="navigation-buttons">
+  //       <Button
+  //         // type="outlined"
+  //         variant="outlined"
+  //         color="primary"
+  //         onClick={() =>
+  //           setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
+  //         }
+  //         disabled={currentQuestionIndex === 0}
+  //       >
+  //         <LeftOutlined />
+  //       </Button>
+  //       {contextHolder}
+  //       <Tooltip
+  //         title={
+  //           reasoningValid[currentQuestionIndex] === null &&
+  //           questionValid[currentQuestionIndex] === null
+  //             ? "Please annotate reasoning and question validity."
+  //             : reasoningValid[currentQuestionIndex] === null &&
+  //               !feedback[questions[currentQuestionIndex]._id]
+  //             ? "Please annotate reasoning validity."
+  //             : questionValid[currentQuestionIndex] === null &&
+  //               !feedback[questions[currentQuestionIndex]._id]
+  //             ? "Please annotate question validity."
+  //             : (!reasoningValid[currentQuestionIndex] ||
+  //                 !questionValid[currentQuestionIndex]) &&
+  //               !feedback[questions[currentQuestionIndex]._id]
+  //             ? `Please provide feedback on why ${
+  //                 !reasoningValid[currentQuestionIndex] &&
+  //                 !questionValid[currentQuestionIndex]
+  //                   ? "both reasoning and question validity"
+  //                   : !reasoningValid[currentQuestionIndex]
+  //                   ? "reasoning validity"
+  //                   : "question validity"
+  //               } is marked as false.`
+  //             : !reasoningValid[currentQuestionIndex] &&
+  //               !feedback[questions[currentQuestionIndex]._id]
+  //             ? "Please provide feedback on why reasoning is marked as false."
+  //             : !questionValid[currentQuestionIndex] &&
+  //               !feedback[questions[currentQuestionIndex]._id]
+  //             ? "Please provide feedback on why question validity is marked as false."
+  //             : ""
+  //         }
+  //       >
+  //         <Button
+  //           variant="outlined"
+  //           color="green"
+  //           onClick={handleSubmit}
+  //           disabled={
+  //             !feedback[questions[currentQuestionIndex]._id] &&
+  //             (!reasoningValid[currentQuestionIndex] ||
+  //               !questionValid[currentQuestionIndex])
+  //           }
+  //         >
+  //           Submit
+  //         </Button>
+  //       </Tooltip>
+
+  //       <Button
+  //         // type="outlined"
+  //         variant="outlined"
+  //         color="primary"
+  //         onClick={() =>
+  //           setCurrentQuestionIndex((prev) =>
+  //             Math.min(prev + 1, questions.length - 1)
+  //           )
+  //         }
+  //         disabled={currentQuestionIndex === questions.length - 1}
+  //       >
+  //         <RightOutlined />
+  //       </Button>
+  //     </Space>
+  //   </div>
+  // );
   return (
-    // console.log("Answered Questions in Annotations", answeredQuestions),
     <div className="annotations-container">
-      <AnnotationComponent
-        key={questions[currentQuestionIndex]._id}
-        question={questions[currentQuestionIndex]}
-        questions_list={questions}
-        answeredQuestions={answeredQuestions}
-        currentQuestionIndex={currentQuestionIndex}
-        setCurrentQuestionIndex={setCurrentQuestionIndex}
-        // taskValidity={taskValidity}
-        // setTaskValidity={setTaskValidity}
-        variableValidity={variableValidity}
-        setVariableValidity={setVariableValidity}
-        feedback={feedback}
-        setFeedback={setFeedback}
-        questionValid={questionValid}
-        setQuestionValidity={setQuestionValidity}
-        reasoningValid={reasoningValid}
-        setReasoningValid={setReasoningValidity}
-        tasksComplete={tasksComplete}
-        setTasksComplete={setTasksComplete}
-        openTour={openTour}
-        setOpenTour={setOpenTour}
-      />
-      {/* <FloatButton
-        icon={<ArrowLeftOutlined />}
-        onClick={() => logout()}
-        style={{ top: 20, right: 20 }}
-      /> */}
-      {/* <FloatButton
-        // icon={<ArrowLeftOutlined />}
-        description="Logout"
-        shape="square"
-        onClick={() => logout()}
-        style={{ bottom: 20, left: 20 }}
-      /> */}
-      <Row
-        style={{
-          position: "fixed",
-          bottom: 10,
-          left: 10,
-          zIndex: 1000,
-        }}
-      >
-        <Col style={{ marginRight: 10 }}>
-          <Button type="primary" danger onClick={logout}>
-            Logout
-          </Button>
-        </Col>
-        <Col>
-          <Button type="primary" danger onClick={() => setOpenTour(true)}>
-            Need Help?
-          </Button>
-        </Col>
-      </Row>
+      {contextHolder}
+      {isLoading ? (
+        <div className="loading-container">
+          <Spin size="large" />
+        </div>
+      ) : error ? (
+        <div className="error-container">
+          <Alert message="Error" description={error} type="error" showIcon />
+        </div>
+      ) : !questions.length ? (
+        <div className="no-questions-container">
+          <Alert
+            message="No Questions"
+            description="No questions available."
+            type="info"
+            showIcon
+          />
+        </div>
+      ) : (
+        <>
+          <AnnotationComponent
+            key={questions[currentQuestionIndex]._id}
+            question={questions[currentQuestionIndex]}
+            questions_list={questions}
+            answeredQuestions={answeredQuestions}
+            currentQuestionIndex={currentQuestionIndex}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
+            variableValidity={variableValidity}
+            setVariableValidity={setVariableValidity}
+            feedback={feedback}
+            setFeedback={setFeedback}
+            questionValid={questionValid}
+            setQuestionValidity={setQuestionValidity}
+            reasoningValid={reasoningValid}
+            setReasoningValid={setReasoningValidity}
+            tasksComplete={tasksComplete}
+            setTasksComplete={setTasksComplete}
+            openTour={openTour}
+            setOpenTour={setOpenTour}
+          />
 
-      <Space size="middle" className="navigation-buttons">
-        <Button
-          // type="outlined"
-          variant="outlined"
-          color="primary"
-          onClick={() =>
-            setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
-          }
-          disabled={currentQuestionIndex === 0}
-        >
-          <LeftOutlined />
-        </Button>
-        {contextHolder}
-        <Tooltip
-          title={
-            reasoningValid[currentQuestionIndex] === null &&
-            questionValid[currentQuestionIndex] === null
-              ? "Please annotate reasoning and question validity."
-              : reasoningValid[currentQuestionIndex] === null &&
-                !feedback[questions[currentQuestionIndex]._id]
-              ? "Please annotate reasoning validity."
-              : questionValid[currentQuestionIndex] === null &&
-                !feedback[questions[currentQuestionIndex]._id]
-              ? "Please annotate question validity."
-              : (!reasoningValid[currentQuestionIndex] ||
-                  !questionValid[currentQuestionIndex]) &&
-                !feedback[questions[currentQuestionIndex]._id]
-              ? `Please provide feedback on why ${
-                  !reasoningValid[currentQuestionIndex] &&
-                  !questionValid[currentQuestionIndex]
-                    ? "both reasoning and question validity"
-                    : !reasoningValid[currentQuestionIndex]
-                    ? "reasoning validity"
-                    : "question validity"
-                } is marked as false.`
-              : !reasoningValid[currentQuestionIndex] &&
-                !feedback[questions[currentQuestionIndex]._id]
-              ? "Please provide feedback on why reasoning is marked as false."
-              : !questionValid[currentQuestionIndex] &&
-                !feedback[questions[currentQuestionIndex]._id]
-              ? "Please provide feedback on why question validity is marked as false."
-              : ""
-          }
-        >
-          <Button
-            variant="outlined"
-            color="green"
-            onClick={handleSubmit}
-            disabled={
-              !feedback[questions[currentQuestionIndex]._id] &&
-              (!reasoningValid[currentQuestionIndex] ||
-                !questionValid[currentQuestionIndex])
-            }
+          {/* 🔹 Fixed Bottom Navigation Bar */}
+          <Row
+            justify="space-between"
+            align="middle"
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              background: "#fff",
+              padding: "12px 16px",
+              boxShadow: "0 -2px 5px rgba(0,0,0,0.1)",
+              zIndex: 1000,
+            }}
           >
-            Submit
-          </Button>
-        </Tooltip>
+            {/* Left: Logout Button */}
+            <Col>
+              <Button type="primary" danger onClick={logout}>
+                Logout
+              </Button>
+            </Col>
 
-        <Button
-          // type="outlined"
-          variant="outlined"
-          color="primary"
-          onClick={() =>
-            setCurrentQuestionIndex((prev) =>
-              Math.min(prev + 1, questions.length - 1)
-            )
-          }
-          disabled={currentQuestionIndex === questions.length - 1}
-        >
-          <RightOutlined />
-        </Button>
-      </Space>
+            {/* Center: Navigation Controls Group */}
+            <Col>
+              <Space size="small">
+                <Button
+                  type="default"
+                  // icon={<LeftOutlined />}
+                  onClick={() =>
+                    setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
+                  }
+                  disabled={currentQuestionIndex === 0}
+                >
+                  {/* Previous */}
+                  <StepBackwardFilled style={{ fontSize: "20px" }} />
+                </Button>
+
+                <Tooltip
+                  title={
+                    reasoningValid[currentQuestionIndex] === null &&
+                    questionValid[currentQuestionIndex] === null
+                      ? "Please annotate reasoning and question validity."
+                      : reasoningValid[currentQuestionIndex] === null &&
+                        !feedback[questions[currentQuestionIndex]._id]
+                      ? "Please annotate reasoning validity."
+                      : questionValid[currentQuestionIndex] === null &&
+                        !feedback[questions[currentQuestionIndex]._id]
+                      ? "Please annotate question validity."
+                      : (!reasoningValid[currentQuestionIndex] ||
+                          !questionValid[currentQuestionIndex]) &&
+                        !feedback[questions[currentQuestionIndex]._id]
+                      ? `Please provide feedback on why ${
+                          !reasoningValid[currentQuestionIndex] &&
+                          !questionValid[currentQuestionIndex]
+                            ? "both reasoning and question validity"
+                            : !reasoningValid[currentQuestionIndex]
+                            ? "reasoning validity"
+                            : "question validity"
+                        } is marked as false.`
+                      : !reasoningValid[currentQuestionIndex] &&
+                        !feedback[questions[currentQuestionIndex]._id]
+                      ? "Please provide feedback on why reasoning is marked as false."
+                      : !questionValid[currentQuestionIndex] &&
+                        !feedback[questions[currentQuestionIndex]._id]
+                      ? "Please provide feedback on why question validity is marked as false."
+                      : ""
+                  }
+                >
+                  <Button
+                    // type="primary"
+                    variant="solid"
+                    color="green"
+                    onClick={handleSubmit}
+                    disabled={
+                      !feedback[questions[currentQuestionIndex]._id] &&
+                      (!reasoningValid[currentQuestionIndex] ||
+                        !questionValid[currentQuestionIndex])
+                    }
+                  >
+                    Submit
+                  </Button>
+                </Tooltip>
+
+                <Button
+                  type="default"
+                  // icon={<RightOutlined />}
+                  onClick={() =>
+                    setCurrentQuestionIndex((prev) =>
+                      Math.min(prev + 1, questions.length - 1)
+                    )
+                  }
+                  disabled={currentQuestionIndex === questions.length - 1}
+                >
+                  {/* Next */}
+                  <StepForwardOutlined style={{ fontSize: "20px" }} />
+                </Button>
+              </Space>
+            </Col>
+
+            {/* Right: Need Help Button */}
+            <Col>
+              <Button type="default" onClick={() => setOpenTour(true)}>
+                Need Help?
+              </Button>
+            </Col>
+          </Row>
+        </>
+      )}
     </div>
   );
 };

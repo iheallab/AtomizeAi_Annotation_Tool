@@ -5,8 +5,8 @@
   align-items: center;
   justify-content: center;
   width: 95%;
-  height: 91vh;
-  margin: 0 auto;
+  height: 95%;
+  margin-bottom: 6px;
 }
 
 .loading-container,

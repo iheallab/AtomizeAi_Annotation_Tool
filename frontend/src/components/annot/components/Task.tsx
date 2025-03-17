@@ -242,7 +242,7 @@
 import React, { useEffect } from "react";
 import { DownOutlined } from "@ant-design/icons";
 import { Tree, Switch } from "antd";
-import type { TreeDataNode, TreeProps } from "antd";
+import type { TreeDataNode } from "antd";
 
 interface TaskVars {
   valid: boolean;
