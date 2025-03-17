@@ -8,9 +8,8 @@
   justify-content: center;
   min-height: 100vh;
   scroll-behavior: smooth;
-  color-scheme: light dark;
-  /* color: rgba(255, 255, 255, 0.87); */
-  background-color: #f6f6f6;
+  /* color-scheme: light dark; */
+  /* background-color: #003c6c; */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;

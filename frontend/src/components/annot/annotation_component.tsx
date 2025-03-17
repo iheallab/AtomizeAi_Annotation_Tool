@@ -1,5 +1,16 @@
-import React, { useEffect } from "react";
-import { Card, Col, Row, Switch } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  GetRef,
+  Row,
+  Switch,
+  Tour,
+  TourProps,
+  Space,
+} from "antd";
 import Question from "./components/Question";
 import Task from "./components/Task";
 import Feedback from "./components/Feedback";
@@ -7,6 +18,7 @@ import "./annotation_component.css";
 import Grid from "./components/Grid";
 import Reasoning from "./components/Reasoning";
 import { QuestionData } from "./types";
+import { DislikeOutlined, LikeOutlined } from "@ant-design/icons";
 
 interface AnnotationComponentProps {
   question: QuestionData;
@@ -24,6 +36,8 @@ interface AnnotationComponentProps {
   setReasoningValid: React.Dispatch<React.SetStateAction<(boolean | null)[]>>;
   tasksComplete: boolean[];
   setTasksComplete: React.Dispatch<React.SetStateAction<boolean[]>>;
+  openTour: boolean;
+  setOpenTour: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
@@ -41,10 +55,44 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
   setReasoningValid,
   tasksComplete,
   setTasksComplete,
+  openTour,
+  setOpenTour,
 }) => {
   if (!question) {
     return <div>Loading...</div>;
   }
+  const tasksRef = useRef<GetRef<typeof Card>>(null);
+  const feedbackRef = useRef<GetRef<typeof Row>>(null);
+  const questionRef = useRef<GetRef<typeof Row>>(null);
+  // const navigationRef = useRef<GetRef<typeof Row>>(null);
+
+  // const [openTour, setOpenTour] = useState<boolean>(false);
+
+  const steps: TourProps["steps"] = [
+    {
+      title: "Is the Question Valid?",
+      description:
+        "I would ask this question when caring for a patient in the given context in an ICU setting",
+      target: () => questionRef.current!,
+    },
+    {
+      title: "Is the data good?",
+      description:
+        "To answer this question, I would find the following data in the EHR system : ",
+      target: () => tasksRef.current!,
+    },
+    {
+      title: "Anything wrong or invalid?",
+      description: "Please give the feedback here!",
+      target: () => feedbackRef.current!,
+    },
+    // {
+    //   title: "Navigate!",
+    //   description: "Click to Navigate to Different Questions",
+    //   target: () => navigationRef.current!,
+    // },
+  ];
+
   useEffect(() => {
     setVariableValidity((prev) => {
       const newValidity = [...prev];
@@ -61,9 +109,19 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
       variant="borderless"
       className="annotation-card"
     >
+      <Tour
+        open={openTour}
+        onClose={() => setOpenTour(false)}
+        steps={steps}
+        indicatorsRender={(current, total) => (
+          <span>
+            {current + 1} / {total}
+          </span>
+        )}
+      />
       <Row className="main-content">
         <Col span={14} className="column-content">
-          <Row className="question-row">
+          <Row className="question-row" ref={questionRef}>
             <Question
               question_idx={currentQuestionIndex}
               question={question.question}
@@ -97,16 +155,12 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             ))}
           </Card> */}
           <Card
+            ref={tasksRef}
             className="tasks-card"
-            hoverable={true}
-            // style={{
-            //   height: "100%", // Keeps task height fixed
-            //   overflow: "hidden", // Prevents content from breaking out
-            //   display: "flex",
-            //   flexDirection: "column",
-            // }}
+            // hoverable={true}
+            hoverable
           >
-            <Row gutter={[16, 16]}>
+            <Row gutter={[16, 16]} className="task-row">
               {question.retrieval_tasks.map((task, index) => (
                 <Col xs={24} sm={12} key={`${question._id}-${task.task_id}`}>
                   <Task
@@ -128,7 +182,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
           {/* <Divider className="divider" /> */}
 
           {/* FEEDBACK ROW (Fixed Height) */}
-          <Row className="feedback-box">
+          <Row className="feedback-box" ref={feedbackRef}>
             {/* <Feedback /> */}
             <Feedback
               feedback={feedback[question._id] || ""}
@@ -145,7 +199,12 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
         </Col>
 
         {/* MIDDLE DIVIDER */}
-        <Col span={1} className="divider-column"></Col>
+        <Col span={1}>
+          <Divider
+            type="vertical"
+            style={{ height: "100%", borderColor: "rgba(128, 128, 128, 0.5)" }}
+          />
+        </Col>
 
         {/* RIGHT SECTION (GRID) */}
         <Col
@@ -159,8 +218,9 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             width: "100%",
           }}
         >
-          <Row>
+          <Row className="grid-row">
             <Grid
+              // ref={navigationRef}
               answeredQuestions={answeredQuestions}
               currentQuestionIndex={currentQuestionIndex}
               onQuestionSelect={(index: number) =>
@@ -177,7 +237,7 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
             />
           </Row>
           <Row>
-            {/* Card Below Reasoning with Yes/No Switch */}
+            {/* Card Below Reasoning with Like/Dislike Buttons */}
             <Card
               className="tasks-card"
               hoverable={true}
@@ -185,40 +245,59 @@ const AnnotationComponent: React.FC<AnnotationComponentProps> = ({
               style={{
                 marginTop: "10px",
                 padding: "10px",
-                height: "200px",
+                height: "175px",
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "space-between", // ✅ Ensures switch stays at the bottom
+                justifyContent: "space-between", // Keeps buttons at the bottom
               }}
             >
               <Card.Meta
                 description={
                   <div style={{ textAlign: "left" }}>
-                    <b>
-                      Do the tasks retrieve all relevant data that you would
-                      search on an EHR system to answer the question?
-                    </b>
+                    Do the tasks retrieve all relevant data that you would
+                    search on an EHR system to answer the question?
                   </div>
                 }
               />
 
-              <Row justify="end">
-                <Switch
-                  checked={tasksComplete[currentQuestionIndex]}
-                  checkedChildren="Yes"
-                  unCheckedChildren="No"
-                  onChange={(checked) => {
-                    console.log("Turning " + checked);
-                    setTasksComplete((prev) => {
-                      const updatedTasks = [...prev];
-                      updatedTasks[currentQuestionIndex] = checked;
-                      return updatedTasks;
-                    });
-                    console.log(
-                      "final val : " + tasksComplete[currentQuestionIndex]
-                    );
-                  }}
-                />
+              <Row justify="end" style={{ marginRight: "-15px" }}>
+                <Space size="middle">
+                  <LikeOutlined
+                    style={{
+                      color:
+                        tasksComplete[currentQuestionIndex] === true
+                          ? "green"
+                          : "gray",
+                      fontSize: "18px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      setTasksComplete((prev) => {
+                        const updatedTasks = [...prev];
+                        updatedTasks[currentQuestionIndex] = true;
+                        return updatedTasks;
+                      })
+                    }
+                  />
+                  <DislikeOutlined
+                    style={{
+                      color:
+                        tasksComplete[currentQuestionIndex] === false
+                          ? "red"
+                          : "gray",
+                      fontSize: "18px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setTasksComplete((prev) => {
+                        const updatedTasks = [...prev];
+                        updatedTasks[currentQuestionIndex] = false;
+                        return updatedTasks;
+                      });
+                      // openNotification(true);
+                    }}
+                  />
+                </Space>
               </Row>
             </Card>
           </Row>

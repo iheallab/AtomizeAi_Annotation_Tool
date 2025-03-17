@@ -9,7 +9,12 @@ import {
   Descriptions,
   Tag,
 } from "antd";
-import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import {
+  CheckOutlined,
+  CloseOutlined,
+  DislikeOutlined,
+  LikeOutlined,
+} from "@ant-design/icons";
 
 const { Title } = Typography;
 import "./question.css";
@@ -45,14 +50,20 @@ const Question: React.FC<QuestionProps> = ({
     });
   };
 
-  useEffect(() => {
-    if (questionValid === false) {
-      openNotification();
-    }
-  }, [questionValid]);
+  // useEffect(() => {
+  //   if (questionValid === false) {
+  //     openNotification();
+  //   }
+  // }, [questionValid]);
 
   return (
-    <Card hoverable className="question-card">
+    <Card
+      hoverable
+      className="question-card"
+      style={{
+        border: "0.1px solid rgba(128, 128, 128, 0.5)",
+      }}
+    >
       {contextHolder}
 
       {/* ICU Type & Category - Properly Aligned */}
@@ -114,7 +125,7 @@ const Question: React.FC<QuestionProps> = ({
                 questionValid === true ? "selected" : ""
               }`}
             >
-              <CheckOutlined />
+              <LikeOutlined />
             </Radio.Button>
 
             <Radio.Button
@@ -123,7 +134,7 @@ const Question: React.FC<QuestionProps> = ({
                 questionValid === false ? "selected" : ""
               }`}
             >
-              <CloseOutlined />
+              <DislikeOutlined />
             </Radio.Button>
           </Radio.Group>
         </Col>

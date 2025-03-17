@@ -14,7 +14,7 @@
   gap: 10px;
 }
 
-/* .like-btn {
+.like-btn {
   border-color: #d9d9d9;
   color: #595959;
 }
@@ -22,17 +22,17 @@
 .dislike-btn {
   border-color: #d9d9d9;
   color: #595959;
-} */
+}
 
-/* .selected {
-  border-color: #1890ff !important;
+.selected {
+  /* border-color: #1890ff !important; */
   color: #1890ff !important;
 }
 
 .selected.dislike-btn {
-  border-color: #ff4d4f !important;
+  /* border-color: #ff4d4f !important; */
   color: #ff4d4f !important;
-} */
+}
 
 /* Default styling */
 .valid-btn {

@@ -13,8 +13,8 @@ import (
 var DB *mongo.Database
 
 func ConnectDB(){
-	clientOptions := options.Client().ApplyURI("mongodb+srv://ehruser:ehrpassword@post-discharge.oienw.mongodb.net/")
-	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
+	// clientOptions := options.Client().ApplyURI("mongodb+srv://ehruser:ehrpassword@post-discharge.oienw.mongodb.net/")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
@@ -26,8 +26,8 @@ func ConnectDB(){
 		log.Fatal("Error connecting to database:", err)
 	}
 
-	DB = client.Database("EHR_Chatbot")
-	// DB = client.Database("atomizeai")
+	// DB = client.Database("EHR_Chatbot")
+	DB = client.Database("atomizeai")
 	fmt.Println("Connected to database")
 }
 

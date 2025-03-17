@@ -1,18 +1,31 @@
 import React, { useContext } from "react";
 import { FormProps } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, notification } from "antd";
 import { AuthContext } from "../AuthContext";
 import { backendURI } from "../commons";
+import type { NotificationArgsProps } from "antd";
 
 type UserCreds = {
   username: string;
   password: string;
 };
 
+type NotificationPlacement = NotificationArgsProps["placement"];
+
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+  const [api, contextHolder] = notification.useNotification();
+
+  const openNotification = (placement: NotificationPlacement) => {
+    api.error({
+      message: `Login Error!`,
+      description: "Username or Password is incorrect!",
+      placement,
+      duration: 2,
+    });
+  };
 
   const onFinish = async (values: UserCreds) => {
     try {
@@ -26,6 +39,7 @@ const LoginForm: React.FC = () => {
 
       if (!response.ok) {
         const errorMessage = await response.text();
+        openNotification("top");
         throw new Error(errorMessage || "Login failed");
       }
 
@@ -35,7 +49,6 @@ const LoginForm: React.FC = () => {
       // Store JWT in localStorage and set AuthContext
       login(data.token);
 
-      // Navigate to annotations page after login
       navigate("/annotations");
     } catch (error) {
       console.error("Error during login:", error);
@@ -59,6 +72,7 @@ const LoginForm: React.FC = () => {
       onFinishFailed={onFinishFailed}
       autoComplete="off"
     >
+      {contextHolder}
       <Form.Item<UserCreds>
         label="Username"
         name="username"

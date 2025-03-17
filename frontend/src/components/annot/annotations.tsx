@@ -1,7 +1,7 @@
 import AnnotationComponent from "./annotation_component";
 
 import React, { useState, useEffect, useContext } from "react";
-import { Button, Space, Spin, Alert, message, Tooltip } from "antd";
+import { Button, Space, Spin, Alert, message, Tooltip, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./annotations.css";
 import { QuestionData } from "./types";
@@ -20,6 +20,8 @@ const Annotations: React.FC = () => {
   const [reasoningValid, setReasoningValidity] = useState<(boolean | null)[]>(
     []
   );
+  const [openTour, setOpenTour] = useState<boolean>(false);
+
   const [tasksComplete, setTasksComplete] = useState<boolean[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const success = () => {
@@ -45,33 +47,6 @@ const Annotations: React.FC = () => {
   const { logout } = useContext(AuthContext);
 
   const [feedback, setFeedback] = useState<Record<string, string>>({});
-
-  // useEffect(() => {
-  //   if (questions.length > 0) {
-  //     // const initialValidity: Record<number, Record<number, boolean>> = {};
-  //     const initialFeedback: Record<string, string> = {};
-
-  //     // questions.forEach((q) => {
-  //     //   initialValidity[q.question_id] = q.retrieval_tasks.reduce(
-  //     //     (acc, task) => {
-  //     //       acc[task.task_id] = task.valid ?? true;
-  //     //       return acc;
-  //     //     },
-  //     //     {} as Record<number, boolean>
-  //     //   );
-  //     //   initialFeedback[q._id] = q.main_feedback || "";
-  //     // });
-
-  //     const initialValidity = questions.map((question) => {
-  //       question.retrieval_tasks.map((task) =>
-  //         task.variables.map((variable) => variable.valid ?? false)
-  //       );
-  //       setFeedback(initialFeedback);
-  //     });
-  //     setVariableValidity(initialValidity);
-  //     // setTaskValidity(initialValidity);
-  //   }
-  // }, [questions]);
   useEffect(() => {
     const initialFeedback: Record<string, string> = {};
     const initialQuestionValidity: (boolean | null)[] = [];
@@ -131,7 +106,8 @@ const Annotations: React.FC = () => {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // throw new Error(`HTTP error! status: ${response.status}`);
+          navigate("/login");
         }
 
         const data = await response.json();
@@ -159,78 +135,6 @@ const Annotations: React.FC = () => {
     fetchAnnotations();
   }, []);
 
-  // const handleSubmit = async () => {
-  //   console.log("Submitting annotation");
-  //   console.log("Current question index:", currentQuestionIndex);
-  //   console.log("Feedback: ", feedback[questions[currentQuestionIndex]._id]);
-  //   // const updatedQuestion = {
-  //   //   ...questions[currentQuestionIndex],
-  //   //   retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
-  //   //     (task, task) => ({
-  //   //       ...task,
-  //   //       valid:
-  //   //         taskValidity[questions[currentQuestionIndex].question_id]?.[
-  //   //           task.task_id
-  //   //         ] ?? false,
-  //   //     })
-  //   //   ),
-  //   //   main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
-  //   //   // annotated_by: parseInt(localStorage.getItem("user_id") || "0"), // Ensuring annotator ID is saved
-  //   // };
-  //   const updatedQuestion = {
-  //     ...questions[currentQuestionIndex],
-  //     retrieval_tasks: questions[currentQuestionIndex].retrieval_tasks.map(
-  //       (task, taskIndex) => ({
-  //         ...task,
-  //         variables: task.variables.map((variable, variableIndex) => ({
-  //           ...variable,
-  //           valid:
-  //             variableValidity[currentQuestionIndex][taskIndex][variableIndex],
-  //         })),
-  //       })
-  //     ),
-  //     main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
-  //     question_valid: questionValid[currentQuestionIndex],
-  //     reasoning_valid: reasoningValid[currentQuestionIndex],
-  //     tasksComplete: tasksComplete[currentQuestionIndex], // 🔥 Fix: Ensure it correctly reflects switch value
-  //   };
-
-  //   // Update local state
-  //   setQuestions((prevQuestions) =>
-  //     prevQuestions.map((q) =>
-  //       q._id === questions[currentQuestionIndex]._id ? updatedQuestion : q
-  //     )
-  //   );
-
-  //   setAnsweredQuestions((prev) => {
-  //     const updated = [...prev];
-  //     updated[currentQuestionIndex] = true;
-  //     return updated;
-  //   });
-
-  //   // Send the update to the backend
-  //   const token = localStorage.getItem("jwt");
-
-  //   try {
-  //     const response = await fetch(backendURI + "annotations", {
-  //       method: "POST",
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(updatedQuestion),
-  //     });
-
-  //     if (!response.ok) {
-  //       errorMsg();
-  //       throw new Error(`Failed to update annotation: ${response.status}`);
-  //     }
-  //     success();
-  //     console.log("Annotation updated successfully");
-  //   } catch (error) {
-  //     console.error("Error updating annotation:", error);
-  //   }
-  // };
   const handleSubmit = async () => {
     console.log("Submitting annotation");
     console.log("Current question index:", currentQuestionIndex);
@@ -358,6 +262,8 @@ const Annotations: React.FC = () => {
         setReasoningValid={setReasoningValidity}
         tasksComplete={tasksComplete}
         setTasksComplete={setTasksComplete}
+        openTour={openTour}
+        setOpenTour={setOpenTour}
       />
       {/* <FloatButton
         icon={<ArrowLeftOutlined />}
@@ -371,20 +277,25 @@ const Annotations: React.FC = () => {
         onClick={() => logout()}
         style={{ bottom: 20, left: 20 }}
       /> */}
-      <Button
-        type="primary"
-        danger
-        onClick={logout}
+      <Row
         style={{
           position: "fixed",
-          // top: 10,
           bottom: 10,
           left: 10,
           zIndex: 1000,
         }}
       >
-        Logout
-      </Button>
+        <Col style={{ marginRight: 10 }}>
+          <Button type="primary" danger onClick={logout}>
+            Logout
+          </Button>
+        </Col>
+        <Col>
+          <Button type="primary" danger onClick={() => setOpenTour(true)}>
+            Need Help?
+          </Button>
+        </Col>
+      </Row>
 
       <Space size="middle" className="navigation-buttons">
         <Button
