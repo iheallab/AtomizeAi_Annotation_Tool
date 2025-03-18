@@ -2,38 +2,101 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 import AnnotationCard from '@/components/AnnotationCard';
 import NavigationControls from '@/components/NavigationControls';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Menu, List, CheckCircle2, CircleDashed } from 'lucide-react';
+import { 
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger
+} from '@/components/ui/drawer';
+
+// Define the type for an annotation item
+type AnnotationItem = {
+  id: string;
+  question: string;
+  context?: string;
+  categories?: string[];
+  icuTypes?: string[];
+  completed?: boolean;
+  feedbackRelevance?: 'positive' | 'negative' | null;
+  feedbackComplete?: 'positive' | 'negative' | null;
+  userFeedback?: string;
+  selectedTasks?: Record<string, boolean>;
+};
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [annotationItems, setAnnotationItems] = useState<AnnotationItem[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   
-  // Sample data - in a real app, this would come from an API
-  const annotationItems = [
-    {
-      question: "Should we adjust the inotropic support for this patient?",
-      context: "65-year-old male with acute myocardial infarction on inotropic support",
-      categories: ["cardiovascular"],
-      icuTypes: ["medical", "cardiac"]
-    },
-    {
-      question: "Is the current ventilation strategy appropriate for this ARDS patient?",
-      context: "58-year-old female with COVID-19 induced ARDS on mechanical ventilation",
-      categories: ["respiratory"],
-      icuTypes: ["medical"]
-    },
-    {
-      question: "Should we continue renal replacement therapy for this patient?",
-      context: "72-year-old male with sepsis-induced acute kidney injury on CRRT",
-      categories: ["renal"],
-      icuTypes: ["medical"]
-    }
-  ];
+  // Initialize with sample data - in a real app, this would come from an API
+  useEffect(() => {
+    // Simulating API response
+    const data: AnnotationItem[] = [
+      {
+        id: "1",
+        question: "Should we adjust the inotropic support for this patient?",
+        context: "65-year-old male with acute myocardial infarction on inotropic support",
+        categories: ["cardiovascular"],
+        icuTypes: ["medical", "cardiac"],
+        completed: false,
+        selectedTasks: {
+          bloodPressure: false,
+          heartRate: false,
+          troponin: false,
+          ckMb: false,
+          inotropeType: false,
+          dosage: false,
+          infusionRate: false
+        }
+      },
+      {
+        id: "2",
+        question: "Is the current ventilation strategy appropriate for this ARDS patient?",
+        context: "58-year-old female with COVID-19 induced ARDS on mechanical ventilation",
+        categories: ["respiratory"],
+        icuTypes: ["medical"],
+        completed: false,
+        selectedTasks: {
+          bloodPressure: false,
+          heartRate: false,
+          troponin: false,
+          ckMb: false,
+          inotropeType: false,
+          dosage: false,
+          infusionRate: false
+        }
+      },
+      {
+        id: "3",
+        question: "Should we continue renal replacement therapy for this patient?",
+        context: "72-year-old male with sepsis-induced acute kidney injury on CRRT",
+        categories: ["renal"],
+        icuTypes: ["medical"],
+        completed: false,
+        selectedTasks: {
+          bloodPressure: false,
+          heartRate: false,
+          troponin: false,
+          ckMb: false,
+          inotropeType: false,
+          dosage: false,
+          infusionRate: false
+        }
+      }
+    ];
+    
+    setAnnotationItems(data);
+  }, []);
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
@@ -50,6 +113,11 @@ const Dashboard = () => {
   const handleSubmit = () => {
     setIsSubmitting(true);
     
+    // Mark the current item as completed
+    const updatedItems = [...annotationItems];
+    updatedItems[currentIndex].completed = true;
+    setAnnotationItems(updatedItems);
+    
     // Simulate API call
     setTimeout(() => {
       toast.success("Annotation submitted successfully!");
@@ -62,10 +130,44 @@ const Dashboard = () => {
     }, 1500);
   };
 
+  const handleTaskUpdate = (taskKey: string, value: boolean) => {
+    const updatedItems = [...annotationItems];
+    if (!updatedItems[currentIndex].selectedTasks) {
+      updatedItems[currentIndex].selectedTasks = {};
+    }
+    updatedItems[currentIndex].selectedTasks![taskKey] = value;
+    setAnnotationItems(updatedItems);
+  };
+
+  const handleFeedbackRelevance = (feedback: 'positive' | 'negative') => {
+    const updatedItems = [...annotationItems];
+    updatedItems[currentIndex].feedbackRelevance = feedback;
+    setAnnotationItems(updatedItems);
+  };
+
+  const handleFeedbackComplete = (feedback: 'positive' | 'negative') => {
+    const updatedItems = [...annotationItems];
+    updatedItems[currentIndex].feedbackComplete = feedback;
+    setAnnotationItems(updatedItems);
+  };
+
+  const handleUserFeedback = (feedback: string) => {
+    const updatedItems = [...annotationItems];
+    updatedItems[currentIndex].userFeedback = feedback;
+    setAnnotationItems(updatedItems);
+  };
+
   // If not logged in, redirect to login
   if (!user) {
     return <Navigate to="/" replace />;
   }
+
+  const currentItem = annotationItems[currentIndex] || {
+    question: "Loading...",
+    context: "Please wait while we load the question",
+    categories: [],
+    icuTypes: []
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -89,58 +191,117 @@ const Dashboard = () => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <motion.h2 
-                className="text-2xl font-bold"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                Annotation Task
-              </motion.h2>
-              <motion.p 
-                className="text-muted-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-              >
-                {currentIndex + 1} of {annotationItems.length}
-              </motion.p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+      <main className="flex-1 container mx-auto px-4 py-4 grid grid-rows-[auto_1fr_auto] h-[calc(100vh-73px)]">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <motion.h2 
+              className="text-2xl font-bold"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Button variant="outline" size="sm" onClick={() => toast.info("Need help? Contact support@example.com")}>
-                Need Help?
-              </Button>
-            </motion.div>
+              Annotation Task
+            </motion.h2>
+            <motion.p 
+              className="text-muted-foreground"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              {currentIndex + 1} of {annotationItems.length}
+            </motion.p>
           </div>
           
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Button variant="outline" size="sm" onClick={() => toast.info("Need help? Contact support@example.com")}>
+              Need Help?
+            </Button>
+          </motion.div>
+        </div>
+        
+        <ScrollArea className="pr-4 -mr-4">
           <AnnotationCard 
-            question={annotationItems[currentIndex].question}
-            context={annotationItems[currentIndex].context}
-            categories={annotationItems[currentIndex].categories}
-            icuTypes={annotationItems[currentIndex].icuTypes}
+            question={currentItem.question}
+            context={currentItem.context}
+            categories={currentItem.categories}
+            icuTypes={currentItem.icuTypes}
+            selectedTasks={currentItem.selectedTasks}
+            feedbackRelevance={currentItem.feedbackRelevance}
+            feedbackComplete={currentItem.feedbackComplete}
+            userFeedback={currentItem.userFeedback}
+            onTaskChange={handleTaskUpdate}
+            onRelevanceFeedback={handleFeedbackRelevance}
+            onCompleteFeedback={handleFeedbackComplete}
+            onUserFeedbackChange={handleUserFeedback}
           />
-          
-          <div className="mt-8 flex justify-center">
-            <NavigationControls
-              onPrevious={handlePrevious}
-              onNext={handleNext}
-              onSubmit={handleSubmit}
-              isPreviousDisabled={currentIndex === 0 || isSubmitting}
-              isNextDisabled={currentIndex === annotationItems.length - 1 || isSubmitting}
-              isSubmitDisabled={isSubmitting}
-            />
-          </div>
+        </ScrollArea>
+        
+        <div className="mt-4 flex justify-center">
+          <NavigationControls
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+            onSubmit={handleSubmit}
+            isPreviousDisabled={currentIndex === 0 || isSubmitting}
+            isNextDisabled={currentIndex === annotationItems.length - 1 || isSubmitting}
+            isSubmitDisabled={isSubmitting}
+          />
         </div>
       </main>
+
+      {/* FAB for opening drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerTrigger asChild>
+          <Button 
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+            size="icon"
+          >
+            <Menu size={24} />
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader>
+            <DrawerTitle>Question Navigator</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium">
+                {annotationItems.filter(item => item.completed).length} of {annotationItems.length} completed
+              </span>
+            </div>
+
+            <ScrollArea className="h-[50vh]">
+              <ul className="space-y-2">
+                {annotationItems.map((item, idx) => (
+                  <li key={item.id}>
+                    <Button 
+                      variant={currentIndex === idx ? "default" : "ghost"}
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setCurrentIndex(idx);
+                        setDrawerOpen(false);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.completed ? 
+                          <CheckCircle2 className="h-5 w-5 text-success" /> : 
+                          <CircleDashed className="h-5 w-5 text-muted-foreground" />
+                        }
+                        <div className="truncate">
+                          <span className="text-sm">{idx + 1}. {item.question}</span>
+                        </div>
+                      </div>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

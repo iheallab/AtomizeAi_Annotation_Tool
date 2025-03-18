@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,14 @@ type AnnotationCardProps = {
   context?: string;
   categories?: string[];
   icuTypes?: string[];
+  selectedTasks?: Record<string, boolean>;
+  feedbackRelevance?: 'positive' | 'negative' | null;
+  feedbackComplete?: 'positive' | 'negative' | null;
+  userFeedback?: string;
+  onTaskChange?: (taskKey: string, value: boolean) => void;
+  onRelevanceFeedback?: (feedback: 'positive' | 'negative') => void;
+  onCompleteFeedback?: (feedback: 'positive' | 'negative') => void;
+  onUserFeedbackChange?: (feedback: string) => void;
 };
 
 const AnnotationCard = ({
@@ -21,22 +29,21 @@ const AnnotationCard = ({
   context,
   categories = [],
   icuTypes = [],
+  selectedTasks = {},
+  feedbackRelevance = null,
+  feedbackComplete = null,
+  userFeedback = '',
+  onTaskChange,
+  onRelevanceFeedback,
+  onCompleteFeedback,
+  onUserFeedbackChange
 }: AnnotationCardProps) => {
-  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
-  const [userFeedback, setUserFeedback] = useState('');
-  
-  // State for vital signs
-  const [bloodPressure, setBloodPressure] = useState(false);
-  const [heartRate, setHeartRate] = useState(false);
-  
-  // State for cardiac enzymes
-  const [troponin, setTroponin] = useState(false);
-  const [ckMb, setCkMb] = useState(false);
-  
-  // State for medication records
-  const [inotropeType, setInotropeType] = useState(false);
-  const [dosage, setDosage] = useState(false);
-  const [infusionRate, setInfusionRate] = useState(false);
+  // Helper function to handle switch changes
+  const handleSwitchChange = (taskKey: string, value: boolean) => {
+    if (onTaskChange) {
+      onTaskChange(taskKey, value);
+    }
+  };
 
   return (
     <motion.div
@@ -47,6 +54,7 @@ const AnnotationCard = ({
       <Card className="overflow-hidden border border-border/30 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex flex-wrap gap-2 mb-3">
+            <span className="text-xs font-medium text-muted-foreground mr-1">ICU Type:</span>
             {icuTypes.map((type, index) => (
               <Badge key={`type-${index}`} variant="secondary" className="badge badge-secondary">
                 {type}
@@ -55,6 +63,7 @@ const AnnotationCard = ({
           </div>
           
           <div className="flex flex-wrap gap-2 mb-4">
+            <span className="text-xs font-medium text-muted-foreground mr-1">Category:</span>
             {categories.map((category, index) => (
               <Badge key={`category-${index}`} variant="outline" className="badge">
                 {category}
@@ -80,8 +89,8 @@ const AnnotationCard = ({
                     <Label htmlFor="bloodPressure" className="cursor-pointer">blood pressure</Label>
                     <Switch
                       id="bloodPressure"
-                      checked={bloodPressure}
-                      onCheckedChange={setBloodPressure}
+                      checked={selectedTasks.bloodPressure || false}
+                      onCheckedChange={(value) => handleSwitchChange('bloodPressure', value)}
                       className="switch"
                     />
                   </div>
@@ -90,8 +99,8 @@ const AnnotationCard = ({
                     <Label htmlFor="heartRate" className="cursor-pointer">heart rate</Label>
                     <Switch
                       id="heartRate"
-                      checked={heartRate}
-                      onCheckedChange={setHeartRate}
+                      checked={selectedTasks.heartRate || false}
+                      onCheckedChange={(value) => handleSwitchChange('heartRate', value)}
                       className="switch"
                     />
                   </div>
@@ -104,8 +113,8 @@ const AnnotationCard = ({
                     <Label htmlFor="troponin" className="cursor-pointer">troponin</Label>
                     <Switch
                       id="troponin"
-                      checked={troponin}
-                      onCheckedChange={setTroponin}
+                      checked={selectedTasks.troponin || false}
+                      onCheckedChange={(value) => handleSwitchChange('troponin', value)}
                       className="switch"
                     />
                   </div>
@@ -114,8 +123,8 @@ const AnnotationCard = ({
                     <Label htmlFor="ckMb" className="cursor-pointer">CK-MB</Label>
                     <Switch
                       id="ckMb"
-                      checked={ckMb}
-                      onCheckedChange={setCkMb}
+                      checked={selectedTasks.ckMb || false}
+                      onCheckedChange={(value) => handleSwitchChange('ckMb', value)}
                       className="switch"
                     />
                   </div>
@@ -128,8 +137,8 @@ const AnnotationCard = ({
                     <Label htmlFor="inotropeType" className="cursor-pointer">inotrope type</Label>
                     <Switch
                       id="inotropeType"
-                      checked={inotropeType}
-                      onCheckedChange={setInotropeType}
+                      checked={selectedTasks.inotropeType || false}
+                      onCheckedChange={(value) => handleSwitchChange('inotropeType', value)}
                       className="switch"
                     />
                   </div>
@@ -138,8 +147,8 @@ const AnnotationCard = ({
                     <Label htmlFor="dosage" className="cursor-pointer">dosage</Label>
                     <Switch
                       id="dosage"
-                      checked={dosage}
-                      onCheckedChange={setDosage}
+                      checked={selectedTasks.dosage || false}
+                      onCheckedChange={(value) => handleSwitchChange('dosage', value)}
                       className="switch"
                     />
                   </div>
@@ -148,8 +157,8 @@ const AnnotationCard = ({
                     <Label htmlFor="infusionRate" className="cursor-pointer">infusion rate</Label>
                     <Switch
                       id="infusionRate"
-                      checked={infusionRate}
-                      onCheckedChange={setInfusionRate}
+                      checked={selectedTasks.infusionRate || false}
+                      onCheckedChange={(value) => handleSwitchChange('infusionRate', value)}
                       className="switch"
                     />
                   </div>
@@ -169,9 +178,9 @@ const AnnotationCard = ({
                   
                   <div className="flex justify-end mt-4">
                     <FeedbackButtons
-                      onPositive={() => setFeedback('positive')}
-                      onNegative={() => setFeedback('negative')}
-                      selected={feedback}
+                      onPositive={() => onRelevanceFeedback?.('positive')}
+                      onNegative={() => onRelevanceFeedback?.('negative')}
+                      selected={feedbackRelevance}
                     />
                   </div>
                 </CardContent>
@@ -188,9 +197,9 @@ const AnnotationCard = ({
                   
                   <div className="flex justify-end mt-4">
                     <FeedbackButtons
-                      onPositive={() => {}}
-                      onNegative={() => {}}
-                      selected={null}
+                      onPositive={() => onCompleteFeedback?.('positive')}
+                      onNegative={() => onCompleteFeedback?.('negative')}
+                      selected={feedbackComplete}
                     />
                   </div>
                 </CardContent>
@@ -202,7 +211,7 @@ const AnnotationCard = ({
                   id="feedback"
                   placeholder="Enter your feedback here..."
                   value={userFeedback}
-                  onChange={(e) => setUserFeedback(e.target.value)}
+                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
                   className="min-h-[100px] resize-none"
                 />
               </div>
