@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import AnnotationCard from '@/components/AnnotationCard';
 import NavigationControls from '@/components/NavigationControls';
 
@@ -82,7 +82,7 @@ const Dashboard = () => {
             <span className="text-sm text-muted-foreground hidden md:inline-block">
               Logged in as <span className="font-medium text-foreground">{user.username}</span>
             </span>
-            <Button variant="destructive" size="sm" onClick={logout}>
+            <Button variant="outline" size="sm" onClick={logout}>
               Logout
             </Button>
           </div>
