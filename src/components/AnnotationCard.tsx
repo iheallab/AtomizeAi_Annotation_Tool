@@ -25,6 +25,8 @@ type AnnotationCardProps = {
   onCompleteFeedback?: (feedback: 'positive' | 'negative') => void;
   onQuestionFeedback?: (feedback: 'positive' | 'negative') => void;
   onUserFeedbackChange?: (feedback: string) => void;
+  currentQuestionIndex?: number;
+  totalQuestions?: number;
 };
 
 const AnnotationCard = ({
@@ -41,7 +43,9 @@ const AnnotationCard = ({
   onRelevanceFeedback,
   onCompleteFeedback,
   onQuestionFeedback,
-  onUserFeedbackChange
+  onUserFeedbackChange,
+  currentQuestionIndex,
+  totalQuestions
 }: AnnotationCardProps) => {
   // Helper function to handle switch changes
   const handleSwitchChange = (taskKey: string, value: boolean) => {
@@ -59,6 +63,13 @@ const AnnotationCard = ({
     >
       <Card className="overflow-hidden border border-border/30 shadow-sm h-full flex flex-col">
         <CardHeader className="pb-3">
+          {currentQuestionIndex && totalQuestions && (
+            <div className="flex justify-end">
+              <span className="text-xs text-muted-foreground">
+                Question {currentQuestionIndex} of {totalQuestions}
+              </span>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2 mb-3">
             <span className="text-xs font-medium text-muted-foreground mr-1">ICU Type:</span>
             {icuTypes.map((type, index) => (
@@ -85,7 +96,7 @@ const AnnotationCard = ({
             </p>
           )}
           
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex justify-between items-center mt-4 w-full">
             <span className="text-sm font-medium">Is this question relevant?</span>
             <FeedbackButtons
               onPositive={() => onQuestionFeedback?.('positive')}
@@ -93,12 +104,27 @@ const AnnotationCard = ({
               selected={feedbackQuestion}
             />
           </div>
+          
+          <div className="space-y-2 mt-4">
+            <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
+              {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
+                ? 'Please provide detailed feedback (required)' 
+                : 'Enter feedback (optional)'}
+            </Label>
+            <Textarea
+              id="feedback"
+              placeholder="Enter your feedback here..."
+              value={userFeedback}
+              onChange={(e) => onUserFeedbackChange?.(e.target.value)}
+              className={`resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
+            />
+          </div>
         </CardHeader>
         
         <CardContent className="flex-1 overflow-hidden flex flex-col">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-hidden">
-            <ScrollArea className="h-[350px] pr-4">
-              <div className="space-y-4 pb-4">
+            <ScrollArea className="h-[calc(100vh-350px)]">
+              <div className="space-y-4 pb-4 pr-4">
                 <CollapsibleSection title="Vital signs" defaultOpen={true}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between space-x-2">
@@ -183,7 +209,7 @@ const AnnotationCard = ({
               </div>
             </ScrollArea>
             
-            <div className="space-y-4 h-[350px] overflow-y-auto pr-4">
+            <div className="space-y-4 h-[calc(100vh-350px)] pr-4">
               <Card className="bg-blue-50/50 border-blue-100">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
@@ -223,21 +249,6 @@ const AnnotationCard = ({
                   </div>
                 </CardContent>
               </Card>
-              
-              <div className="space-y-2">
-                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
-                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
-                    ? 'Please provide detailed feedback (required)' 
-                    : 'Enter feedback (optional)'}
-                </Label>
-                <Textarea
-                  id="feedback"
-                  placeholder="Enter your feedback here..."
-                  value={userFeedback}
-                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
-                  className={`min-h-[100px] resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                />
-              </div>
             </div>
           </div>
         </CardContent>
