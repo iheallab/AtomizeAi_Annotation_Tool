@@ -29,6 +29,7 @@ type AnnotationItem = {
   feedbackComplete?: 'positive' | 'negative' | null;
   userFeedback?: string;
   selectedTasks?: Record<string, boolean>;
+  feedbackQuestion?: 'positive' | 'negative' | null;
 };
 
 const Dashboard = () => {
@@ -57,7 +58,11 @@ const Dashboard = () => {
           inotropeType: false,
           dosage: false,
           infusionRate: false
-        }
+        },
+        feedbackQuestion: null,
+        feedbackRelevance: null,
+        feedbackComplete: null,
+        userFeedback: ''
       },
       {
         id: "2",
@@ -74,7 +79,11 @@ const Dashboard = () => {
           inotropeType: false,
           dosage: false,
           infusionRate: false
-        }
+        },
+        feedbackQuestion: null,
+        feedbackRelevance: null,
+        feedbackComplete: null,
+        userFeedback: ''
       },
       {
         id: "3",
@@ -91,7 +100,11 @@ const Dashboard = () => {
           inotropeType: false,
           dosage: false,
           infusionRate: false
-        }
+        },
+        feedbackQuestion: null,
+        feedbackRelevance: null,
+        feedbackComplete: null,
+        userFeedback: ''
       }
     ];
     
@@ -139,16 +152,48 @@ const Dashboard = () => {
     setAnnotationItems(updatedItems);
   };
 
+  const handleFeedbackQuestion = (feedback: 'positive' | 'negative') => {
+    const updatedItems = [...annotationItems];
+    updatedItems[currentIndex].feedbackQuestion = feedback;
+    
+    // If positive feedback, turn on all tasks. If negative, turn off all.
+    if (updatedItems[currentIndex].selectedTasks) {
+      const tasks = updatedItems[currentIndex].selectedTasks!;
+      const allKeys = Object.keys(tasks);
+      
+      for (const key of allKeys) {
+        tasks[key] = feedback === 'positive';
+      }
+    }
+    
+    setAnnotationItems(updatedItems);
+    
+    // If negative feedback, prompt for detailed feedback
+    if (feedback === 'negative') {
+      toast.info("Please provide detailed feedback in the feedback section below.");
+    }
+  };
+
   const handleFeedbackRelevance = (feedback: 'positive' | 'negative') => {
     const updatedItems = [...annotationItems];
     updatedItems[currentIndex].feedbackRelevance = feedback;
     setAnnotationItems(updatedItems);
+    
+    // If negative feedback, prompt for detailed feedback
+    if (feedback === 'negative') {
+      toast.info("Please provide detailed feedback in the feedback section below.");
+    }
   };
 
   const handleFeedbackComplete = (feedback: 'positive' | 'negative') => {
     const updatedItems = [...annotationItems];
     updatedItems[currentIndex].feedbackComplete = feedback;
     setAnnotationItems(updatedItems);
+    
+    // If negative feedback, prompt for detailed feedback
+    if (feedback === 'negative') {
+      toast.info("Please provide detailed feedback in the feedback section below.");
+    }
   };
 
   const handleUserFeedback = (feedback: string) => {
@@ -166,7 +211,12 @@ const Dashboard = () => {
     question: "Loading...",
     context: "Please wait while we load the question",
     categories: [],
-    icuTypes: []
+    icuTypes: [],
+    feedbackQuestion: null,
+    feedbackRelevance: null,
+    feedbackComplete: null,
+    userFeedback: '',
+    selectedTasks: {}
   };
 
   return (
@@ -191,7 +241,7 @@ const Dashboard = () => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 py-4 grid grid-rows-[auto_1fr_auto] h-[calc(100vh-73px)]">
+      <main className="flex-1 container mx-auto px-4 py-4 flex flex-col h-[calc(100vh-73px)]">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <motion.h2 
@@ -223,7 +273,7 @@ const Dashboard = () => {
           </motion.div>
         </div>
         
-        <ScrollArea className="pr-4 -mr-4">
+        <div className="flex-1 overflow-hidden flex flex-col">
           <AnnotationCard 
             question={currentItem.question}
             context={currentItem.context}
@@ -233,12 +283,14 @@ const Dashboard = () => {
             feedbackRelevance={currentItem.feedbackRelevance}
             feedbackComplete={currentItem.feedbackComplete}
             userFeedback={currentItem.userFeedback}
+            feedbackQuestion={currentItem.feedbackQuestion}
             onTaskChange={handleTaskUpdate}
             onRelevanceFeedback={handleFeedbackRelevance}
             onCompleteFeedback={handleFeedbackComplete}
             onUserFeedbackChange={handleUserFeedback}
+            onQuestionFeedback={handleFeedbackQuestion}
           />
-        </ScrollArea>
+        </div>
         
         <div className="mt-4 flex justify-center">
           <NavigationControls

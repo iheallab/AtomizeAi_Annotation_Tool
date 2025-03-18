@@ -16,7 +16,7 @@ const FeedbackButtons = ({ onPositive, onNegative, selected }: FeedbackButtonsPr
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onPositive}
-        className={`p-2 rounded-md transition-colors ${selected === 'positive' ? 'bg-success/10 text-success' : 'hover:bg-muted'}`}
+        className={`p-2 rounded-md transition-colors flex items-center justify-center ${selected === 'positive' ? 'bg-success/10 text-success' : 'hover:bg-muted'}`}
         aria-label="Positive feedback"
       >
         <ThumbsUp size={20} />
@@ -26,7 +26,7 @@ const FeedbackButtons = ({ onPositive, onNegative, selected }: FeedbackButtonsPr
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onNegative}
-        className={`p-2 rounded-md transition-colors ${selected === 'negative' ? 'bg-destructive/10 text-destructive' : 'hover:bg-muted'}`}
+        className={`p-2 rounded-md transition-colors flex items-center justify-center ${selected === 'negative' ? 'bg-destructive/10 text-destructive' : 'hover:bg-muted'}`}
         aria-label="Negative feedback"
       >
         <ThumbsDown size={20} />
