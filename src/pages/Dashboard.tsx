@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -249,7 +250,7 @@ const Dashboard = () => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 pt-3 pb-4 flex flex-col h-[calc(100vh-61px)]">
+      <main className="flex-1 container mx-auto px-4 py-4 flex flex-col h-[calc(100vh-61px)]">
         <div className="flex-1 overflow-hidden flex flex-col">
           <AnnotationCard 
             question={currentItem.question}

@@ -58,47 +58,51 @@ const AnnotationCard = ({
       className="h-full flex flex-col"
     >
       <Card className="overflow-hidden border border-border/30 shadow-sm h-full flex flex-col">
-        <CardHeader className="pb-3">
-          <div className="flex flex-wrap gap-2 mb-3">
-            <span className="text-xs font-medium text-muted-foreground mr-1">ICU Type:</span>
-            {icuTypes.map((type, index) => (
-              <Badge key={`type-${index}`} variant="secondary" className="badge badge-secondary">
-                {type}
-              </Badge>
-            ))}
-          </div>
-          
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="text-xs font-medium text-muted-foreground mr-1">Category:</span>
-            {categories.map((category, index) => (
-              <Badge key={`category-${index}`} variant="outline" className="badge">
-                {category}
-              </Badge>
-            ))}
-          </div>
-          
-          <CardTitle className="text-xl font-semibold">{question}</CardTitle>
-          
-          {context && (
-            <p className="text-muted-foreground mt-2 text-sm">
-              <span className="font-medium">Context:</span> {context}
-            </p>
-          )}
-          
-          <div className="flex justify-between items-center mt-4">
-            <span className="text-sm font-medium">Is this question relevant?</span>
-            <FeedbackButtons
-              onPositive={() => onQuestionFeedback?.('positive')}
-              onNegative={() => onQuestionFeedback?.('negative')}
-              selected={feedbackQuestion}
-            />
-          </div>
-        </CardHeader>
-        
-        <CardContent className="flex-1 overflow-hidden flex flex-col pb-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-hidden">
-            <div className="flex flex-col space-y-4">
-              <ScrollArea className="border rounded-md h-[calc(100vh-380px)] pr-4 bg-secondary/30">
+        <CardContent className="p-0 flex-1 overflow-hidden flex flex-col">
+          <div className="grid grid-cols-2 gap-4 h-full">
+            {/* Left Column */}
+            <div className="flex flex-col p-5 pb-2 space-y-4">
+              {/* ICU Type and Categories */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="text-xs font-medium text-muted-foreground mr-1">ICU Type:</span>
+                {icuTypes.map((type, index) => (
+                  <Badge key={`type-${index}`} variant="secondary" className="badge badge-secondary">
+                    {type}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-2">
+                <span className="text-xs font-medium text-muted-foreground mr-1">Category:</span>
+                {categories.map((category, index) => (
+                  <Badge key={`category-${index}`} variant="outline" className="badge">
+                    {category}
+                  </Badge>
+                ))}
+              </div>
+              
+              {/* Question */}
+              <div className="mb-2">
+                <h2 className="text-xl font-semibold">{question}</h2>
+                
+                {context && (
+                  <p className="text-muted-foreground mt-2 text-sm">
+                    <span className="font-medium">Context:</span> {context}
+                  </p>
+                )}
+                
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-sm font-medium">Is this question relevant?</span>
+                  <FeedbackButtons
+                    onPositive={() => onQuestionFeedback?.('positive')}
+                    onNegative={() => onQuestionFeedback?.('negative')}
+                    selected={feedbackQuestion}
+                  />
+                </div>
+              </div>
+              
+              {/* Task List (Scrollable) */}
+              <ScrollArea className="border rounded-md flex-1 pr-4 bg-secondary/30">
                 <div className="p-4 space-y-4">
                   <CollapsibleSection title="Vital signs" defaultOpen={true}>
                     <div className="space-y-3">
@@ -183,24 +187,11 @@ const AnnotationCard = ({
                   </CollapsibleSection>
                 </div>
               </ScrollArea>
-              
-              <div className="space-y-2">
-                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
-                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
-                    ? 'Please provide detailed feedback (required)' 
-                    : 'Enter feedback (optional)'}
-                </Label>
-                <Textarea
-                  id="feedback"
-                  placeholder="Enter your feedback here..."
-                  value={userFeedback}
-                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
-                  className={`min-h-[100px] resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                />
-              </div>
             </div>
             
-            <div className="space-y-4 flex flex-col">
+            {/* Right Column */}
+            <div className="flex flex-col p-5 pb-2 space-y-4 bg-background/50">
+              {/* Reasoning Card */}
               <Card className="bg-blue-50/50 border-blue-100 flex-shrink-0">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
@@ -221,6 +212,7 @@ const AnnotationCard = ({
                 </CardContent>
               </Card>
               
+              {/* Tasks Complete Card */}
               <Card className="bg-green-50/50 border-green-100 flex-shrink-0">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-medium">Tasks Complete?</CardTitle>
@@ -240,6 +232,22 @@ const AnnotationCard = ({
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Feedback Textarea - Now on right column */}
+              <div className="space-y-2 flex-shrink-0">
+                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
+                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
+                    ? 'Please provide detailed feedback (required)' 
+                    : 'Enter feedback (optional)'}
+                </Label>
+                <Textarea
+                  id="feedback"
+                  placeholder="Enter your feedback here..."
+                  value={userFeedback}
+                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
+                  className={`min-h-[100px] resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
+                />
+              </div>
             </div>
           </div>
         </CardContent>
