@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -8,7 +7,7 @@ import { toast } from "sonner";
 import AnnotationCard from '@/components/AnnotationCard';
 import NavigationControls from '@/components/NavigationControls';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Menu, List, CheckCircle2, CircleDashed } from 'lucide-react';
+import { Menu, List, CheckCircle2, CircleDashed, HelpCircle } from 'lucide-react';
 import { 
   Drawer,
   DrawerContent,
@@ -222,7 +221,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b border-border/40 bg-card/30 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -230,10 +229,19 @@ const Dashboard = () => {
             <h1 className="text-lg font-semibold">Medical Annotation Tool</h1>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden md:inline-block">
               Logged in as <span className="font-medium text-foreground">{user.username}</span>
             </span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => toast.info("Need help? Contact support@example.com")}
+              className="flex items-center gap-1"
+            >
+              <HelpCircle size={16} />
+              <span className="hidden sm:inline">Need Help?</span>
+            </Button>
             <Button variant="outline" size="sm" onClick={logout}>
               Logout
             </Button>
@@ -241,38 +249,7 @@ const Dashboard = () => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 py-4 flex flex-col h-[calc(100vh-73px)]">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <motion.h2 
-              className="text-2xl font-bold"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              Annotation Task
-            </motion.h2>
-            <motion.p 
-              className="text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              {currentIndex + 1} of {annotationItems.length}
-            </motion.p>
-          </div>
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Button variant="outline" size="sm" onClick={() => toast.info("Need help? Contact support@example.com")}>
-              Need Help?
-            </Button>
-          </motion.div>
-        </div>
-        
+      <main className="flex-1 container mx-auto px-4 pt-3 pb-4 flex flex-col h-[calc(100vh-61px)]">
         <div className="flex-1 overflow-hidden flex flex-col">
           <AnnotationCard 
             question={currentItem.question}
@@ -292,7 +269,7 @@ const Dashboard = () => {
           />
         </div>
         
-        <div className="mt-4 flex justify-center">
+        <div className="mt-3 flex justify-center">
           <NavigationControls
             onPrevious={handlePrevious}
             onNext={handleNext}

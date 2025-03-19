@@ -95,96 +95,113 @@ const AnnotationCard = ({
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 overflow-hidden flex flex-col">
+        <CardContent className="flex-1 overflow-hidden flex flex-col pb-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-hidden">
-            <ScrollArea className="h-[350px] pr-4">
-              <div className="space-y-4 pb-4">
-                <CollapsibleSection title="Vital signs" defaultOpen={true}>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="bloodPressure" className="cursor-pointer">blood pressure</Label>
-                      <Switch
-                        id="bloodPressure"
-                        checked={selectedTasks.bloodPressure || false}
-                        onCheckedChange={(value) => handleSwitchChange('bloodPressure', value)}
-                        className="switch"
-                      />
+            <div className="flex flex-col space-y-4">
+              <ScrollArea className="border rounded-md h-[calc(100vh-380px)] pr-4 bg-secondary/30">
+                <div className="p-4 space-y-4">
+                  <CollapsibleSection title="Vital signs" defaultOpen={true}>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="bloodPressure" className="cursor-pointer">blood pressure</Label>
+                        <Switch
+                          id="bloodPressure"
+                          checked={selectedTasks.bloodPressure || false}
+                          onCheckedChange={(value) => handleSwitchChange('bloodPressure', value)}
+                          className="switch"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="heartRate" className="cursor-pointer">heart rate</Label>
+                        <Switch
+                          id="heartRate"
+                          checked={selectedTasks.heartRate || false}
+                          onCheckedChange={(value) => handleSwitchChange('heartRate', value)}
+                          className="switch"
+                        />
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="heartRate" className="cursor-pointer">heart rate</Label>
-                      <Switch
-                        id="heartRate"
-                        checked={selectedTasks.heartRate || false}
-                        onCheckedChange={(value) => handleSwitchChange('heartRate', value)}
-                        className="switch"
-                      />
+                  </CollapsibleSection>
+                  
+                  <CollapsibleSection title="Cardiac enzymes" defaultOpen={true}>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="troponin" className="cursor-pointer">troponin</Label>
+                        <Switch
+                          id="troponin"
+                          checked={selectedTasks.troponin || false}
+                          onCheckedChange={(value) => handleSwitchChange('troponin', value)}
+                          className="switch"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="ckMb" className="cursor-pointer">CK-MB</Label>
+                        <Switch
+                          id="ckMb"
+                          checked={selectedTasks.ckMb || false}
+                          onCheckedChange={(value) => handleSwitchChange('ckMb', value)}
+                          className="switch"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </CollapsibleSection>
-                
-                <CollapsibleSection title="Cardiac enzymes" defaultOpen={true}>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="troponin" className="cursor-pointer">troponin</Label>
-                      <Switch
-                        id="troponin"
-                        checked={selectedTasks.troponin || false}
-                        onCheckedChange={(value) => handleSwitchChange('troponin', value)}
-                        className="switch"
-                      />
+                  </CollapsibleSection>
+                  
+                  <CollapsibleSection title="Medication records" defaultOpen={true}>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="inotropeType" className="cursor-pointer">inotrope type</Label>
+                        <Switch
+                          id="inotropeType"
+                          checked={selectedTasks.inotropeType || false}
+                          onCheckedChange={(value) => handleSwitchChange('inotropeType', value)}
+                          className="switch"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="dosage" className="cursor-pointer">dosage</Label>
+                        <Switch
+                          id="dosage"
+                          checked={selectedTasks.dosage || false}
+                          onCheckedChange={(value) => handleSwitchChange('dosage', value)}
+                          className="switch"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="infusionRate" className="cursor-pointer">infusion rate</Label>
+                        <Switch
+                          id="infusionRate"
+                          checked={selectedTasks.infusionRate || false}
+                          onCheckedChange={(value) => handleSwitchChange('infusionRate', value)}
+                          className="switch"
+                        />
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="ckMb" className="cursor-pointer">CK-MB</Label>
-                      <Switch
-                        id="ckMb"
-                        checked={selectedTasks.ckMb || false}
-                        onCheckedChange={(value) => handleSwitchChange('ckMb', value)}
-                        className="switch"
-                      />
-                    </div>
-                  </div>
-                </CollapsibleSection>
-                
-                <CollapsibleSection title="Medication records" defaultOpen={true}>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="inotropeType" className="cursor-pointer">inotrope type</Label>
-                      <Switch
-                        id="inotropeType"
-                        checked={selectedTasks.inotropeType || false}
-                        onCheckedChange={(value) => handleSwitchChange('inotropeType', value)}
-                        className="switch"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="dosage" className="cursor-pointer">dosage</Label>
-                      <Switch
-                        id="dosage"
-                        checked={selectedTasks.dosage || false}
-                        onCheckedChange={(value) => handleSwitchChange('dosage', value)}
-                        className="switch"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="infusionRate" className="cursor-pointer">infusion rate</Label>
-                      <Switch
-                        id="infusionRate"
-                        checked={selectedTasks.infusionRate || false}
-                        onCheckedChange={(value) => handleSwitchChange('infusionRate', value)}
-                        className="switch"
-                      />
-                    </div>
-                  </div>
-                </CollapsibleSection>
+                  </CollapsibleSection>
+                </div>
+              </ScrollArea>
+              
+              <div className="space-y-2">
+                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
+                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
+                    ? 'Please provide detailed feedback (required)' 
+                    : 'Enter feedback (optional)'}
+                </Label>
+                <Textarea
+                  id="feedback"
+                  placeholder="Enter your feedback here..."
+                  value={userFeedback}
+                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
+                  className={`min-h-[100px] resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
+                />
               </div>
-            </ScrollArea>
+            </div>
             
-            <div className="space-y-4 h-[350px] overflow-y-auto pr-4">
-              <Card className="bg-blue-50/50 border-blue-100">
+            <div className="space-y-4 flex flex-col">
+              <Card className="bg-blue-50/50 border-blue-100 flex-shrink-0">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
                 </CardHeader>
@@ -204,7 +221,7 @@ const AnnotationCard = ({
                 </CardContent>
               </Card>
               
-              <Card className="bg-green-50/50 border-green-100">
+              <Card className="bg-green-50/50 border-green-100 flex-shrink-0">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-medium">Tasks Complete?</CardTitle>
                 </CardHeader>
@@ -223,21 +240,6 @@ const AnnotationCard = ({
                   </div>
                 </CardContent>
               </Card>
-              
-              <div className="space-y-2">
-                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
-                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
-                    ? 'Please provide detailed feedback (required)' 
-                    : 'Enter feedback (optional)'}
-                </Label>
-                <Textarea
-                  id="feedback"
-                  placeholder="Enter your feedback here..."
-                  value={userFeedback}
-                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
-                  className={`min-h-[100px] resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                />
-              </div>
             </div>
           </div>
         </CardContent>
