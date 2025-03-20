@@ -71,3 +71,10 @@
     overflow-y: auto;
   }
 }
+
+/* Flex textarea styles */
+textarea.flex-1 {
+  height: 100%;
+  display: block;
+}
+
