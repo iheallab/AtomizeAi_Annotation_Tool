@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import CollapsibleSection from './CollapsibleSection';
 import FeedbackButtons from './FeedbackButtons';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type AnnotationCardProps = {
   question: string;
@@ -43,6 +44,8 @@ const AnnotationCard = ({
   onQuestionFeedback,
   onUserFeedbackChange
 }: AnnotationCardProps) => {
+  const isMobile = useIsMobile();
+  
   // Helper function to handle switch changes
   const handleSwitchChange = (taskKey: string, value: boolean) => {
     if (onTaskChange) {
@@ -50,18 +53,25 @@ const AnnotationCard = ({
     }
   };
 
+  // Calculate the main container height based on screen size
+  const getContainerHeight = () => {
+    // For very small screens, allow scrolling within columns
+    return "calc(100vh - 140px)";
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-      className="h-[calc(100vh-130px)] flex flex-col"
+      className="flex flex-col"
+      style={{ minHeight: getContainerHeight(), height: getContainerHeight() }}
     >
       <Card className="border border-border/30 shadow-sm h-full">
         <CardContent className="p-0 h-full">
           <div className="grid grid-cols-2 h-full">
             {/* Left Column */}
-            <div className="flex flex-col h-full border-r border-border/20">
+            <div className="flex flex-col h-full border-r border-border/20 overflow-hidden">
               {/* ICU Type and Categories */}
               <div className="p-4 border-b border-border/20">
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -104,7 +114,7 @@ const AnnotationCard = ({
               </div>
               
               {/* Task List (Scrollable) */}
-              <ScrollArea className="flex-1 overflow-auto">
+              <ScrollArea className="flex-1 overflow-auto responsive-scroll">
                 <div className="p-4 space-y-4">
                   <CollapsibleSection title="Vital signs" defaultOpen={true}>
                     <div className="space-y-3">
@@ -192,7 +202,7 @@ const AnnotationCard = ({
             </div>
             
             {/* Right Column */}
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full responsive-scroll">
               <div className="p-4 space-y-4">
                 {/* Reasoning Card */}
                 <Card className="bg-blue-50/50 border-blue-100">
@@ -249,7 +259,7 @@ const AnnotationCard = ({
                     value={userFeedback}
                     onChange={(e) => onUserFeedbackChange?.(e.target.value)}
                     className={`resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                    rows={4}
+                    rows={3}
                   />
                 </div>
               </div>
