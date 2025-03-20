@@ -69,9 +69,9 @@ const AnnotationCard = ({
     >
       <Card className="border border-border/30 shadow-sm h-full">
         <CardContent className="p-0 h-full">
-          <div className="grid grid-cols-2 h-full">
+          <div className={`${isMobile ? 'flex flex-col' : 'grid grid-cols-2'} h-full`}>
             {/* Left Column */}
-            <div className="flex flex-col h-full border-r border-border/20 overflow-hidden">
+            <div className={`flex flex-col h-full ${!isMobile && 'border-r'} border-border/20 overflow-hidden`}>
               {/* ICU Type and Categories */}
               <div className="p-4 border-b border-border/20">
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -114,7 +114,7 @@ const AnnotationCard = ({
               </div>
               
               {/* Task List (Scrollable) */}
-              <ScrollArea className="flex-1 overflow-auto responsive-scroll">
+              <ScrollArea className={`flex-1 overflow-auto responsive-scroll ${isMobile ? 'max-h-[300px]' : ''}`}>
                 <div className="p-4 space-y-4">
                   <CollapsibleSection title="Vital signs" defaultOpen={true}>
                     <div className="space-y-3">
@@ -202,68 +202,70 @@ const AnnotationCard = ({
             </div>
             
             {/* Right Column */}
-            <ScrollArea className="h-full responsive-scroll">
-              <div className="p-4 space-y-4">
-                {/* Reasoning Card */}
-                <Card className="bg-blue-50/50 border-blue-100">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      This question is designed to evaluate whether the current inotropic support is appropriate. Vital signs, such as blood pressure and heart rate, indicate the current hemodynamic stability, while trends in cardiac enzymes like troponin and CK-MB help assess the extent of myocardial injury. Finally, the medication records provide details about the current inotrope regimen. Together, these tasks allow clinicians to correlate the patient's clinical status with laboratory findings and treatment parameters, thereby informing an actionable decision about adjusting inotropic support.
-                    </p>
-                    
-                    <div className="flex justify-between mt-4 w-full">
-                      <span className="text-sm font-medium">Is this reasoning valid?</span>
-                      <FeedbackButtons
-                        onPositive={() => onRelevanceFeedback?.('positive')}
-                        onNegative={() => onRelevanceFeedback?.('negative')}
-                        selected={feedbackRelevance}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Tasks Complete Card */}
-                <Card className="bg-green-50/50 border-green-100">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium">Tasks Complete?</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Do the tasks retrieve all relevant data that you would search on an EHR system to answer the question?
-                    </p>
-                    
-                    <div className="flex justify-between mt-4 w-full">
-                      <span className="text-sm font-medium">Are all necessary tasks included?</span>
-                      <FeedbackButtons
-                        onPositive={() => onCompleteFeedback?.('positive')}
-                        onNegative={() => onCompleteFeedback?.('negative')}
-                        selected={feedbackComplete}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Feedback Textarea */}
-                <div className="space-y-2">
-                  <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
-                    {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
-                      ? 'Please provide detailed feedback (required)' 
-                      : 'Enter feedback (optional)'}
-                  </Label>
-                  <Textarea
-                    id="feedback"
-                    placeholder="Enter your feedback here..."
-                    value={userFeedback}
-                    onChange={(e) => onUserFeedbackChange?.(e.target.value)}
-                    className={`resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                    rows={3}
-                  />
+            <div className={`flex flex-col h-full ${isMobile ? 'max-h-[calc(100vh-450px)]' : ''}`}>
+              <ScrollArea className="flex-1 responsive-scroll">
+                <div className="p-4 space-y-4">
+                  {/* Reasoning Card */}
+                  <Card className="bg-blue-50/50 border-blue-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        This question is designed to evaluate whether the current inotropic support is appropriate. Vital signs, such as blood pressure and heart rate, indicate the current hemodynamic stability, while trends in cardiac enzymes like troponin and CK-MB help assess the extent of myocardial injury. Finally, the medication records provide details about the current inotrope regimen. Together, these tasks allow clinicians to correlate the patient's clinical status with laboratory findings and treatment parameters, thereby informing an actionable decision about adjusting inotropic support.
+                      </p>
+                      
+                      <div className="flex justify-between mt-4 w-full">
+                        <span className="text-sm font-medium">Is this reasoning valid?</span>
+                        <FeedbackButtons
+                          onPositive={() => onRelevanceFeedback?.('positive')}
+                          onNegative={() => onRelevanceFeedback?.('negative')}
+                          selected={feedbackRelevance}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Tasks Complete Card */}
+                  <Card className="bg-green-50/50 border-green-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-medium">Tasks Complete?</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Do the tasks retrieve all relevant data that you would search on an EHR system to answer the question?
+                      </p>
+                      
+                      <div className="flex justify-between mt-4 w-full">
+                        <span className="text-sm font-medium">Are all necessary tasks included?</span>
+                        <FeedbackButtons
+                          onPositive={() => onCompleteFeedback?.('positive')}
+                          onNegative={() => onCompleteFeedback?.('negative')}
+                          selected={feedbackComplete}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
+              </ScrollArea>
+              
+              {/* Feedback Textarea */}
+              <div className="p-4 space-y-2 flex-shrink-0">
+                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
+                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
+                    ? 'Please provide detailed feedback (required)' 
+                    : 'Enter feedback (optional)'}
+                </Label>
+                <Textarea
+                  id="feedback"
+                  placeholder="Enter your feedback here..."
+                  value={userFeedback}
+                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
+                  className={`resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
+                  rows={3}
+                />
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </CardContent>
       </Card>
