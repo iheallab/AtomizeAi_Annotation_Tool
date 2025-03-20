@@ -220,8 +220,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-border/40 bg-card/30 backdrop-blur-sm sticky top-0 z-10">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
+      <header className="border-b border-border/40 bg-card/30 backdrop-blur-sm sticky top-0 z-10 shrink-0">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -250,8 +250,8 @@ const Dashboard = () => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 py-4 flex flex-col h-[calc(100vh-61px)]">
-        <div className="flex-1 overflow-hidden flex flex-col">
+      <main className="flex-1 container mx-auto px-4 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden">
           <AnnotationCard 
             question={currentItem.question}
             context={currentItem.context}
@@ -270,7 +270,7 @@ const Dashboard = () => {
           />
         </div>
         
-        <div className="mt-3 flex justify-center">
+        <div className="shrink-0 py-3 flex justify-center">
           <NavigationControls
             onPrevious={handlePrevious}
             onNext={handleNext}
