@@ -202,69 +202,68 @@ const AnnotationCard = ({
             </div>
             
             {/* Right Column */}
-            <div className="h-full flex flex-col overflow-hidden">
-              <ScrollArea className="flex-1 responsive-scroll">
-                <div className="p-4 space-y-4">
-                  {/* Reasoning Card */}
-                  <Card className="bg-blue-50/50 border-blue-100">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        This question is designed to evaluate whether the current inotropic support is appropriate. Vital signs, such as blood pressure and heart rate, indicate the current hemodynamic stability, while trends in cardiac enzymes like troponin and CK-MB help assess the extent of myocardial injury. Finally, the medication records provide details about the current inotrope regimen. Together, these tasks allow clinicians to correlate the patient's clinical status with laboratory findings and treatment parameters, thereby informing an actionable decision about adjusting inotropic support.
-                      </p>
-                      
-                      <div className="flex justify-between mt-4 w-full">
-                        <span className="text-sm font-medium">Is this reasoning valid?</span>
-                        <FeedbackButtons
-                          onPositive={() => onRelevanceFeedback?.('positive')}
-                          onNegative={() => onRelevanceFeedback?.('negative')}
-                          selected={feedbackRelevance}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Tasks Complete Card */}
-                  <Card className="bg-green-50/50 border-green-100">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-medium">Tasks Complete?</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        Do the tasks retrieve all relevant data that you would search on an EHR system to answer the question?
-                      </p>
-                      
-                      <div className="flex justify-between mt-4 w-full">
-                        <span className="text-sm font-medium">Are all necessary tasks included?</span>
-                        <FeedbackButtons
-                          onPositive={() => onCompleteFeedback?.('positive')}
-                          onNegative={() => onCompleteFeedback?.('negative')}
-                          selected={feedbackComplete}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+            <ScrollArea className="h-full responsive-scroll">
+              <div className="p-4 space-y-4">
+                {/* Reasoning Card */}
+                <Card className="bg-blue-50/50 border-blue-100">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Reasoning</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      This question is designed to evaluate whether the current inotropic support is appropriate. Vital signs, such as blood pressure and heart rate, indicate the current hemodynamic stability, while trends in cardiac enzymes like troponin and CK-MB help assess the extent of myocardial injury. Finally, the medication records provide details about the current inotrope regimen. Together, these tasks allow clinicians to correlate the patient's clinical status with laboratory findings and treatment parameters, thereby informing an actionable decision about adjusting inotropic support.
+                    </p>
+                    
+                    <div className="flex justify-between mt-4 w-full">
+                      <span className="text-sm font-medium">Is this reasoning valid?</span>
+                      <FeedbackButtons
+                        onPositive={() => onRelevanceFeedback?.('positive')}
+                        onNegative={() => onRelevanceFeedback?.('negative')}
+                        selected={feedbackRelevance}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Tasks Complete Card */}
+                <Card className="bg-green-50/50 border-green-100">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Tasks Complete?</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Do the tasks retrieve all relevant data that you would search on an EHR system to answer the question?
+                    </p>
+                    
+                    <div className="flex justify-between mt-4 w-full">
+                      <span className="text-sm font-medium">Are all necessary tasks included?</span>
+                      <FeedbackButtons
+                        onPositive={() => onCompleteFeedback?.('positive')}
+                        onNegative={() => onCompleteFeedback?.('negative')}
+                        selected={feedbackComplete}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Feedback Textarea */}
+                <div className="space-y-2">
+                  <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
+                    {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
+                      ? 'Please provide detailed feedback (required)' 
+                      : 'Enter feedback (optional)'}
+                  </Label>
+                  <Textarea
+                    id="feedback"
+                    placeholder="Enter your feedback here..."
+                    value={userFeedback}
+                    onChange={(e) => onUserFeedbackChange?.(e.target.value)}
+                    className={`resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
+                    rows={3}
+                  />
                 </div>
-              </ScrollArea>
-              
-              {/* Feedback Textarea - Now takes remaining space */}
-              <div className="p-4 border-t border-border/20 flex flex-col">
-                <Label htmlFor="feedback" className={`mb-2 ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
-                  {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
-                    ? 'Please provide detailed feedback (required)' 
-                    : 'Enter feedback (optional)'}
-                </Label>
-                <Textarea
-                  id="feedback"
-                  placeholder="Enter your feedback here..."
-                  value={userFeedback}
-                  onChange={(e) => onUserFeedbackChange?.(e.target.value)}
-                  className={`flex-1 min-h-[80px] resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                />
               </div>
-            </div>
+            </ScrollArea>
           </div>
         </CardContent>
       </Card>
@@ -273,4 +272,3 @@ const AnnotationCard = ({
 };
 
 export default AnnotationCard;
-
