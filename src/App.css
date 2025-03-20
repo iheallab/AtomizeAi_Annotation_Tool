@@ -79,6 +79,19 @@
     padding-right: 1rem;
   }
   
+  /* Mobile full scroll approach */
+  .mobile-full-scroll {
+    height: auto;
+    overflow: visible;
+    max-height: none;
+  }
+  
+  /* Reset inner scroll containers on mobile */
+  .mobile-full-scroll .responsive-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+  
   /* Ensure mobile layout doesn't overflow */
   .responsive-scroll {
     max-height: none;
@@ -88,6 +101,7 @@
   #root {
     height: 100%;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }

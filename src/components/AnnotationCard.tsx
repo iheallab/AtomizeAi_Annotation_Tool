@@ -53,25 +53,19 @@ const AnnotationCard = ({
     }
   };
 
-  // Calculate the main container height based on screen size
-  const getContainerHeight = () => {
-    // For very small screens, allow scrolling within columns
-    return "calc(100vh - 140px)";
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col"
-      style={{ minHeight: getContainerHeight(), height: getContainerHeight() }}
+      className={`flex flex-col ${isMobile ? 'mobile-full-scroll' : ''}`}
+      style={{ height: isMobile ? 'auto' : 'calc(100vh - 140px)' }}
     >
       <Card className="border border-border/30 shadow-sm h-full">
         <CardContent className="p-0 h-full">
           <div className={`${isMobile ? 'flex flex-col' : 'grid grid-cols-2'} h-full`}>
             {/* Left Column */}
-            <div className={`flex flex-col h-full ${!isMobile && 'border-r'} border-border/20 overflow-hidden`}>
+            <div className={`flex flex-col ${!isMobile ? 'h-full border-r' : ''} border-border/20 ${isMobile ? 'overflow-visible' : 'overflow-hidden'}`}>
               {/* ICU Type and Categories */}
               <div className="p-4 border-b border-border/20">
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -113,8 +107,8 @@ const AnnotationCard = ({
                 </div>
               </div>
               
-              {/* Task List (Scrollable) */}
-              <ScrollArea className={`flex-1 overflow-auto responsive-scroll ${isMobile ? 'max-h-[300px]' : ''}`}>
+              {/* Task List */}
+              <div className={`${isMobile ? '' : 'flex-1 overflow-auto responsive-scroll'}`}>
                 <div className="p-4 space-y-4">
                   <CollapsibleSection title="Vital signs" defaultOpen={true}>
                     <div className="space-y-3">
@@ -198,12 +192,12 @@ const AnnotationCard = ({
                     </div>
                   </CollapsibleSection>
                 </div>
-              </ScrollArea>
+              </div>
             </div>
             
             {/* Right Column */}
-            <div className={`flex flex-col h-full ${isMobile ? 'max-h-[calc(100vh-450px)]' : ''}`}>
-              <ScrollArea className="flex-1 responsive-scroll">
+            <div className={`flex flex-col ${isMobile ? '' : 'h-full'}`}>
+              <div className={`${isMobile ? '' : 'flex-1 responsive-scroll'}`}>
                 <div className="p-4 space-y-4">
                   {/* Reasoning Card */}
                   <Card className="bg-blue-50/50 border-blue-100">
@@ -247,7 +241,7 @@ const AnnotationCard = ({
                     </CardContent>
                   </Card>
                 </div>
-              </ScrollArea>
+              </div>
               
               {/* Feedback Textarea */}
               <div className="p-4 space-y-2 flex-shrink-0">
