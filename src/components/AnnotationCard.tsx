@@ -61,7 +61,7 @@ const AnnotationCard = ({
       className={`flex flex-col ${isMobile ? 'mobile-full-scroll' : ''}`}
       style={{ height: isMobile ? 'auto' : 'calc(100vh - 140px)' }}
     >
-      <Card className="border border-border/30 shadow-sm h-full">
+      <Card className={`border border-border/30 shadow-sm h-full ${isMobile ? 'mobile-card-container' : ''}`}>
         <CardContent className="p-0 h-full">
           <div className={`${isMobile ? 'flex flex-col' : 'grid grid-cols-2'} h-full`}>
             {/* Left Column */}
@@ -243,9 +243,12 @@ const AnnotationCard = ({
                 </div>
               </div>
               
-              {/* Feedback Textarea */}
-              <div className="p-4 space-y-2 flex-shrink-0">
-                <Label htmlFor="feedback" className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''}`}>
+              {/* Feedback Textarea - Modified to fill available space */}
+              <div className="p-4 flex flex-col flex-grow">
+                <Label 
+                  htmlFor="feedback" 
+                  className={`${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'text-destructive font-semibold' : ''} mb-2`}
+                >
                   {(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') 
                     ? 'Please provide detailed feedback (required)' 
                     : 'Enter feedback (optional)'}
@@ -255,8 +258,8 @@ const AnnotationCard = ({
                   placeholder="Enter your feedback here..."
                   value={userFeedback}
                   onChange={(e) => onUserFeedbackChange?.(e.target.value)}
-                  className={`resize-none ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
-                  rows={3}
+                  className={`resize-none flex-grow ${(feedbackQuestion === 'negative' || feedbackRelevance === 'negative' || feedbackComplete === 'negative') ? 'border-destructive' : ''}`}
+                  style={{ minHeight: '100px' }}
                 />
               </div>
             </div>

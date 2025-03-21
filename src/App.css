@@ -104,4 +104,16 @@
     overflow-x: hidden;
     overflow-y: auto;
   }
+
+  /* Fix for ensuring content is scrollable on mobile */
+  body, html {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  /* Ensure mobile cards expand properly */
+  .mobile-card-container {
+    min-height: 100%;
+    height: auto;
+  }
 }
