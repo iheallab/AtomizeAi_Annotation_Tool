@@ -1,21 +1,27 @@
-
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import AnnotationCard from '@/components/AnnotationCard';
-import NavigationControls from '@/components/NavigationControls';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Menu, List, CheckCircle2, CircleDashed, HelpCircle } from 'lucide-react';
-import { 
+import AnnotationCard from "@/components/AnnotationCard";
+import NavigationControls from "@/components/NavigationControls";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Menu,
+  List,
+  CheckCircle2,
+  CircleDashed,
+  HelpCircle,
+} from "lucide-react";
+import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger
-} from '@/components/ui/drawer';
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useTour } from "@reactour/tour";
 
 // Define the type for an annotation item
 type AnnotationItem = {
@@ -25,11 +31,11 @@ type AnnotationItem = {
   categories?: string[];
   icuTypes?: string[];
   completed?: boolean;
-  feedbackRelevance?: 'positive' | 'negative' | null;
-  feedbackComplete?: 'positive' | 'negative' | null;
+  feedbackRelevance?: "positive" | "negative" | null;
+  feedbackComplete?: "positive" | "negative" | null;
   userFeedback?: string;
   selectedTasks?: Record<string, boolean>;
-  feedbackQuestion?: 'positive' | 'negative' | null;
+  feedbackQuestion?: "positive" | "negative" | null;
 };
 
 const Dashboard = () => {
@@ -38,7 +44,8 @@ const Dashboard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [annotationItems, setAnnotationItems] = useState<AnnotationItem[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
+  const { setIsOpen } = useTour();
+
   // Initialize with sample data - in a real app, this would come from an API
   useEffect(() => {
     // Simulating API response
@@ -46,7 +53,8 @@ const Dashboard = () => {
       {
         id: "1",
         question: "Should we adjust the inotropic support for this patient?",
-        context: "65-year-old male with acute myocardial infarction on inotropic support",
+        context:
+          "65-year-old male with acute myocardial infarction on inotropic support",
         categories: ["cardiovascular"],
         icuTypes: ["medical", "cardiac"],
         completed: false,
@@ -57,17 +65,19 @@ const Dashboard = () => {
           ckMb: false,
           inotropeType: false,
           dosage: false,
-          infusionRate: false
+          infusionRate: false,
         },
         feedbackQuestion: null,
         feedbackRelevance: null,
         feedbackComplete: null,
-        userFeedback: ''
+        userFeedback: "",
       },
       {
         id: "2",
-        question: "Is the current ventilation strategy appropriate for this ARDS patient?",
-        context: "58-year-old female with COVID-19 induced ARDS on mechanical ventilation",
+        question:
+          "Is the current ventilation strategy appropriate for this ARDS patient?",
+        context:
+          "58-year-old female with COVID-19 induced ARDS on mechanical ventilation",
         categories: ["respiratory"],
         icuTypes: ["medical"],
         completed: false,
@@ -78,17 +88,19 @@ const Dashboard = () => {
           ckMb: false,
           inotropeType: false,
           dosage: false,
-          infusionRate: false
+          infusionRate: false,
         },
         feedbackQuestion: null,
         feedbackRelevance: null,
         feedbackComplete: null,
-        userFeedback: ''
+        userFeedback: "",
       },
       {
         id: "3",
-        question: "Should we continue renal replacement therapy for this patient?",
-        context: "72-year-old male with sepsis-induced acute kidney injury on CRRT",
+        question:
+          "Should we continue renal replacement therapy for this patient?",
+        context:
+          "72-year-old male with sepsis-induced acute kidney injury on CRRT",
         categories: ["renal"],
         icuTypes: ["medical"],
         completed: false,
@@ -99,15 +111,15 @@ const Dashboard = () => {
           ckMb: false,
           inotropeType: false,
           dosage: false,
-          infusionRate: false
+          infusionRate: false,
         },
         feedbackQuestion: null,
         feedbackRelevance: null,
         feedbackComplete: null,
-        userFeedback: ''
-      }
+        userFeedback: "",
+      },
     ];
-    
+
     setAnnotationItems(data);
   }, []);
 
@@ -125,17 +137,17 @@ const Dashboard = () => {
 
   const handleSubmit = () => {
     setIsSubmitting(true);
-    
+
     // Mark the current item as completed
     const updatedItems = [...annotationItems];
     updatedItems[currentIndex].completed = true;
     setAnnotationItems(updatedItems);
-    
+
     // Simulate API call
     setTimeout(() => {
       toast.success("Annotation submitted successfully!");
       setIsSubmitting(false);
-      
+
       // Move to next item if available
       if (currentIndex < annotationItems.length - 1) {
         setCurrentIndex(currentIndex + 1);
@@ -152,47 +164,53 @@ const Dashboard = () => {
     setAnnotationItems(updatedItems);
   };
 
-  const handleFeedbackQuestion = (feedback: 'positive' | 'negative') => {
+  const handleFeedbackQuestion = (feedback: "positive" | "negative") => {
     const updatedItems = [...annotationItems];
     updatedItems[currentIndex].feedbackQuestion = feedback;
-    
+
     // If positive feedback, turn on all tasks. If negative, turn off all.
     if (updatedItems[currentIndex].selectedTasks) {
       const tasks = updatedItems[currentIndex].selectedTasks!;
       const allKeys = Object.keys(tasks);
-      
+
       for (const key of allKeys) {
-        tasks[key] = feedback === 'positive';
+        tasks[key] = feedback === "positive";
       }
     }
-    
+
     setAnnotationItems(updatedItems);
-    
+
     // If negative feedback, prompt for detailed feedback
-    if (feedback === 'negative') {
-      toast.info("Please provide detailed feedback in the feedback section below.");
+    if (feedback === "negative") {
+      toast.info(
+        "Please provide detailed feedback in the feedback section below."
+      );
     }
   };
 
-  const handleFeedbackRelevance = (feedback: 'positive' | 'negative') => {
+  const handleFeedbackRelevance = (feedback: "positive" | "negative") => {
     const updatedItems = [...annotationItems];
     updatedItems[currentIndex].feedbackRelevance = feedback;
     setAnnotationItems(updatedItems);
-    
+
     // If negative feedback, prompt for detailed feedback
-    if (feedback === 'negative') {
-      toast.info("Please provide detailed feedback in the feedback section below.");
+    if (feedback === "negative") {
+      toast.info(
+        "Please provide detailed feedback in the feedback section below."
+      );
     }
   };
 
-  const handleFeedbackComplete = (feedback: 'positive' | 'negative') => {
+  const handleFeedbackComplete = (feedback: "positive" | "negative") => {
     const updatedItems = [...annotationItems];
     updatedItems[currentIndex].feedbackComplete = feedback;
     setAnnotationItems(updatedItems);
-    
+
     // If negative feedback, prompt for detailed feedback
-    if (feedback === 'negative') {
-      toast.info("Please provide detailed feedback in the feedback section below.");
+    if (feedback === "negative") {
+      toast.info(
+        "Please provide detailed feedback in the feedback section below."
+      );
     }
   };
 
@@ -215,8 +233,8 @@ const Dashboard = () => {
     feedbackQuestion: null,
     feedbackRelevance: null,
     feedbackComplete: null,
-    userFeedback: '',
-    selectedTasks: {}
+    userFeedback: "",
+    selectedTasks: {},
   };
 
   return (
@@ -225,19 +243,35 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 text-primary"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+              </svg>
             </div>
             <h1 className="text-lg font-semibold">Medical Annotation Tool</h1>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden md:inline-block">
-              Logged in as <span className="font-medium text-foreground">{user.username}</span>
+              Logged in as{" "}
+              <span className="font-medium text-foreground">
+                {user.username}
+              </span>
             </span>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => toast.info("Need help? Contact support@example.com")}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsOpen(true)}
               className="flex items-center gap-1"
             >
               <HelpCircle size={16} />
@@ -249,10 +283,10 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
-      
+
       <main className="flex-1 container mx-auto px-4 overflow-hidden flex flex-col">
         <div className="flex-1 overflow-hidden">
-          <AnnotationCard 
+          <AnnotationCard
             question={currentItem.question}
             context={currentItem.context}
             categories={currentItem.categories}
@@ -269,14 +303,16 @@ const Dashboard = () => {
             onQuestionFeedback={handleFeedbackQuestion}
           />
         </div>
-        
+
         <div className="shrink-0 py-3 flex justify-center">
           <NavigationControls
             onPrevious={handlePrevious}
             onNext={handleNext}
             onSubmit={handleSubmit}
             isPreviousDisabled={currentIndex === 0 || isSubmitting}
-            isNextDisabled={currentIndex === annotationItems.length - 1 || isSubmitting}
+            isNextDisabled={
+              currentIndex === annotationItems.length - 1 || isSubmitting
+            }
             isSubmitDisabled={isSubmitting}
           />
         </div>
@@ -285,7 +321,7 @@ const Dashboard = () => {
       {/* FAB for opening drawer */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerTrigger asChild>
-          <Button 
+          <Button
             className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
             size="icon"
           >
@@ -299,7 +335,8 @@ const Dashboard = () => {
           <div className="px-4 pb-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium">
-                {annotationItems.filter(item => item.completed).length} of {annotationItems.length} completed
+                {annotationItems.filter((item) => item.completed).length} of{" "}
+                {annotationItems.length} completed
               </span>
             </div>
 
@@ -307,7 +344,7 @@ const Dashboard = () => {
               <ul className="space-y-2">
                 {annotationItems.map((item, idx) => (
                   <li key={item.id}>
-                    <Button 
+                    <Button
                       variant={currentIndex === idx ? "default" : "ghost"}
                       className="w-full justify-start text-left"
                       onClick={() => {
@@ -316,12 +353,15 @@ const Dashboard = () => {
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        {item.completed ? 
-                          <CheckCircle2 className="h-5 w-5 text-success" /> : 
+                        {item.completed ? (
+                          <CheckCircle2 className="h-5 w-5 text-success" />
+                        ) : (
                           <CircleDashed className="h-5 w-5 text-muted-foreground" />
-                        }
+                        )}
                         <div className="truncate">
-                          <span className="text-sm">{idx + 1}. {item.question}</span>
+                          <span className="text-sm">
+                            {idx + 1}. {item.question}
+                          </span>
                         </div>
                       </div>
                     </Button>
