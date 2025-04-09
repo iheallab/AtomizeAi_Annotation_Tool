@@ -1,0 +1,144 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background colors */
+    --background: 180 25% 97%;
+    --background-alt: 180 20% 94%;
+    --foreground: 222 25% 20%;
+
+    /* Primary colors - Teal/Mint family */
+    --primary: 174 60% 50%;
+    --primary-foreground: 174 60% 98%;
+    --primary-light: 174 55% 80%;
+    --primary-dark: 174 65% 35%;
+
+    /* Secondary colors - Soft pastels */
+    --secondary: 180 20% 92%;
+    --secondary-foreground: 180 25% 25%;
+    --secondary-light: 180 15% 97%;
+    --secondary-dark: 180 25% 75%;
+
+    /* UI element colors */
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 20%;
+    --muted: 180 10% 90%;
+    --muted-foreground: 215 15% 45%;
+    --accent: 150 40% 88%;
+    --accent-foreground: 150 40% 25%;
+    --destructive: 0 70% 65%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 180 15% 92%;
+    --input: 180 15% 92%;
+    --ring: 174 60% 50%;
+    --radius: 0.75rem;
+
+    /* Sidebar specific colors */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Background colors - Dark mode */
+    --background: 200 20% 15%;
+    --background-alt: 200 22% 12%;
+    --foreground: 180 10% 90%;
+
+    /* Primary colors - Dark mode */
+    --primary: 174 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 174 50% 55%;
+    --primary-dark: 174 70% 30%;
+
+    /* Secondary colors - Dark mode */
+    --secondary: 180 15% 25%;
+    --secondary-foreground: 180 10% 90%;
+    --secondary-light: 180 12% 35%;
+    --secondary-dark: 180 18% 18%;
+
+    /* UI element colors - Dark mode */
+    --card: 200 25% 17%;
+    --card-foreground: 180 10% 90%;
+    --popover: 200 25% 17%;
+    --popover-foreground: 180 10% 90%;
+    --muted: 180 15% 25%;
+    --muted-foreground: 180 10% 70%;
+    --accent: 150 20% 30%;
+    --accent-foreground: 150 40% 90%;
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 200 15% 25%;
+    --input: 200 15% 25%;
+    --ring: 174 70% 45%;
+    
+    /* Sidebar specific colors - Dark mode */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Add soft transitions for theme changes */
+  *, ::before, ::after {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* Custom application styles */
+@layer components {
+  .heart-beats {
+    animation: heartbeat 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes heartbeat {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.1); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  
+  /* Custom shadow styles */
+  .shadow-soft {
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Card enhancements */
+  .card-enhanced {
+    @apply bg-card rounded-lg shadow-soft border-none;
+  }
+  
+  /* Button enhancements */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
+  }
+}
