@@ -188,6 +188,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      {/* <div className="bg-white dark:bg-background rounded-2xl shadow-xl p-8 max-w-4xl mx-auto"> */}
       <Accordion
         type="single"
         value={activeAccordion}
@@ -328,10 +329,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value="tasks"
-          className="border bg-card dark:border-border rounded-md mb-4 overflow-hidden shadow-sm"
+          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
           ref={sectionRefs.tasks}
         >
-          <AccordionTrigger className="px-6 py-4  group">
+          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
               <span className="text-lg font-medium">
                 Required Data Elements
@@ -362,28 +363,29 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     <CheckCircle size={20} />
                   </Button>
                 )}
-                {/* <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 ml-2" /> */}
               </div>
             </div>
           </AccordionTrigger>
+
           <AccordionContent className="px-6 pb-6 dark:text-foreground">
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Select the data elements that are necessary to answer this
                 question:
               </p>
+
               <div className="space-y-6">
                 {taskGroups.map((group) => (
                   <div
                     key={group.id}
-                    className="border dark:border-border rounded-md p-4 bg-card dark:bg-card"
+                    className="bg-white dark:bg-background border border-border rounded-lg p-4 shadow-sm"
                   >
                     <h3 className="font-medium text-lg mb-3">{group.name}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {group.tasks.map((task) => (
                         <div
                           key={task.id}
-                          className="flex items-center justify-between p-2 border dark:border-border rounded-md bg-background dark:bg-background"
+                          className="flex items-center justify-between p-3 border border-border rounded-md bg-white dark:bg-background transition-colors"
                         >
                           <span className="font-medium">{task.name}</span>
                           <Switch
@@ -418,10 +420,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value="reasoning"
-          className="border bg-card dark:border-border rounded-md mb-4 overflow-hidden shadow-sm"
+          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
           ref={sectionRefs.reasoning}
         >
-          <AccordionTrigger className="px-6 py-4  group">
+          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
               <span className="text-lg font-medium">Reasoning</span>
               <div className="flex items-center">
@@ -450,42 +452,49 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     <CheckCircle size={20} />
                   </Button>
                 )}
-                {/* <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 ml-2" /> */}
               </div>
             </div>
           </AccordionTrigger>
+
           <AccordionContent className="px-6 pb-6 dark:text-foreground">
             <div className="space-y-4">
-              <div className="bg-muted/50 dark:bg-muted/10 p-4 rounded-md">
+              {/* Reasoning Card */}
+              <div className="bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm">
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
                   How we came up with these values:
                 </h4>
                 <p className="text-foreground">{question.reasoning}</p>
               </div>
 
+              {/* Buttons */}
               <div className="mt-4">
                 <p className="mb-3 font-medium">Is this reasoning valid?</p>
                 <div className="flex space-x-4">
+                  {/* Valid button */}
                   <Button
                     variant={isReasoningValid === true ? "default" : "outline"}
                     size="sm"
                     className={cn(
                       "flex items-center space-x-2",
-                      isReasoningValid === true &&
-                        "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                      isReasoningValid === true
+                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
+                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
                     )}
                     onClick={() => setIsReasoningValid(true)}
                   >
                     <ThumbsUp size={18} />
                     <span>Yes, valid reasoning</span>
                   </Button>
+
+                  {/* Invalid button */}
                   <Button
                     variant={isReasoningValid === false ? "default" : "outline"}
                     size="sm"
                     className={cn(
                       "flex items-center space-x-2",
-                      isReasoningValid === false &&
-                        "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+                      isReasoningValid === false
+                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
+                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
                     )}
                     onClick={() => setIsReasoningValid(false)}
                   >
@@ -495,6 +504,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 </div>
               </div>
 
+              {/* Completion CTA */}
               {isSectionCompleted("reasoning") && (
                 <div className="mt-6 text-center">
                   <Button
@@ -514,10 +524,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value="missingValues"
-          className="border bg-card dark:border-border rounded-md mb-4 overflow-hidden shadow-sm"
+          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
           ref={sectionRefs.missingValues}
         >
-          <AccordionTrigger className="px-6 py-4  group">
+          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
               <span className="text-lg font-medium">Missing Values</span>
               <div className="flex items-center">
@@ -546,24 +556,27 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     <CheckCircle size={20} />
                   </Button>
                 )}
-                {/* <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 ml-2" /> */}
               </div>
             </div>
           </AccordionTrigger>
+
           <AccordionContent className="px-6 pb-6 dark:text-foreground">
             <div className="space-y-4">
-              <div className="bg-muted/50 dark:bg-muted/10 p-4 rounded-md">
+              {/* Info Card */}
+              <div className="bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm">
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
                   Missing Values Assessment:
                 </h4>
                 <p className="text-foreground">{question.missingValues}</p>
               </div>
 
+              {/* Buttons */}
               <div className="mt-4">
                 <p className="mb-3 font-medium">
                   Are all necessary values included?
                 </p>
                 <div className="flex space-x-4">
+                  {/* Complete */}
                   <Button
                     variant={
                       areMissingValuesCorrect === true ? "default" : "outline"
@@ -571,14 +584,17 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     size="sm"
                     className={cn(
                       "flex items-center space-x-2",
-                      areMissingValuesCorrect === true &&
-                        "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                      areMissingValuesCorrect === true
+                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
+                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
                     )}
                     onClick={() => setAreMissingValuesCorrect(true)}
                   >
                     <ThumbsUp size={18} />
                     <span>Yes, all values included</span>
                   </Button>
+
+                  {/* Incomplete */}
                   <Button
                     variant={
                       areMissingValuesCorrect === false ? "default" : "outline"
@@ -586,8 +602,9 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     size="sm"
                     className={cn(
                       "flex items-center space-x-2",
-                      areMissingValuesCorrect === false &&
-                        "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+                      areMissingValuesCorrect === false
+                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
+                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
                     )}
                     onClick={() => setAreMissingValuesCorrect(false)}
                   >
@@ -597,6 +614,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 </div>
               </div>
 
+              {/* Completion CTA */}
               {isSectionCompleted("missingValues") && (
                 <div className="mt-6 text-center">
                   <Button
@@ -616,10 +634,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value="feedback"
-          className="border bg-card dark:border-border rounded-md overflow-hidden shadow-sm"
+          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
           ref={sectionRefs.feedback}
         >
-          <AccordionTrigger className="px-6 py-4  group">
+          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
               <span className="text-lg font-medium">Critical Feedback</span>
               <div className="flex items-center">
@@ -628,18 +646,18 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     Provided
                   </span>
                 )}
-                {/* <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 ml-2" /> */}
               </div>
             </div>
           </AccordionTrigger>
+
           <AccordionContent className="px-6 pb-6 dark:text-foreground">
             <div className="space-y-4">
               <div
                 className={cn(
-                  "p-4 rounded-md",
+                  "p-5 rounded-md border shadow-sm",
                   needsFeedback
-                    ? "bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800"
-                    : "bg-muted/50 dark:bg-muted/10"
+                    ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800"
+                    : "bg-white dark:bg-background border-border"
                 )}
               >
                 <h4
@@ -667,7 +685,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                       ? "Please explain why you marked sections as invalid..."
                       : "Any insights or suggestions to improve this question..."
                   }
-                  className="min-h-[120px] bg-background dark:bg-background"
+                  className="min-h-[120px] bg-white dark:bg-background border border-border"
                 />
               </div>
             </div>

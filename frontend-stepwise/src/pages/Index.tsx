@@ -1,22 +1,21 @@
-
-import React from 'react';
-import { useQuestions } from '@/context/QuestionContext';
-import { useAuth } from '@/context/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { Header } from '@/components/Header';
-import { AnnotationStep } from '@/components/AnnotationStep';
-import { QuestionNavigation } from '@/components/QuestionNavigation'; 
-import { Progress } from '@/components/ui/progress';
+import React from "react";
+import { useQuestions } from "@/context/QuestionContext";
+import { useAuth } from "@/context/AuthContext";
+import { Navigate } from "react-router-dom";
+import { Header } from "@/components/Header";
+import { AnnotationStep } from "@/components/AnnotationStep";
+import { QuestionNavigation } from "@/components/QuestionNavigation";
+import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
-  const { 
-    questions, 
-    currentQuestionIndex, 
-    setCurrentQuestionIndex, 
+  const {
+    questions,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
     submitAnnotation,
     isLoading,
     totalQuestions,
-    completedQuestions
+    completedQuestions,
   } = useQuestions();
   const { user } = useAuth();
 
@@ -43,7 +42,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1 pt-6 pb-24 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Progress indicator */}
@@ -59,19 +58,19 @@ const Index = () => {
               className="h-2 bg-secondary"
             />
           </div>
-          
+
           {/* Current question annotation */}
-          <div className="bg-card p-6 rounded-lg shadow-soft">
-            <AnnotationStep 
-              question={currentQuestion} 
-              onSubmit={submitAnnotation} 
+          <div className="bg-white dark:bg-background border border-border rounded-3xl shadow-2xl px-8 py-10 max-w-5xl mx-auto mt-8 mb-16">
+            <AnnotationStep
+              question={currentQuestion}
+              onSubmit={submitAnnotation}
             />
           </div>
         </div>
       </main>
-      
+
       {/* Question navigation */}
-      <QuestionNavigation 
+      <QuestionNavigation
         questions={questions}
         currentIndex={currentQuestionIndex}
         onSelectQuestion={setCurrentQuestionIndex}

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,7 +5,10 @@
 @layer base {
   :root {
     /* Background colors */
-    --background: 180 25% 97%;
+    /* --background: 180 25% 97%; */
+    --background: 180 25% 96%;
+    --background-page: 180 20% 93%;
+
     --background-alt: 180 20% 94%;
     --foreground: 222 25% 20%;
 
@@ -81,7 +83,7 @@
     --border: 200 15% 25%;
     --input: 200 15% 25%;
     --ring: 174 70% 45%;
-    
+
     /* Sidebar specific colors - Dark mode */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -99,13 +101,19 @@
     @apply border-border;
   }
 
-  body {
+  /* body {
     @apply bg-background text-foreground;
+  } */
+  body {
+    @apply bg-[hsl(var(--background-page))] text-foreground;
   }
-  
+
   /* Add soft transitions for theme changes */
-  *, ::before, ::after {
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  *,
+  ::before,
+  ::after {
+    transition: background-color 0.2s ease, border-color 0.2s ease,
+      color 0.2s ease;
   }
 }
 
@@ -114,30 +122,40 @@
   .heart-beats {
     animation: heartbeat 1.5s ease-in-out infinite;
   }
-  
+
   @keyframes heartbeat {
-    0% { transform: scale(1); }
-    25% { transform: scale(1.1); }
-    50% { transform: scale(1); }
-    75% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.1);
+    }
+    50% {
+      transform: scale(1);
+    }
+    75% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
-  
+
   /* Custom shadow styles */
   .shadow-soft {
     box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Card enhancements */
   .card-enhanced {
     @apply bg-card rounded-lg shadow-soft border-none;
   }
-  
+
   /* Button enhancements */
   .btn-primary {
     @apply bg-primary text-primary-foreground hover:bg-primary/90;
   }
-  
+
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
   }
