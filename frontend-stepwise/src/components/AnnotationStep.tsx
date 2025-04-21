@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Question, TaskGroup, Task, AnnotationResponse } from "@/types";
+
 import {
   Accordion,
   AccordionContent,
@@ -19,6 +20,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+
+import ReasoningIcon from "@/components/icons/ReasoningIcon";
+import ContextIcon from "@/components/icons/ContextIcon";
+import FeedbackIcon from "@/components/icons/FeedbackIcon";
+import MissingIcon from "@/components/icons/MissingIcon";
+import DataElementsIcon from "@/components/icons/DataElementsIcon";
 
 interface AnnotationStepProps {
   question: Question;
@@ -42,6 +49,23 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   >(question.areMissingValuesCorrect);
   const [feedback, setFeedback] = useState<string>(question.feedback || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const SectionIcon = () => (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="text-muted-foreground"
+    >
+      <path
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+        fill="currentColor"
+      />
+      <path d="M11 17h2v-6h-2v6zm0-8h2V7h-2v2z" fill="#fff" />
+    </svg>
+  );
 
   // References for scrolling
   const sectionRefs = {
@@ -209,9 +233,16 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         >
           <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
-              <span className="text-lg font-medium">
+              {/* <span className="text-lg font-medium">
                 Clinical Context & Question
-              </span>
+              </span> */}
+              <div className="flex items-center gap-2">
+                <ContextIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">
+                  Clinical Context & Question
+                </span>
+              </div>
+
               <div className="flex items-center">
                 {isValid !== undefined && (
                   <span
@@ -334,9 +365,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         >
           <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
-              <span className="text-lg font-medium">
-                Required Data Elements
-              </span>
+              <div className="flex items-center gap-2">
+                <DataElementsIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">
+                  Required Data Elements
+                </span>
+              </div>
               <div className="flex items-center">
                 {taskGroups.some((group) =>
                   group.tasks.some((t) => t.enabled)
@@ -425,7 +459,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         >
           <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
-              <span className="text-lg font-medium">Reasoning</span>
+              <div className="flex items-center gap-2">
+                <ReasoningIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">Reasoning</span>
+              </div>
               <div className="flex items-center">
                 {isReasoningValid !== undefined && (
                   <span
@@ -529,7 +566,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         >
           <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
-              <span className="text-lg font-medium">Missing Values</span>
+              <div className="flex items-center gap-2">
+                <MissingIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">Missing Values</span>
+              </div>
               <div className="flex items-center">
                 {areMissingValuesCorrect !== undefined && (
                   <span
@@ -639,7 +679,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         >
           <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
             <div className="flex items-center w-full justify-between">
-              <span className="text-lg font-medium">Critical Feedback</span>
+              <div className="flex items-center gap-2">
+                <FeedbackIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">Critical Feedback</span>
+              </div>
               <div className="flex items-center">
                 {feedback && (
                   <span className="mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
