@@ -580,7 +580,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                         : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
                     )}
                   >
-                    {areMissingValuesCorrect ? "Complete" : "Incomplete"}
+                    {areMissingValuesCorrect ? "Valid" : "Invalid"}
                   </span>
                 )}
                 {isSectionCompleted("missingValues") && (
@@ -607,7 +607,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
                   Missing Values Assessment:
                 </h4>
-                <p className="text-foreground">{question.missingValues}</p>
+                <p className="text-foreground">
+                  Do the tasks retrieve all relevant data that you would search
+                  on an EHR system to answer the question?
+                </p>
               </div>
 
               {/* Buttons */}
@@ -631,7 +634,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     onClick={() => setAreMissingValuesCorrect(true)}
                   >
                     <ThumbsUp size={18} />
-                    <span>Yes, all values included</span>
+                    <span>Yes</span>
                   </Button>
 
                   {/* Incomplete */}
@@ -649,7 +652,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     onClick={() => setAreMissingValuesCorrect(false)}
                   >
                     <ThumbsDown size={18} />
-                    <span>No, missing important values</span>
+                    <span>No</span>
                   </Button>
                 </div>
               </div>
@@ -713,11 +716,11 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 >
                   {needsFeedback
                     ? "Your feedback is essential: Please explain why you marked sections as invalid"
-                    : "Your expert feedback is highly valuable to us"}
+                    : "Your feedback is critical to improving the clinical relevance of our work"}
                 </h4>
                 <p className="text-sm text-muted-foreground mb-4">
                   {needsFeedback
-                    ? "Your detailed insights will help us improve our medical data models."
+                    ? "Your detailed insights will help improving the clinical relevance of our work"
                     : "Even if everything looks correct, please share any thoughts or suggestions you have."}
                 </p>
                 <Textarea
