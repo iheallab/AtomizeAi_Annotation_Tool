@@ -26,6 +26,7 @@ import ContextIcon from "@/components/icons/ContextIcon";
 import FeedbackIcon from "@/components/icons/FeedbackIcon";
 import MissingIcon from "@/components/icons/MissingIcon";
 import DataElementsIcon from "@/components/icons/DataElementsIcon";
+import QAIcon from "@/components/icons/QAIcon";
 
 interface AnnotationStepProps {
   question: Question;
@@ -36,7 +37,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   question,
   onSubmit,
 }) => {
-  const [activeAccordion, setActiveAccordion] = useState<string>("question");
+  const [activeAccordion, setActiveAccordion] = useState<string>("");
   const [isValid, setIsValid] = useState<boolean | undefined>(question.isValid);
   const [taskGroups, setTaskGroups] = useState<TaskGroup[]>(
     JSON.parse(JSON.stringify(question.tasks))
@@ -49,6 +50,9 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   >(question.areMissingValuesCorrect);
   const [feedback, setFeedback] = useState<string>(question.feedback || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const noTasksSelected = taskGroups
+    .flatMap((g) => g.tasks)
+    .every((t) => !t.enabled);
 
   const SectionIcon = () => (
     <svg
@@ -69,6 +73,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   // References for scrolling
   const sectionRefs = {
+    questionContext: useRef<HTMLDivElement>(null),
     question: useRef<HTMLDivElement>(null),
     tasks: useRef<HTMLDivElement>(null),
     reasoning: useRef<HTMLDivElement>(null),
@@ -88,11 +93,11 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     if (question.isCompleted) {
       setActiveAccordion("");
     } else {
-      setActiveAccordion("question");
+      setActiveAccordion("");
     }
   }, [question]);
 
-  // Auto-scroll to the active section
+  // Your current scrolling effect:
   useEffect(() => {
     if (
       activeAccordion &&
@@ -105,7 +110,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           behavior: "smooth",
           block: "center",
         });
-      }, 300); // Small delay to ensure the accordion has expanded
+      }, 300);
     }
   }, [activeAccordion]);
 
@@ -140,10 +145,11 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   const moveToNextSection = (currentSection: string) => {
     const sections = [
+      "questionContext",
       "question",
       "tasks",
-      "reasoning",
       "missingValues",
+      "reasoning",
       "feedback",
     ];
     const currentIndex = sections.indexOf(currentSection);
@@ -226,6 +232,61 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           ref={sectionRefs.question}
         > */}
 
+        {/* Clinical Context & Question Header */}
+        <div
+          ref={sectionRefs.questionContext}
+          className=" bg-secondary dark:bg-secondary-dark border border-border rounded-2xl shadow-soft p-6 mb-6 space-y-4"
+        >
+          {/* Header with Icon */}
+          <div className="flex items-center gap-3">
+            <ContextIcon className="w-9 h-9 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold">
+              Clinical Context & Question
+            </h2>
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2">
+            {question.categories.map((category, index) => (
+              <Badge
+                key={index}
+                className="bg-white dark:bg-background border border-border text-foreground flex items-center gap-1 px-2 py-1 rounded-md text-sm"
+              >
+                <Tag size={12} />
+                {category}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Clinical Context Card */}
+          <div className="bg-white dark:bg-background p-5 rounded-md border border-border shadow-sm space-y-2">
+            <h4 className="text-lg font-medium text-muted-foreground">
+              Clinical Context:
+            </h4>
+            <p className="text-foreground text-base leading-relaxed">
+              {question.context}
+            </p>
+          </div>
+
+          {/* Question */}
+          <div className=" dark:bg-background p-2">
+            <h4 className="text-lg font-medium">Question:</h4>
+            <p className="">{question.question}</p>
+          </div>
+
+          <div className="text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center mx-auto text-black dark:text-white bg-white
+             border border-border hover:bg-green hover:bg-muted dark:hover:bg-muted/20"
+              onClick={() => setActiveAccordion("question")}
+            >
+              Start Annotation
+            </Button>
+          </div>
+        </div>
+
         <AccordionItem
           value="question"
           className="bg-secondary dark:bg-secondary-dark border border-border dark:border-border rounded-2xl mb-6 shadow-soft transition-colors"
@@ -237,10 +298,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 Clinical Context & Question
               </span> */}
               <div className="flex items-center gap-2">
-                <ContextIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">
-                  Clinical Context & Question
-                </span>
+                <QAIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">Question Validity</span>
               </div>
 
               <div className="flex items-center">
@@ -275,32 +334,6 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
           <AccordionContent className="px-6 pb-6 dark:text-foreground">
             <div className="space-y-4">
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                {question.categories.map((category, index) => (
-                  <Badge
-                    key={index}
-                    className="bg-white dark:bg-background border border-border text-foreground flex items-center gap-1 px-2 py-1 rounded-md text-sm"
-                  >
-                    <Tag size={12} />
-                    {category}
-                  </Badge>
-                ))}
-              </div>
-
-              {/* Clinical Context */}
-              <div className="bg-white dark:bg-background p-5 rounded-md mb-4 border border-border shadow-sm">
-                <h4 className="text-lg font-medium mb-2">Clinical Context:</h4>
-                <p className="text-foreground text-base leading-relaxed">
-                  {question.context}
-                </p>
-              </div>
-
-              {/* Question */}
-              <h3 className="text-xl font-semibold mt-2">
-                Question: {question.question}
-              </h3>
-
               <div className="mt-4">
                 <p className="mb-3 font-medium">
                   Would you ask this question about a patient you are caring for
@@ -346,11 +379,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center mx-auto text-green-600 dark:text-green-400 border-green-200 dark:border-green-900 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    className="flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20"
                     onClick={() => moveToNextSection("question")}
                   >
                     <span>Complete and move to next section</span>
-                    <CheckCircle size={16} className="ml-2" />
                   </Button>
                 </div>
               )}
@@ -408,7 +440,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 question:
               </p>
 
-              <div className="space-y-6">
+              {/* <div className="space-y-6"> */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {taskGroups.map((group) => (
                   <div
                     key={group.id}
@@ -435,126 +468,30 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 ))}
               </div>
 
-              {isSectionCompleted("tasks") && (
-                <div className="mt-6 text-center">
+              <div className="mt-6 text-center">
+                {noTasksSelected ? (
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center mx-auto text-green-600 dark:text-green-400 border-green-200 dark:border-green-900 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    className="flex items-center mx-auto text-black dark:text-black
+                   border-black-900 dark:border-red-800 bg-white
+                   hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={() => moveToNextSection("tasks")}
+                  >
+                    <span>Nothing Valid</span>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center mx-auto text-black dark:text-white border:black-600rk:border-green-900 bg-white 
+                   hover:bg-green-50 dark:hover:bg-green-900/20"
                     onClick={() => moveToNextSection("tasks")}
                   >
                     <span>Complete and move to next section</span>
-                    <CheckCircle size={16} className="ml-2" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem
-          value="reasoning"
-          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
-          ref={sectionRefs.reasoning}
-        >
-          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
-            <div className="flex items-center w-full justify-between">
-              <div className="flex items-center gap-2">
-                <ReasoningIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">Reasoning</span>
-              </div>
-              <div className="flex items-center">
-                {isReasoningValid !== undefined && (
-                  <span
-                    className={cn(
-                      "mr-3 text-sm px-2 py-1 rounded-full",
-                      isReasoningValid
-                        ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                        : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
-                    )}
-                  >
-                    {isReasoningValid ? "Valid" : "Invalid"}
-                  </span>
-                )}
-                {isSectionCompleted("reasoning") && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      moveToNextSection("reasoning");
-                    }}
-                  >
-                    <CheckCircle size={20} />
                   </Button>
                 )}
               </div>
-            </div>
-          </AccordionTrigger>
-
-          <AccordionContent className="px-6 pb-6 dark:text-foreground">
-            <div className="space-y-4">
-              {/* Reasoning Card */}
-              <div className="bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm">
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  How we came up with these values:
-                </h4>
-                <p className="text-foreground">{question.reasoning}</p>
-              </div>
-
-              {/* Buttons */}
-              <div className="mt-4">
-                <p className="mb-3 font-medium">Is this reasoning valid?</p>
-                <div className="flex space-x-4">
-                  {/* Valid button */}
-                  <Button
-                    variant={isReasoningValid === true ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      "flex items-center space-x-2",
-                      isReasoningValid === true
-                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
-                    )}
-                    onClick={() => setIsReasoningValid(true)}
-                  >
-                    <ThumbsUp size={18} />
-                    <span>Yes, valid reasoning</span>
-                  </Button>
-
-                  {/* Invalid button */}
-                  <Button
-                    variant={isReasoningValid === false ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      "flex items-center space-x-2",
-                      isReasoningValid === false
-                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
-                    )}
-                    onClick={() => setIsReasoningValid(false)}
-                  >
-                    <ThumbsDown size={18} />
-                    <span>No, invalid reasoning</span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Completion CTA */}
-              {isSectionCompleted("reasoning") && (
-                <div className="mt-6 text-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center mx-auto text-green-600 dark:text-green-400 border-green-200 dark:border-green-900 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    onClick={() => moveToNextSection("reasoning")}
-                  >
-                    <span>Complete and move to next section</span>
-                    <CheckCircle size={16} className="ml-2" />
-                  </Button>
-                </div>
-              )}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -568,7 +505,9 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             <div className="flex items-center w-full justify-between">
               <div className="flex items-center gap-2">
                 <MissingIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">Missing Values</span>
+                <span className="text-lg font-medium">
+                  Missing Data Elements
+                </span>
               </div>
               <div className="flex items-center">
                 {areMissingValuesCorrect !== undefined && (
@@ -663,11 +602,116 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center mx-auto text-green-600 dark:text-green-400 border-green-200 dark:border-green-900 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    className="flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20"
                     onClick={() => moveToNextSection("missingValues")}
                   >
                     <span>Complete and move to next section</span>
-                    <CheckCircle size={16} className="ml-2" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem
+          value="reasoning"
+          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
+          ref={sectionRefs.reasoning}
+        >
+          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
+            <div className="flex items-center w-full justify-between">
+              <div className="flex items-center gap-2">
+                <ReasoningIcon className="w-9 h-9 text-muted-foreground" />
+                <span className="text-lg font-medium">Reasoning</span>
+              </div>
+              <div className="flex items-center">
+                {isReasoningValid !== undefined && (
+                  <span
+                    className={cn(
+                      "mr-3 text-sm px-2 py-1 rounded-full",
+                      isReasoningValid
+                        ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                        : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                    )}
+                  >
+                    {isReasoningValid ? "Valid" : "Invalid"}
+                  </span>
+                )}
+                {isSectionCompleted("reasoning") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveToNextSection("reasoning");
+                    }}
+                  >
+                    <CheckCircle size={20} />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </AccordionTrigger>
+
+          <AccordionContent className="px-6 pb-6 dark:text-foreground">
+            <div className="space-y-4">
+              {/* Reasoning Card */}
+              <div className="bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                  How we came up with these values:
+                </h4>
+                <p className="text-foreground">{question.reasoning}</p>
+              </div>
+
+              {/* Buttons */}
+              <div className="mt-4">
+                <p className="mb-3 font-medium">Is the Reasoning Valid?</p>
+                <div className="flex space-x-4">
+                  {/* Valid button */}
+                  <Button
+                    variant={isReasoningValid === true ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "flex items-center space-x-2",
+                      isReasoningValid === true
+                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
+                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
+                    )}
+                    onClick={() => setIsReasoningValid(true)}
+                  >
+                    <ThumbsUp size={18} />
+                    <span>Yes, valid reasoning</span>
+                  </Button>
+
+                  {/* Invalid button */}
+                  <Button
+                    variant={isReasoningValid === false ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "flex items-center space-x-2",
+                      isReasoningValid === false
+                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
+                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
+                    )}
+                    onClick={() => setIsReasoningValid(false)}
+                  >
+                    <ThumbsDown size={18} />
+                    <span>No, invalid reasoning</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Completion CTA */}
+              {isSectionCompleted("reasoning") && (
+                <div className="mt-6 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    onClick={() => moveToNextSection("reasoning")}
+                  >
+                    <span>Complete and move to next section</span>
                   </Button>
                 </div>
               )}
