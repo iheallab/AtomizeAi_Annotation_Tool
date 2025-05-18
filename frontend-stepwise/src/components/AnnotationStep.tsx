@@ -38,38 +38,23 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   onSubmit,
 }) => {
   const [activeAccordion, setActiveAccordion] = useState<string>("");
-  const [isValid, setIsValid] = useState<boolean | undefined>(question.isValid);
+  const [isValid, setIsValid] = useState<boolean | undefined>(
+    question.question_valid
+  );
   const [taskGroups, setTaskGroups] = useState<TaskGroup[]>(
     JSON.parse(JSON.stringify(question.tasks))
   );
   const [isReasoningValid, setIsReasoningValid] = useState<boolean | undefined>(
-    question.isReasoningValid
+    question.reasoning_valid
   );
   const [areMissingValuesCorrect, setAreMissingValuesCorrect] = useState<
     boolean | undefined
-  >(question.areMissingValuesCorrect);
+  >(question.tasks_complete);
   const [feedback, setFeedback] = useState<string>(question.feedback || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const noTasksSelected = taskGroups
     .flatMap((g) => g.tasks)
-    .every((t) => !t.enabled);
-
-  const SectionIcon = () => (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="text-muted-foreground"
-    >
-      <path
-        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
-        fill="currentColor"
-      />
-      <path d="M11 17h2v-6h-2v6zm0-8h2V7h-2v2z" fill="#fff" />
-    </svg>
-  );
+    .every((t) => !t.valid);
 
   // References for scrolling
   const sectionRefs = {
@@ -83,18 +68,18 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   // Reset state when question changes
   useEffect(() => {
-    setIsValid(question.isValid);
+    setIsValid(question.question_valid);
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
-    setIsReasoningValid(question.isReasoningValid);
-    setAreMissingValuesCorrect(question.areMissingValuesCorrect);
+    setIsReasoningValid(question.reasoning_valid);
+    setAreMissingValuesCorrect(question.tasks_complete);
     setFeedback(question.feedback || "");
 
     // Reset accordion state for completed questions or start with question section for new ones
-    if (question.isCompleted) {
-      setActiveAccordion("");
-    } else {
-      setActiveAccordion("");
-    }
+    // if (question.annotated_by == 0) {
+    setActiveAccordion("");
+    // } else {
+    setActiveAccordion("");
+    // }
   }, [question]);
 
   // Your current scrolling effect:
@@ -125,7 +110,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           ? {
               ...group,
               tasks: group.tasks.map((task) =>
-                task.id === taskId ? { ...task, enabled } : task
+                task.id === taskId ? { ...task, valid: enabled } : task
               ),
             }
           : group
@@ -194,7 +179,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       case "question":
         return isValid !== undefined;
       case "tasks":
-        return taskGroups.some((group) => group.tasks.some((t) => t.enabled));
+        return taskGroups.some((group) => group.tasks.some((t) => t.valid));
       case "reasoning":
         return isReasoningValid !== undefined;
       case "missingValues":
@@ -209,7 +194,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   const isFormCompleted = (): boolean => {
     return (
       isValid !== undefined &&
-      taskGroups.some((group) => group.tasks.some((t) => t.enabled)) &&
+      taskGroups.some((group) => group.tasks.some((t) => t.valid)) &&
       isReasoningValid !== undefined &&
       areMissingValuesCorrect !== undefined &&
       (!needsFeedback || feedback.trim().length > 0)
@@ -405,13 +390,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
               <div className="flex items-center">
                 {taskGroups.some((group) =>
-                  group.tasks.some((t) => t.enabled)
+                  group.tasks.some((t) => t.valid)
                 ) && (
                   <span className="mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                     {
-                      taskGroups
-                        .flatMap((g) => g.tasks)
-                        .filter((t) => t.enabled).length
+                      taskGroups.flatMap((g) => g.tasks).filter((t) => t.valid)
+                        .length
                     }{" "}
                     selected
                   </span>
@@ -456,7 +440,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                         >
                           <span className="font-medium">{task.name}</span>
                           <Switch
-                            checked={task.enabled}
+                            checked={task.valid}
                             onCheckedChange={(checked) =>
                               handleTaskToggle(group.id, task.id, checked)
                             }

@@ -1,17 +1,22 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Question } from '@/types';
-import { cn } from '@/lib/utils';
-import { List, ArrowRight, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
-import { 
-  Drawer, 
-  DrawerContent, 
-  DrawerHeader, 
-  DrawerTitle, 
-  DrawerTrigger, 
-  DrawerFooter 
-} from '@/components/ui/drawer';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Question } from "@/types";
+import { cn } from "@/lib/utils";
+import {
+  List,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  DrawerFooter,
+} from "@/components/ui/drawer";
 
 interface QuestionNavigationProps {
   questions: Question[];
@@ -19,10 +24,10 @@ interface QuestionNavigationProps {
   onSelectQuestion: (index: number) => void;
 }
 
-export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({ 
-  questions, 
+export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
+  questions,
   currentIndex,
-  onSelectQuestion
+  onSelectQuestion,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -42,19 +47,21 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
             </DrawerHeader>
             <div className="px-4 pb-2">
               <p className="text-sm text-muted-foreground">
-                {questions.filter(q => q.isCompleted).length} of {questions.length} questions completed
+                {questions.filter((q) => q.annotated_by != -1).length} of{" "}
+                {questions.length} questions completed
               </p>
             </div>
             <div className="px-4 max-h-[60vh] overflow-y-auto">
               <ul className="space-y-2">
                 {questions.map((question, index) => (
                   <li key={question.id}>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className={cn(
                         "w-full justify-start text-left py-3",
                         index === currentIndex && "bg-secondary",
-                        question.isCompleted && "text-green-700 dark:text-green-500"
+                        question.annotated_by != -1 &&
+                          "text-green-700 dark:text-green-500"
                       )}
                       onClick={() => {
                         onSelectQuestion(index);
@@ -63,8 +70,11 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
                     >
                       <div className="flex items-center w-full">
                         <span className="mr-2 flex-shrink-0">
-                          {question.isCompleted ? (
-                            <CheckCircle size={16} className="text-green-600 dark:text-green-500" />
+                          {question.annotated_by != -1 ? (
+                            <CheckCircle
+                              size={16}
+                              className="text-green-600 dark:text-green-500"
+                            />
                           ) : (
                             <AlertCircle size={16} className="text-amber-500" />
                           )}
@@ -81,22 +91,19 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
               </ul>
             </div>
             <DrawerFooter>
-              <Button
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setOpen(false)}>
                 Close
               </Button>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
       </div>
-      
+
       {/* Bottom Navigation Controls */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 flex justify-center items-center">
         <div className="flex items-center justify-between max-w-md w-full">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             disabled={currentIndex === 0}
             onClick={() => onSelectQuestion(currentIndex - 1)}
             className="flex items-center gap-2"
@@ -104,13 +111,13 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
             <ArrowLeft size={16} />
             <span>Previous</span>
           </Button>
-          
+
           <div className="text-sm font-medium">
             Question {currentIndex + 1} of {questions.length}
           </div>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             disabled={currentIndex === questions.length - 1}
             onClick={() => onSelectQuestion(currentIndex + 1)}
             className="flex items-center gap-2"

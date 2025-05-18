@@ -23,7 +23,7 @@ type Question struct {
 	QuestionID		int				`json:"question_id" bson:"question_id"`
 	Question 		string			 `json:"question" bson:"question"`
 	Category		[]string			 `json:"category" bson:"category"`
-	ICUType		[]string			 `json:"icu_type" bson:"icu_type"`
+	ICUTopic		string				`json:"icu_topic" bson:"icu_topic"`
 	RetrievalTasks []RetrievalTask	`json:"retrieval_tasks" bson:"retrieval_tasks"`
 	AnnotatedBy		int				 `json:"annotated_by" bson:"annotated_by"`
 	Reasoning 		string			 `json:"reasoning" bson:"reasoning"`
@@ -31,7 +31,7 @@ type Question struct {
 	ResoningValid	*bool			 `json:"reasoning_valid" bson:"reasoning_valid"`
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 	Context 		string 				`json:"context" bson:"context"`
-	TasksComplete  bool					`json:"tasks_complete" bson:"tasks_complete"`
+	TasksComplete  *bool					`json:"tasks_complete" bson:"tasks_complete"`
 }
 
 // // Question represents the original question entity

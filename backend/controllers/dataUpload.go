@@ -24,6 +24,7 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
             Context       string    `json:"context"`  // Added context field
             Category      []string  `json:"category"` // Changed to slice
             ICUType       []string  `json:"icu_type"` // Changed to slice
+            ICUTopic     string    `json:"icu_topic"`
             RetrievalTasks []struct {
                 Task     string   `json:"task"`
                 Variables []string `json:"variables"`
@@ -54,7 +55,7 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
         // category := strings.Join(data.Category, ", ")
         // icuType := strings.Join(data.ICUType, ", ")
         category := data.Category
-        icuType := data.ICUType
+        // icuType := data.ICUType
 
         // Create proper Question model
         question := models.Question{
@@ -62,14 +63,15 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
             QuestionID:    questionID,
             Question:      data.Question,
             Category:      category,
-            ICUType:       icuType,
+            ICUTopic:       data.ICUTopic,
             Reasoning:     data.Reasoning,
+            AnnotatedBy: -1,
             QuestionValid: nil,
             ResoningValid: nil,
             MainFeedback:  "",
             RetrievalTasks: []models.RetrievalTask{},
             Context: data.Context,
-            TasksComplete: true,
+            TasksComplete: nil,
         }
 
         // Convert retrieval tasks
@@ -78,7 +80,7 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
             for _, v := range task.Variables {
                 taskVars = append(taskVars, models.RetrievalTaskVariable{
                     Variable: strings.TrimSpace(v),
-                    IsValid:  true, // Set default value instead of nil
+                    IsValid:  false, // Set default value instead of nil
                 })
             }
 

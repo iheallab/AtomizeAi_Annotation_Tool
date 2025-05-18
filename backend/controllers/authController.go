@@ -31,7 +31,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	collection := db.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
+	fmt.Println("Here are details")
+	fmt.Println(loginData.Username)
+	fmt.Println(loginData.Password)
 	var user models.User
 	err = collection.FindOne(ctx, bson.M{"username": loginData.Username}).Decode(&user)
 	if err != nil {

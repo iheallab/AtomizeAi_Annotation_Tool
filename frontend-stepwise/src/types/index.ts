@@ -8,16 +8,16 @@ export interface Question {
   id: string;
   question: string;
   context: string;
-  isValid?: boolean;
+  question_valid?: boolean;
   tasks: TaskGroup[];
   reasoning: string;
-  isReasoningValid?: boolean;
-  missingValues: string;
-  areMissingValuesCorrect?: boolean;
+  reasoning_valid?: boolean;
+  tasks_complete?: boolean;
   feedback?: string;
-  isCompleted: boolean;
   categories: string[];
+  annotated_by: number;
 }
+
 
 export interface TaskGroup {
   id: string;
@@ -28,7 +28,7 @@ export interface TaskGroup {
 export interface Task {
   id: string;
   name: string;
-  enabled: boolean;
+  valid: boolean;
 }
 
 export interface AnnotationResponse {

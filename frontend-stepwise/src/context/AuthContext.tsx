@@ -1,8 +1,7 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { User } from "@/types";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -13,7 +12,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -21,14 +22,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for stored token on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
       } catch (error) {
-        console.error('Failed to parse stored user data', error);
-        localStorage.removeItem('user');
+        console.error("Failed to parse stored user data", error);
+        localStorage.removeItem("user");
       }
     }
     setIsLoading(false);
@@ -36,34 +37,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string) => {
     setIsLoading(true);
+    console.log("Trying to login with details : ", username, password);
     try {
-      // Mock API call - replace with actual API call
-      // const response = await fetch('/api/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ username, password }),
-      // });
-      
-      // Mock response
-      const response = {
-        ok: true,
-        json: async () => ({ token: 'mock-jwt-token', username }),
-      };
+      const response = await fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
       if (response.ok) {
         const data = await response.json();
         const userData: User = {
-          username: data.username,
+          username,
           token: data.token,
         };
-        
-        localStorage.setItem('user', JSON.stringify(userData));
+
+        localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
         toast({
           title: "Login Successful",
           description: `Welcome, ${userData.username}!`,
         });
-        navigate('/');
+        navigate("/");
       } else {
         toast({
           variant: "destructive",
@@ -72,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Login Error",
@@ -84,9 +79,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
     setUser(null);
-    navigate('/login');
+    navigate("/login");
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out.",
@@ -103,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
