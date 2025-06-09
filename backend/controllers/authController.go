@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -52,15 +53,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]string{"token": token}
+	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId)}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
 	fmt.Println("User logged in:", loginData.Username)
 }
+
 // UserRequest represents a request to create a new user
 type UserRequest struct {
-	UserId int `json:"user_id"`
+	UserId   int    `json:"user_id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -97,7 +99,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	// Insert user
 	newUser := models.User{
-		UserId:    userData.UserId,
+		UserId:   userData.UserId,
 		Username: userData.Username,
 		Password: hashedPassword,
 	}

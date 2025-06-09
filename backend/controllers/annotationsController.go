@@ -17,8 +17,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
 func Ping(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("welcome new v"))
+	w.Write([]byte("welcome new v"))
 }
 
 // =======================
@@ -91,7 +92,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	// Fetch annotations for assigned questions
 	var annotations []models.Question
 	annotationCursor, err := annotationsCollection.Find(ctx, bson.M{
-		"_id": bson.M{"$in": assignment.QuestionIDs},
+		"_id":          bson.M{"$in": assignment.QuestionIDs},
 		"annotated_by": userID,
 	})
 
@@ -218,7 +219,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"annotated_by":    annotationReq.AnnotatedBy,
 				"main_feedback":   annotationReq.MainFeedback,
 				"question_valid":  annotationReq.QuestionValid,
-				"tasks_complete": annotationReq.TasksComplete,
+				"tasks_complete":  annotationReq.TasksComplete,
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)
