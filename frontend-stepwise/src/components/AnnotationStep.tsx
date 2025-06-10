@@ -1,15 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Question, TaskGroup, Task, AnnotationResponse } from "@/types";
+import React, { useState, useRef, useEffect } from 'react';
+import { Question, TaskGroup, Task, AnnotationResponse } from '@/types';
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   ThumbsUp,
   ThumbsDown,
@@ -17,27 +17,27 @@ import {
   ChevronDown,
   Tag,
   Send,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-import ReasoningIcon from "@/components/icons/ReasoningIcon";
-import ContextIcon from "@/components/icons/ContextIcon";
-import FeedbackIcon from "@/components/icons/FeedbackIcon";
-import MissingIcon from "@/components/icons/MissingIcon";
-import DataElementsIcon from "@/components/icons/DataElementsIcon";
-import QAIcon from "@/components/icons/QAIcon";
+import ReasoningIcon from '@/components/icons/ReasoningIcon';
+import ContextIcon from '@/components/icons/ContextIcon';
+import FeedbackIcon from '@/components/icons/FeedbackIcon';
+import MissingIcon from '@/components/icons/MissingIcon';
+import DataElementsIcon from '@/components/icons/DataElementsIcon';
+import QAIcon from '@/components/icons/QAIcon';
 
 interface AnnotationStepProps {
   question: Question;
-  onSubmit: (response: AnnotationResponse) => Promise<void>;
+  onSubmit: (response: Question) => Promise<void>;
 }
 
 export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   question,
   onSubmit,
 }) => {
-  const [activeAccordion, setActiveAccordion] = useState<string>("");
+  const [activeAccordion, setActiveAccordion] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean | undefined>(
     question.question_valid
   );
@@ -50,7 +50,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   const [areMissingValuesCorrect, setAreMissingValuesCorrect] = useState<
     boolean | undefined
   >(question.tasks_complete);
-  const [feedback, setFeedback] = useState<string>(question.feedback || "");
+  const [feedback, setFeedback] = useState<string>(question.feedback || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const noTasksSelected = taskGroups
     .flatMap((g) => g.tasks)
@@ -72,13 +72,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
     setIsReasoningValid(question.reasoning_valid);
     setAreMissingValuesCorrect(question.tasks_complete);
-    setFeedback(question.feedback || "");
+    setFeedback(question.feedback || '');
 
     // Reset accordion state for completed questions or start with question section for new ones
     // if (question.annotated_by == 0) {
-    setActiveAccordion("");
+    setActiveAccordion('');
     // } else {
-    setActiveAccordion("");
+    setActiveAccordion('');
     // }
   }, [question]);
 
@@ -92,8 +92,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         sectionRefs[
           activeAccordion as keyof typeof sectionRefs
         ].current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
+          behavior: 'smooth',
+          block: 'center',
         });
       }, 300);
     }
@@ -125,17 +125,17 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   const handleAccordionChange = (value: string) => {
     // Allow reopening sections by clicking on them
-    setActiveAccordion(value === activeAccordion ? "" : value);
+    setActiveAccordion(value === activeAccordion ? '' : value);
   };
 
   const moveToNextSection = (currentSection: string) => {
     const sections = [
-      "questionContext",
-      "question",
-      "tasks",
-      "missingValues",
-      "reasoning",
-      "feedback",
+      'questionContext',
+      'question',
+      'tasks',
+      'missingValues',
+      'reasoning',
+      'feedback',
     ];
     const currentIndex = sections.indexOf(currentSection);
 
@@ -154,19 +154,47 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     }
 
     if (needsFeedback && !feedback.trim()) {
-      setActiveAccordion("feedback");
+      setActiveAccordion('feedback');
       return;
     }
 
     setIsSubmitting(true);
+    //   id: string;
+    // question: string;
+    // context: string;
+    // question_valid?: boolean;
+    // tasks: TaskGroup[];
+    // reasoning: string;
+    // reasoning_valid?: boolean;
+    // tasks_complete?: boolean;
+    // feedback?: string;
+    // categories: string[];
+    // annotated_by: number;
 
-    const response: AnnotationResponse = {
-      questionId: question.id,
-      isValid: isValid || false,
+    // {
+
+    //   questionId: question.id,
+    //   isValid: isValid || false,
+    //   tasks: taskGroups,
+    //   isReasoningValid: isReasoningValid || false,
+    //   areMissingValuesCorrect: areMissingValuesCorrect || false,
+    //   feedback: feedback.trim() || undefined,
+    // }
+
+    const response: Question = {
+      id: question.id,
+      question: question.question,
+      question_valid: isValid,
+      context: question.context,
       tasks: taskGroups,
-      isReasoningValid: isReasoningValid || false,
-      areMissingValuesCorrect: areMissingValuesCorrect || false,
-      feedback: feedback.trim() || undefined,
+      tasks_complete: areMissingValuesCorrect,
+      reasoning: question.reasoning,
+      reasoning_valid: isReasoningValid,
+      categories: question.categories,
+      annotated_by: Number(JSON.parse(localStorage.getItem('user')).userId),
+      feedback: feedback.trim(),
+      // areMissingValuesCorrect: areMissingValuesCorrect || false,
+      // feedback: feedback.trim() || undefined,
     };
 
     await onSubmit(response);
@@ -176,15 +204,15 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   // Check if a section is completed
   const isSectionCompleted = (section: string): boolean => {
     switch (section) {
-      case "question":
+      case 'question':
         return isValid !== undefined;
-      case "tasks":
+      case 'tasks':
         return taskGroups.some((group) => group.tasks.some((t) => t.valid));
-      case "reasoning":
+      case 'reasoning':
         return isReasoningValid !== undefined;
-      case "missingValues":
+      case 'missingValues':
         return areMissingValuesCorrect !== undefined;
-      case "feedback":
+      case 'feedback':
         return !needsFeedback || feedback.trim().length > 0;
       default:
         return false;
@@ -202,13 +230,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className='space-y-6 max-w-4xl mx-auto'>
       {/* <div className="bg-white dark:bg-background rounded-2xl shadow-xl p-8 max-w-4xl mx-auto"> */}
       <Accordion
-        type="single"
+        type='single'
         value={activeAccordion}
         onValueChange={handleAccordionChange}
-        className="w-full"
+        className='w-full'
         collapsible
       >
         {/* <AccordionItem
@@ -220,22 +248,22 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         {/* Clinical Context & Question Header */}
         <div
           ref={sectionRefs.questionContext}
-          className=" bg-secondary dark:bg-secondary-dark border border-border rounded-2xl shadow-soft p-6 mb-6 space-y-4"
+          className=' bg-secondary dark:bg-secondary-dark border border-border rounded-2xl shadow-soft p-6 mb-6 space-y-4'
         >
           {/* Header with Icon */}
-          <div className="flex items-center gap-3">
-            <ContextIcon className="w-9 h-9 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold">
+          <div className='flex items-center gap-3'>
+            <ContextIcon className='w-9 h-9 text-muted-foreground' />
+            <h2 className='text-2xl font-semibold'>
               Clinical Context & Question
             </h2>
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2">
+          <div className='flex flex-wrap gap-2'>
             {question.categories.map((category, index) => (
               <Badge
                 key={index}
-                className="bg-white dark:bg-background border border-border text-foreground flex items-center gap-1 px-2 py-1 rounded-md text-sm"
+                className='bg-white dark:bg-background border border-border text-foreground flex items-center gap-1 px-2 py-1 rounded-md text-sm'
               >
                 <Tag size={12} />
                 {category}
@@ -244,28 +272,28 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           </div>
 
           {/* Clinical Context Card */}
-          <div className="bg-white dark:bg-background p-5 rounded-md border border-border shadow-sm space-y-2">
-            <h4 className="text-lg font-medium text-muted-foreground">
+          <div className='bg-white dark:bg-background p-5 rounded-md border border-border shadow-sm space-y-2'>
+            <h4 className='text-lg font-medium text-muted-foreground'>
               Clinical Context:
             </h4>
-            <p className="text-foreground text-base leading-relaxed">
+            <p className='text-foreground text-base leading-relaxed'>
               {question.context}
             </p>
           </div>
 
           {/* Question */}
-          <div className=" dark:bg-background p-2">
-            <h4 className="text-lg font-medium">Question:</h4>
-            <p className="">{question.question}</p>
+          <div className=' dark:bg-background p-2'>
+            <h4 className='text-lg font-medium'>Question:</h4>
+            <p className=''>{question.question}</p>
           </div>
 
-          <div className="text-center">
+          <div className='text-center'>
             <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center mx-auto text-black dark:text-white bg-white
-             border border-border hover:bg-green hover:bg-muted dark:hover:bg-muted/20"
-              onClick={() => setActiveAccordion("question")}
+              variant='outline'
+              size='sm'
+              className='flex items-center mx-auto text-black dark:text-white bg-white
+             border border-border hover:bg-green hover:bg-muted dark:hover:bg-muted/20'
+              onClick={() => setActiveAccordion('question')}
             >
               Start Annotation
             </Button>
@@ -273,41 +301,41 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         </div>
 
         <AccordionItem
-          value="question"
-          className="bg-secondary dark:bg-secondary-dark border border-border dark:border-border rounded-2xl mb-6 shadow-soft transition-colors"
+          value='question'
+          className='bg-secondary dark:bg-secondary-dark border border-border dark:border-border rounded-2xl mb-6 shadow-soft transition-colors'
           ref={sectionRefs.question}
         >
-          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
-            <div className="flex items-center w-full justify-between">
+          <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
+            <div className='flex items-center w-full justify-between'>
               {/* <span className="text-lg font-medium">
                 Clinical Context & Question
               </span> */}
-              <div className="flex items-center gap-2">
-                <QAIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">Question Validity</span>
+              <div className='flex items-center gap-2'>
+                <QAIcon className='w-9 h-9 text-muted-foreground' />
+                <span className='text-lg font-medium'>Question Validity</span>
               </div>
 
-              <div className="flex items-center">
+              <div className='flex items-center'>
                 {isValid !== undefined && (
                   <span
                     className={cn(
-                      "mr-3 text-sm px-2 py-1 rounded-full",
+                      'mr-3 text-sm px-2 py-1 rounded-full',
                       isValid
-                        ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                        : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                        ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                        : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                     )}
                   >
-                    {isValid ? "Valid" : "Invalid"}
+                    {isValid ? 'Valid' : 'Invalid'}
                   </span>
                 )}
-                {isSectionCompleted("question") && (
+                {isSectionCompleted('question') && (
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    variant='ghost'
+                    size='sm'
+                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection("question");
+                      moveToNextSection('question');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -317,23 +345,23 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             </div>
           </AccordionTrigger>
 
-          <AccordionContent className="px-6 pb-6 dark:text-foreground">
-            <div className="space-y-4">
-              <div className="mt-4">
-                <p className="mb-3 font-medium">
+          <AccordionContent className='px-6 pb-6 dark:text-foreground'>
+            <div className='space-y-4'>
+              <div className='mt-4'>
+                <p className='mb-3 font-medium'>
                   Would you ask this question about a patient you are caring for
                   in the provided context?
                 </p>
-                <div className="flex space-x-4">
+                <div className='flex space-x-4'>
                   {/* Valid Button */}
                   <Button
-                    variant={isValid === true ? "default" : "outline"}
-                    size="sm"
+                    variant={isValid === true ? 'default' : 'outline'}
+                    size='sm'
                     className={cn(
-                      "flex items-center space-x-2",
+                      'flex items-center space-x-2',
                       isValid === true
-                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
+                        ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10'
                     )}
                     onClick={() => setIsValid(true)}
                   >
@@ -343,13 +371,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
                   {/* Invalid Button */}
                   <Button
-                    variant={isValid === false ? "default" : "outline"}
-                    size="sm"
+                    variant={isValid === false ? 'default' : 'outline'}
+                    size='sm'
                     className={cn(
-                      "flex items-center space-x-2",
+                      'flex items-center space-x-2',
                       isValid === false
-                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
+                        ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10'
                     )}
                     onClick={() => setIsValid(false)}
                   >
@@ -359,13 +387,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 </div>
               </div>
 
-              {isSectionCompleted("question") && (
-                <div className="mt-6 text-center">
+              {isSectionCompleted('question') && (
+                <div className='mt-6 text-center'>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    onClick={() => moveToNextSection("question")}
+                    variant='outline'
+                    size='sm'
+                    className='flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    onClick={() => moveToNextSection('question')}
                   >
                     <span>Complete and move to next section</span>
                   </Button>
@@ -376,38 +404,38 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         </AccordionItem>
 
         <AccordionItem
-          value="tasks"
-          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
+          value='tasks'
+          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
           ref={sectionRefs.tasks}
         >
-          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
-            <div className="flex items-center w-full justify-between">
-              <div className="flex items-center gap-2">
-                <DataElementsIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">
+          <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
+            <div className='flex items-center w-full justify-between'>
+              <div className='flex items-center gap-2'>
+                <DataElementsIcon className='w-9 h-9 text-muted-foreground' />
+                <span className='text-lg font-medium'>
                   Required Data Elements
                 </span>
               </div>
-              <div className="flex items-center">
+              <div className='flex items-center'>
                 {taskGroups.some((group) =>
                   group.tasks.some((t) => t.valid)
                 ) && (
-                  <span className="mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                  <span className='mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'>
                     {
                       taskGroups.flatMap((g) => g.tasks).filter((t) => t.valid)
                         .length
-                    }{" "}
+                    }{' '}
                     selected
                   </span>
                 )}
-                {isSectionCompleted("tasks") && (
+                {isSectionCompleted('tasks') && (
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    variant='ghost'
+                    size='sm'
+                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection("tasks");
+                      moveToNextSection('tasks');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -417,28 +445,28 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             </div>
           </AccordionTrigger>
 
-          <AccordionContent className="px-6 pb-6 dark:text-foreground">
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+          <AccordionContent className='px-6 pb-6 dark:text-foreground'>
+            <div className='space-y-4'>
+              <p className='text-sm text-muted-foreground'>
                 Select the data elements that are necessary to answer this
                 question:
               </p>
 
               {/* <div className="space-y-6"> */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 {taskGroups.map((group) => (
                   <div
                     key={group.id}
-                    className="bg-white dark:bg-background border border-border rounded-lg p-4 shadow-sm"
+                    className='bg-white dark:bg-background border border-border rounded-lg p-4 shadow-sm'
                   >
-                    <h3 className="font-medium text-lg mb-3">{group.name}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <h3 className='font-medium text-lg mb-3'>{group.name}</h3>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                       {group.tasks.map((task) => (
                         <div
                           key={task.id}
-                          className="flex items-center justify-between p-3 border border-border rounded-md bg-white dark:bg-background transition-colors"
+                          className='flex items-center justify-between p-3 border border-border rounded-md bg-white dark:bg-background transition-colors'
                         >
-                          <span className="font-medium">{task.name}</span>
+                          <span className='font-medium'>{task.name}</span>
                           <Switch
                             checked={task.valid}
                             onCheckedChange={(checked) =>
@@ -452,25 +480,25 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 ))}
               </div>
 
-              <div className="mt-6 text-center">
+              <div className='mt-6 text-center'>
                 {noTasksSelected ? (
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center mx-auto text-black dark:text-black
+                    variant='outline'
+                    size='sm'
+                    className='flex items-center mx-auto text-black dark:text-black
                    border-black-900 dark:border-red-800 bg-white
-                   hover:bg-red-50 dark:hover:bg-red-900/20"
-                    onClick={() => moveToNextSection("tasks")}
+                   hover:bg-red-50 dark:hover:bg-red-900/20'
+                    onClick={() => moveToNextSection('tasks')}
                   >
                     <span>Nothing Valid</span>
                   </Button>
                 ) : (
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center mx-auto text-black dark:text-white border:black-600rk:border-green-900 bg-white 
-                   hover:bg-green-50 dark:hover:bg-green-900/20"
-                    onClick={() => moveToNextSection("tasks")}
+                    variant='outline'
+                    size='sm'
+                    className='flex items-center mx-auto text-black dark:text-white border:black-600rk:border-green-900 bg-white 
+                   hover:bg-green-50 dark:hover:bg-green-900/20'
+                    onClick={() => moveToNextSection('tasks')}
                   >
                     <span>Complete and move to next section</span>
                   </Button>
@@ -481,39 +509,39 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         </AccordionItem>
 
         <AccordionItem
-          value="missingValues"
-          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
+          value='missingValues'
+          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
           ref={sectionRefs.missingValues}
         >
-          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
-            <div className="flex items-center w-full justify-between">
-              <div className="flex items-center gap-2">
-                <MissingIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">
+          <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
+            <div className='flex items-center w-full justify-between'>
+              <div className='flex items-center gap-2'>
+                <MissingIcon className='w-9 h-9 text-muted-foreground' />
+                <span className='text-lg font-medium'>
                   Missing Data Elements
                 </span>
               </div>
-              <div className="flex items-center">
+              <div className='flex items-center'>
                 {areMissingValuesCorrect !== undefined && (
                   <span
                     className={cn(
-                      "mr-3 text-sm px-2 py-1 rounded-full",
+                      'mr-3 text-sm px-2 py-1 rounded-full',
                       areMissingValuesCorrect
-                        ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                        : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                        ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                        : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                     )}
                   >
-                    {areMissingValuesCorrect ? "Valid" : "Invalid"}
+                    {areMissingValuesCorrect ? 'Valid' : 'Invalid'}
                   </span>
                 )}
-                {isSectionCompleted("missingValues") && (
+                {isSectionCompleted('missingValues') && (
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    variant='ghost'
+                    size='sm'
+                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection("missingValues");
+                      moveToNextSection('missingValues');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -523,36 +551,36 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             </div>
           </AccordionTrigger>
 
-          <AccordionContent className="px-6 pb-6 dark:text-foreground">
-            <div className="space-y-4">
+          <AccordionContent className='px-6 pb-6 dark:text-foreground'>
+            <div className='space-y-4'>
               {/* Info Card */}
-              <div className="bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm">
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              <div className='bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm'>
+                <h4 className='text-sm font-medium text-muted-foreground mb-2'>
                   Missing Values Assessment:
                 </h4>
-                <p className="text-foreground">
+                <p className='text-foreground'>
                   Do the tasks retrieve all relevant data that you would search
                   on an EHR system to answer the question?
                 </p>
               </div>
 
               {/* Buttons */}
-              <div className="mt-4">
-                <p className="mb-3 font-medium">
+              <div className='mt-4'>
+                <p className='mb-3 font-medium'>
                   Are all necessary values included?
                 </p>
-                <div className="flex space-x-4">
+                <div className='flex space-x-4'>
                   {/* Complete */}
                   <Button
                     variant={
-                      areMissingValuesCorrect === true ? "default" : "outline"
+                      areMissingValuesCorrect === true ? 'default' : 'outline'
                     }
-                    size="sm"
+                    size='sm'
                     className={cn(
-                      "flex items-center space-x-2",
+                      'flex items-center space-x-2',
                       areMissingValuesCorrect === true
-                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
+                        ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10'
                     )}
                     onClick={() => setAreMissingValuesCorrect(true)}
                   >
@@ -563,14 +591,14 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   {/* Incomplete */}
                   <Button
                     variant={
-                      areMissingValuesCorrect === false ? "default" : "outline"
+                      areMissingValuesCorrect === false ? 'default' : 'outline'
                     }
-                    size="sm"
+                    size='sm'
                     className={cn(
-                      "flex items-center space-x-2",
+                      'flex items-center space-x-2',
                       areMissingValuesCorrect === false
-                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
+                        ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10'
                     )}
                     onClick={() => setAreMissingValuesCorrect(false)}
                   >
@@ -581,13 +609,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               {/* Completion CTA */}
-              {isSectionCompleted("missingValues") && (
-                <div className="mt-6 text-center">
+              {isSectionCompleted('missingValues') && (
+                <div className='mt-6 text-center'>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    onClick={() => moveToNextSection("missingValues")}
+                    variant='outline'
+                    size='sm'
+                    className='flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    onClick={() => moveToNextSection('missingValues')}
                   >
                     <span>Complete and move to next section</span>
                   </Button>
@@ -598,37 +626,37 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         </AccordionItem>
 
         <AccordionItem
-          value="reasoning"
-          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
+          value='reasoning'
+          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
           ref={sectionRefs.reasoning}
         >
-          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
-            <div className="flex items-center w-full justify-between">
-              <div className="flex items-center gap-2">
-                <ReasoningIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">Reasoning</span>
+          <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
+            <div className='flex items-center w-full justify-between'>
+              <div className='flex items-center gap-2'>
+                <ReasoningIcon className='w-9 h-9 text-muted-foreground' />
+                <span className='text-lg font-medium'>Reasoning</span>
               </div>
-              <div className="flex items-center">
+              <div className='flex items-center'>
                 {isReasoningValid !== undefined && (
                   <span
                     className={cn(
-                      "mr-3 text-sm px-2 py-1 rounded-full",
+                      'mr-3 text-sm px-2 py-1 rounded-full',
                       isReasoningValid
-                        ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                        : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                        ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                        : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                     )}
                   >
-                    {isReasoningValid ? "Valid" : "Invalid"}
+                    {isReasoningValid ? 'Valid' : 'Invalid'}
                   </span>
                 )}
-                {isSectionCompleted("reasoning") && (
+                {isSectionCompleted('reasoning') && (
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    variant='ghost'
+                    size='sm'
+                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection("reasoning");
+                      moveToNextSection('reasoning');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -638,29 +666,29 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             </div>
           </AccordionTrigger>
 
-          <AccordionContent className="px-6 pb-6 dark:text-foreground">
-            <div className="space-y-4">
+          <AccordionContent className='px-6 pb-6 dark:text-foreground'>
+            <div className='space-y-4'>
               {/* Reasoning Card */}
-              <div className="bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm">
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              <div className='bg-white dark:bg-background p-4 rounded-md border border-border shadow-sm'>
+                <h4 className='text-sm font-medium text-muted-foreground mb-2'>
                   How we came up with these values:
                 </h4>
-                <p className="text-foreground">{question.reasoning}</p>
+                <p className='text-foreground'>{question.reasoning}</p>
               </div>
 
               {/* Buttons */}
-              <div className="mt-4">
-                <p className="mb-3 font-medium">Is the Reasoning Valid?</p>
-                <div className="flex space-x-4">
+              <div className='mt-4'>
+                <p className='mb-3 font-medium'>Is the Reasoning Valid?</p>
+                <div className='flex space-x-4'>
                   {/* Valid button */}
                   <Button
-                    variant={isReasoningValid === true ? "default" : "outline"}
-                    size="sm"
+                    variant={isReasoningValid === true ? 'default' : 'outline'}
+                    size='sm'
                     className={cn(
-                      "flex items-center space-x-2",
+                      'flex items-center space-x-2',
                       isReasoningValid === true
-                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10"
+                        ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10'
                     )}
                     onClick={() => setIsReasoningValid(true)}
                   >
@@ -670,13 +698,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
                   {/* Invalid button */}
                   <Button
-                    variant={isReasoningValid === false ? "default" : "outline"}
-                    size="sm"
+                    variant={isReasoningValid === false ? 'default' : 'outline'}
+                    size='sm'
                     className={cn(
-                      "flex items-center space-x-2",
+                      'flex items-center space-x-2',
                       isReasoningValid === false
-                        ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white"
-                        : "bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10"
+                        ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10'
                     )}
                     onClick={() => setIsReasoningValid(false)}
                   >
@@ -687,13 +715,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               {/* Completion CTA */}
-              {isSectionCompleted("reasoning") && (
-                <div className="mt-6 text-center">
+              {isSectionCompleted('reasoning') && (
+                <div className='mt-6 text-center'>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    onClick={() => moveToNextSection("reasoning")}
+                    variant='outline'
+                    size='sm'
+                    className='flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    onClick={() => moveToNextSection('reasoning')}
                   >
                     <span>Complete and move to next section</span>
                   </Button>
@@ -704,19 +732,19 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         </AccordionItem>
 
         <AccordionItem
-          value="feedback"
-          className="bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors"
+          value='feedback'
+          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
           ref={sectionRefs.feedback}
         >
-          <AccordionTrigger className="px-6 py-4 group text-left transition-colors">
-            <div className="flex items-center w-full justify-between">
-              <div className="flex items-center gap-2">
-                <FeedbackIcon className="w-9 h-9 text-muted-foreground" />
-                <span className="text-lg font-medium">Critical Feedback</span>
+          <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
+            <div className='flex items-center w-full justify-between'>
+              <div className='flex items-center gap-2'>
+                <FeedbackIcon className='w-9 h-9 text-muted-foreground' />
+                <span className='text-lg font-medium'>Critical Feedback</span>
               </div>
-              <div className="flex items-center">
+              <div className='flex items-center'>
                 {feedback && (
-                  <span className="mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                  <span className='mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'>
                     Provided
                   </span>
                 )}
@@ -724,42 +752,42 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             </div>
           </AccordionTrigger>
 
-          <AccordionContent className="px-6 pb-6 dark:text-foreground">
-            <div className="space-y-4">
+          <AccordionContent className='px-6 pb-6 dark:text-foreground'>
+            <div className='space-y-4'>
               <div
                 className={cn(
-                  "p-5 rounded-md border shadow-sm",
+                  'p-5 rounded-md border shadow-sm',
                   needsFeedback
-                    ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800"
-                    : "bg-white dark:bg-background border-border"
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800'
+                    : 'bg-white dark:bg-background border-border'
                 )}
               >
                 <h4
                   className={cn(
-                    "text-base font-medium mb-2",
+                    'text-base font-medium mb-2',
                     needsFeedback
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-foreground"
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-foreground'
                   )}
                 >
                   {needsFeedback
-                    ? "Your feedback is essential: Please explain why you marked sections as invalid"
-                    : "Your feedback is critical to improving the clinical relevance of our work"}
+                    ? 'Your feedback is essential: Please explain why you marked sections as invalid'
+                    : 'Your feedback is critical to improving the clinical relevance of our work'}
                 </h4>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className='text-sm text-muted-foreground mb-4'>
                   {needsFeedback
-                    ? "Your detailed insights will help improving the clinical relevance of our work"
-                    : "Even if everything looks correct, please share any thoughts or suggestions you have."}
+                    ? 'Your detailed insights will help improving the clinical relevance of our work'
+                    : 'Even if everything looks correct, please share any thoughts or suggestions you have.'}
                 </p>
                 <Textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder={
                     needsFeedback
-                      ? "Please explain why you marked sections as invalid..."
-                      : "Any insights or suggestions to improve this question..."
+                      ? 'Please explain why you marked sections as invalid...'
+                      : 'Any insights or suggestions to improve this question...'
                   }
-                  className="min-h-[120px] bg-white dark:bg-background border border-border"
+                  className='min-h-[120px] bg-white dark:bg-background border border-border'
                 />
               </div>
             </div>
@@ -768,15 +796,15 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       </Accordion>
 
       {/* Submit button */}
-      <div className="mt-8 mb-12 text-center">
+      <div className='mt-8 mb-12 text-center'>
         <Button
           onClick={handleSubmit}
           disabled={!isFormCompleted() || isSubmitting}
-          className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-8 py-2 rounded-md"
-          size="lg"
+          className='bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-8 py-2 rounded-md'
+          size='lg'
         >
-          {isSubmitting ? "Submitting..." : "Submit Annotation"}
-          <Send className="ml-2 h-5 w-5" />
+          {isSubmitting ? 'Submitting...' : 'Submit Annotation'}
+          <Send className='ml-2 h-5 w-5' />
         </Button>
       </div>
     </div>

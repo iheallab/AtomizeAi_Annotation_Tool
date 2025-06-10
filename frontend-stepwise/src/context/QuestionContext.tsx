@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { Question, AnnotationResponse, TaskGroup } from "@/types";
-import { useAuth } from "./AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Question, AnnotationResponse, TaskGroup } from '@/types';
+import { useAuth } from './AuthContext';
+import { useToast } from '@/components/ui/use-toast';
+import { questionsUrl } from '@/apis/api_url';
 
 interface QuestionContextType {
   questions: Question[];
@@ -31,18 +32,18 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchQuestions = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:8080/annotations", {
+        const response = await fetch(questionsUrl, {
           headers: {
             Authorization: `Bearer ${user?.token}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch questions");
+          throw new Error('Failed to fetch questions');
         }
 
         const result = await response.json();
-        const rawQuestions = result.questions;
+        const rawQuestions = result;
 
         const parsedQuestions: Question[] = rawQuestions.map(
           (q: {
@@ -70,7 +71,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
             context: q.context,
             reasoning: q.reasoning,
             categories: q.category,
-            missingValues: "",
+            missingValues: '',
             isValid: q.question_valid ?? undefined,
             isReasoningValid: q.reasoning_valid ?? undefined,
             annoated_by: q.annotated_by,
@@ -90,11 +91,11 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
 
         setQuestions(parsedQuestions);
       } catch (error) {
-        console.error("Error fetching questions:", error);
+        console.error('Error fetching questions:', error);
         toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load questions. Please try again.",
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load questions. Please try again.',
         });
       } finally {
         setIsLoading(false);
@@ -114,7 +115,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const submitAnnotation = async (response: Question) => {
     try {
-      if (!user) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
 
       const annotatedQuestion = {
         _id: response.id,
@@ -125,9 +126,9 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         reasoning: response.reasoning,
         question_valid: response.question_valid,
         reasoning_valid: response.reasoning_valid,
-        main_feedback: response.feedback || "",
+        main_feedback: response.feedback || '',
         tasks_complete: true,
-        annotated_by: 1, // Replace with actual userId if needed
+        annotated_by: response.annotated_by, // Replace with actual userId if needed
 
         retrieval_tasks: response.tasks.map((taskGroup) => ({
           task_id: parseInt(taskGroup.id),
@@ -139,43 +140,46 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         })),
       };
 
-      const res = await fetch("http://localhost:8080/annotations", {
-        method: "POST",
+      console.log('submit annotation annotatedQuestion', annotatedQuestion);
+      const res = await fetch(questionsUrl, {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify(annotatedQuestion),
       });
 
-      if (!res.ok) throw new Error("Failed to submit annotation");
+      console.log('res', res);
+
+      if (!res.ok) throw new Error('Failed to submit annotation');
 
       updateQuestion(response.id, {
         ...response,
-        annotated_by: 1, // or use actual user id if available
+        // annotated_by: 1, // or use actual user id if available
       });
 
       toast({
-        title: "Annotation Submitted",
-        description: "Your annotation has been saved successfully.",
+        title: 'Annotation Submitted',
+        description: 'Your annotation has been saved successfully.',
       });
 
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       }
     } catch (error) {
-      console.error("Error submitting annotation:", error);
+      console.error('Error submitting annotation:', error);
       toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: "Failed to submit your annotation. Please try again.",
+        variant: 'destructive',
+        title: 'Submission Error',
+        description: 'Failed to submit your annotation. Please try again.',
       });
     }
   };
 
   const totalQuestions = questions.length;
   const completedQuestions = questions.filter(
-    (q) => q.annotated_by == -1
+    (q) => q.annotated_by !== -1
   ).length;
 
   return (
@@ -199,7 +203,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useQuestions = () => {
   const context = useContext(QuestionContext);
   if (context === undefined) {
-    throw new Error("useQuestions must be used within a QuestionProvider");
+    throw new Error('useQuestions must be used within a QuestionProvider');
   }
   return context;
 };

@@ -1,7 +1,7 @@
-
 export interface User {
   username: string;
   token: string;
+  userId: string;
 }
 
 export interface Question {
@@ -17,7 +17,6 @@ export interface Question {
   categories: string[];
   annotated_by: number;
 }
-
 
 export interface TaskGroup {
   id: string;

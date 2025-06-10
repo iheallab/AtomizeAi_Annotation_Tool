@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "@/types";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from '@/types';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { userAuthUrl } from '@/apis/api_url';
 
 interface AuthContextType {
   user: User | null;
@@ -22,14 +23,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Check for stored token on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
       } catch (error) {
-        console.error("Failed to parse stored user data", error);
-        localStorage.removeItem("user");
+        console.error('Failed to parse stored user data', error);
+        localStorage.removeItem('user');
       }
     }
     setIsLoading(false);
@@ -37,11 +38,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (username: string, password: string) => {
     setIsLoading(true);
-    console.log("Trying to login with details : ", username, password);
+    console.log('Trying to login with details : ', username, password);
     try {
-      const response = await fetch("http://localhost:8080/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch(userAuthUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
 
@@ -50,28 +51,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const userData: User = {
           username,
           token: data.token,
+          userId: data.userId,
         };
 
-        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         toast({
-          title: "Login Successful",
+          title: 'Login Successful',
           description: `Welcome, ${userData.username}!`,
         });
-        navigate("/");
+        navigate('/');
       } else {
         toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Invalid username or password",
+          variant: 'destructive',
+          title: 'Login Failed',
+          description: 'Invalid username or password',
         });
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       toast({
-        variant: "destructive",
-        title: "Login Error",
-        description: "An error occurred during login. Please try again.",
+        variant: 'destructive',
+        title: 'Login Error',
+        description: 'An error occurred during login. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -79,12 +81,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem('user');
     setUser(null);
-    navigate("/login");
+    navigate('/login');
     toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
+      title: 'Logged Out',
+      description: 'You have been successfully logged out.',
     });
   };
 
@@ -98,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
