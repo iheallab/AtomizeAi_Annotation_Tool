@@ -5,7 +5,11 @@ export interface User {
 }
 
 export interface Question {
-  id: string;
+  isValid?: boolean;
+  isReasoningValid?: boolean;
+  isCompleted?: boolean;
+  id: number;
+  _id: string;
   question: string;
   context: string;
   question_valid?: boolean;
