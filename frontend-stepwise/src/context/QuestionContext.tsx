@@ -2,13 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Question, AnnotationResponse, TaskGroup } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { questionsUrl } from '@/apis/api_url';
+import { annotationsUrl } from '@/apis/api_url';
 
 interface QuestionContextType {
   questions: Question[];
   currentQuestionIndex: number;
   setCurrentQuestionIndex: (index: number) => void;
-  updateQuestion: (questionId: string, updates: Partial<Question>) => void;
+  updateQuestion: (questionId: number, updates: Partial<Question>) => void;
   submitAnnotation: (response: Question) => Promise<void>;
   isLoading: boolean;
   totalQuestions: number;
@@ -32,7 +32,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchQuestions = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(questionsUrl, {
+        const response = await fetch(annotationsUrl, {
           headers: {
             Authorization: `Bearer ${user?.token}`,
           },
@@ -43,11 +43,12 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         const result = await response.json();
-        const rawQuestions = result;
+        const rawQuestions = result.questions;
 
         const parsedQuestions: Question[] = rawQuestions.map(
           (q: {
             _id: string;
+            question_id: number;
             question: string;
             context: string;
             reasoning: string;
@@ -66,7 +67,8 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
               }[];
             }[];
           }) => ({
-            id: q._id,
+            _id: q._id,
+            id: q.question_id,
             question: q.question,
             context: q.context,
             reasoning: q.reasoning,
@@ -74,16 +76,16 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
             missingValues: '',
             isValid: q.question_valid ?? undefined,
             isReasoningValid: q.reasoning_valid ?? undefined,
-            annoated_by: q.annotated_by,
+            annotated_by: q.annotated_by,
             feedback: q.main_feedback ?? undefined,
-            isCompleted: q.tasks_complete ?? false,
+            isCompleted: q.tasks_complete ?? undefined,
             tasks: q.retrieval_tasks.map((taskGroup) => ({
               id: String(taskGroup.task_id),
               name: taskGroup.task,
               tasks: taskGroup.variables.map((v, idx) => ({
                 id: `${taskGroup.task_id}-${idx}`,
                 name: v.variable,
-                enabled: v.valid,
+                valid: v.valid,
               })),
             })),
           })
@@ -107,7 +109,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [user, toast]);
 
-  const updateQuestion = (questionId: string, updates: Partial<Question>) => {
+  const updateQuestion = (questionId: number, updates: Partial<Question>) => {
     setQuestions((prevQuestions) =>
       prevQuestions.map((q) => (q.id === questionId ? { ...q, ...updates } : q))
     );
@@ -118,8 +120,8 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!user) throw new Error('User not authenticated');
 
       const annotatedQuestion = {
-        _id: response.id,
-        // question_id: 0, // Optional: if your backend needs it
+        _id: response._id,
+        question_id: response.id, // Optional: if your backend needs it
         question: response.question,
         context: response.context,
         category: response.categories,
@@ -127,7 +129,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         question_valid: response.question_valid,
         reasoning_valid: response.reasoning_valid,
         main_feedback: response.feedback || '',
-        tasks_complete: true,
+        tasks_complete: response.tasks_complete,
         annotated_by: response.annotated_by, // Replace with actual userId if needed
 
         retrieval_tasks: response.tasks.map((taskGroup) => ({
@@ -140,17 +142,14 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         })),
       };
 
-      console.log('submit annotation annotatedQuestion', annotatedQuestion);
-      const res = await fetch(questionsUrl, {
-        method: 'PUT',
+      const res = await fetch(annotationsUrl, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify(annotatedQuestion),
       });
-
-      console.log('res', res);
 
       if (!res.ok) throw new Error('Failed to submit annotation');
 

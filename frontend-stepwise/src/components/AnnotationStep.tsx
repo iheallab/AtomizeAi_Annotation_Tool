@@ -68,10 +68,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   // Reset state when question changes
   useEffect(() => {
-    setIsValid(question.question_valid);
+    setIsValid(question.question_valid ?? question.isValid);
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
-    setIsReasoningValid(question.reasoning_valid);
-    setAreMissingValuesCorrect(question.tasks_complete);
+    setIsReasoningValid(question.reasoning_valid ?? question.isReasoningValid);
+    setAreMissingValuesCorrect(question.tasks_complete ?? question.isCompleted);
     setFeedback(question.feedback || '');
 
     // Reset accordion state for completed questions or start with question section for new ones
@@ -183,6 +183,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
     const response: Question = {
       id: question.id,
+      _id: question._id,
       question: question.question,
       question_valid: isValid,
       context: question.context,
