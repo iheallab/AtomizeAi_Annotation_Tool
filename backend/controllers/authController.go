@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type LoginRequest struct {
@@ -97,9 +98,16 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//userId
+	userId, err := GetNextUserId("userid")
+	if err != nil {
+		http.Error(w, "Error generating user ID", http.StatusInternalServerError)
+		return
+	}
+
 	// Insert user
 	newUser := models.User{
-		UserId:   userData.UserId,
+		UserId:   userId,
 		Username: userData.Username,
 		Password: hashedPassword,
 	}
@@ -115,4 +123,25 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User added successfully"})
 
 	fmt.Println("New user added:", userData.Username)
+}
+
+func GetNextUserId(sequenceName string) (int, error) {
+	collection := db.GetCollection("counters")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filter := bson.M{"_id": sequenceName}
+	update := bson.M{"$inc": bson.M{"seq": 1}}
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+
+	var result struct {
+		Seq int `bson:"seq"`
+	}
+
+	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&result)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.Seq, nil
 }

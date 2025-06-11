@@ -130,7 +130,6 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	// 	fmt.Println("Question ID:", question.QuestionID)
 	// 	fmt.Println("Question:", question.Question)
 	// 	fmt.Println("Category:", question.Category)
-	// 	fmt.Println("ICU Type:", question.ICUType)
 	// 	fmt.Println("Retrieval Tasks:", question.RetrievalTasks)
 	// 	fmt.Println("Annotated By:", question.AnnotatedBy)
 	// 	fmt.Println("Reasoning:", question.Reasoning)
@@ -220,6 +219,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"main_feedback":   annotationReq.MainFeedback,
 				"question_valid":  annotationReq.QuestionValid,
 				"tasks_complete":  annotationReq.TasksComplete,
+				"reasoning_valid": annotationReq.ResoningValid,
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)
