@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -63,10 +63,12 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract QuestionIDs
-	var questionIDs []primitive.ObjectID
+	var questionIDs []int
 	for _, question := range questions {
-		questionIDs = append(questionIDs, question.ID)
+		questionIDs = append(questionIDs, question.QuestionID)
 	}
+	// Sort the slice in ascending order
+	sort.Ints(questionIDs)
 
 	// Query to check if an assignment exists for this user
 	updateFilter := bson.M{"user_id": userID}
@@ -74,7 +76,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	// Update document:
 	update := bson.M{
 		"$addToSet": bson.M{"question_ids": bson.M{"$each": questionIDs}}, // Merge new question IDs
-		"$set": bson.M{"assigned_at": time.Now().Unix()}, // Always update timestamp
+		"$set":      bson.M{"assigned_at": time.Now().Unix()},             // Always update timestamp
 	}
 
 	// Ensure upsert works correctly
