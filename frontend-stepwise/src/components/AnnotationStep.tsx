@@ -68,6 +68,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   // Reset state when question changes
   useEffect(() => {
+    // console.log('question', question);
     setIsValid(question.question_valid ?? question.isValid);
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
     setIsReasoningValid(question.reasoning_valid ?? question.isReasoningValid);
@@ -336,7 +337,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection('question');
+                      // moveToNextSection('question');
+                      handleAccordionChange('question');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -436,7 +438,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection('tasks');
+                      // moveToNextSection('tasks');
+                      handleAccordionChange('tasks');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -542,7 +545,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection('missingValues');
+                      // moveToNextSection('missingValues');
+                      handleAccordionChange('missingValues');
                     }}
                   >
                     <CheckCircle size={20} />
@@ -657,7 +661,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      moveToNextSection('reasoning');
+                      // moveToNextSection('reasoning');
+                      handleAccordionChange('reasoning');
                     }}
                   >
                     <CheckCircle size={20} />

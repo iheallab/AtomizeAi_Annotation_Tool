@@ -66,7 +66,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 
 	// Find assigned questions for the user
 	var assignment struct {
-		QuestionIDs []primitive.ObjectID `bson:"question_ids"`
+		QuestionIDs []int `bson:"question_ids"`
 	}
 	fmt.Println("User ID:", userID)
 	err = assignmentCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&assignment)
@@ -77,7 +77,9 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch assigned questions
 	var questions []models.Question
-	cursor, err := questionsCollection.Find(ctx, bson.M{"_id": bson.M{"$in": assignment.QuestionIDs}})
+	cursor, err := questionsCollection.Find(ctx, bson.M{
+		"question_id": bson.M{"$in": assignment.QuestionIDs},
+	})
 	if err != nil {
 		http.Error(w, "Error retrieving questions", http.StatusInternalServerError)
 		return
@@ -92,7 +94,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	// Fetch annotations for assigned questions
 	var annotations []models.Question
 	annotationCursor, err := annotationsCollection.Find(ctx, bson.M{
-		"_id":          bson.M{"$in": assignment.QuestionIDs},
+		"question_id":  bson.M{"$in": assignment.QuestionIDs},
 		"annotated_by": userID,
 	})
 
@@ -108,15 +110,15 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a map for quick annotation lookup
-	annotationMap := make(map[primitive.ObjectID]models.Question)
+	annotationMap := make(map[int]models.Question)
 	for _, annotation := range annotations {
-		annotationMap[annotation.ID] = annotation
+		annotationMap[annotation.QuestionID] = annotation
 	}
 
 	// Merge annotations with questions
 	var finalQuestions []models.Question
 	for _, question := range questions {
-		if annotatedData, exists := annotationMap[question.ID]; exists {
+		if annotatedData, exists := annotationMap[question.QuestionID]; exists {
 			// annotatedData.QuestionValid = true // Mark as annotated
 			// fmt.Println("Annotated Question Validity:", annotatedData.QuestionValid)
 			// annotatedData.QuestionValid = annotatedData.QuestionValid
@@ -203,7 +205,9 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	// Check if annotation already exists
-	filter := bson.M{"_id": annotationReq.ID}
+	filter := bson.M{
+		"question_id":  annotationReq.QuestionID,
+		"annotated_by": annotationReq.AnnotatedBy}
 	var existingAnnotation models.Question
 	err = annotationsCollection.FindOne(ctx, filter).Decode(&existingAnnotation)
 
@@ -233,6 +237,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert new annotation
+	annotationReq.ID = primitive.NewObjectID()
 	_, err = annotationsCollection.InsertOne(ctx, annotationReq)
 	if err != nil {
 		http.Error(w, "Error inserting annotation", http.StatusInternalServerError)
