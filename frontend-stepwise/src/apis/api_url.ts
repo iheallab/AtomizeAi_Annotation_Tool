@@ -1,10 +1,3 @@
-// export const userAuthUrl = 'http://localhost:8080/login';
-// export const questionsUrl = 'http://localhost:8080/questions';
-// export const annotationsUrl = 'http://localhost:8080/annotations';
-
-export const userAuthUrl =
-  'https://backend-dot-ehr-chat-bot.uc.r.appspot.com/login';
-export const questionsUrl =
-  'https://backend-dot-ehr-chat-bot.uc.r.appspot.com/questions';
-export const annotationsUrl =
-  'https://backend-dot-ehr-chat-bot.uc.r.appspot.com/annotations';
+export const userAuthUrl = import.meta.env.VITE_USER_AUTH_URL;
+export const questionsUrl = import.meta.env.VITE_QUESTIONS_URL;
+export const annotationsUrl = import.meta.env.VITE_ANNOTATIONS_URL;

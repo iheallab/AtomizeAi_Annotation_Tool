@@ -68,6 +68,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
   // Reset state when question changes
   useEffect(() => {
+    // console.log('question', question);
     setIsValid(question.question_valid ?? question.isValid);
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
     setIsReasoningValid(question.reasoning_valid ?? question.isReasoningValid);
