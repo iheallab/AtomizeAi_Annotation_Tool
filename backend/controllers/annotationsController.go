@@ -203,7 +203,9 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	// Check if annotation already exists
-	filter := bson.M{"_id": annotationReq.ID}
+	filter := bson.M{
+		"question_id":  annotationReq.QuestionID,
+		"annotated_by": annotationReq.AnnotatedBy}
 	var existingAnnotation models.Question
 	err = annotationsCollection.FindOne(ctx, filter).Decode(&existingAnnotation)
 
@@ -233,6 +235,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert new annotation
+	annotationReq.ID = primitive.NewObjectID()
 	_, err = annotationsCollection.InsertOne(ctx, annotationReq)
 	if err != nil {
 		http.Error(w, "Error inserting annotation", http.StatusInternalServerError)
