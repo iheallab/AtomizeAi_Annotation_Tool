@@ -16,7 +16,7 @@ export interface Question {
   tasks: TaskGroup[];
   reasoning: string;
   reasoning_valid?: boolean;
-  tasks_complete?: boolean;
+  missing_data?: boolean;
   feedback?: string;
   categories: string[];
   annotated_by: number;

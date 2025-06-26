@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useRef, useEffect } from 'react';
 import { Question, TaskGroup, Task, AnnotationResponse } from '@/types';
 
@@ -37,6 +38,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   question,
   onSubmit,
 }) => {
+  const questionCompleted = question.annotated_by === -1 ? false : true;
   const [activeAccordion, setActiveAccordion] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean | undefined>(
     question.question_valid
@@ -49,13 +51,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   );
   const [areMissingValuesCorrect, setAreMissingValuesCorrect] = useState<
     boolean | undefined
-  >(question.tasks_complete);
+  >(question.missing_data);
   const [feedback, setFeedback] = useState<string>(question.feedback || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const noTasksSelected = taskGroups
-    .flatMap((g) => g.tasks)
-    .every((t) => !t.valid);
-
+  const [tasksCompleted, setTasksCompleted] = useState(
+    questionCompleted ? true : false
+  );
   // References for scrolling
   const sectionRefs = {
     questionContext: useRef<HTMLDivElement>(null),
@@ -72,8 +73,9 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     setIsValid(question.question_valid ?? question.isValid);
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
     setIsReasoningValid(question.reasoning_valid ?? question.isReasoningValid);
-    setAreMissingValuesCorrect(question.tasks_complete ?? question.isCompleted);
+    setAreMissingValuesCorrect(question.missing_data ?? question.isCompleted);
     setFeedback(question.feedback || '');
+    setTasksCompleted(questionCompleted ? true : false);
 
     // Reset accordion state for completed questions or start with question section for new ones
     // if (question.annotated_by == 0) {
@@ -167,7 +169,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     // tasks: TaskGroup[];
     // reasoning: string;
     // reasoning_valid?: boolean;
-    // tasks_complete?: boolean;
+    // missing_data?: boolean;
     // feedback?: string;
     // categories: string[];
     // annotated_by: number;
@@ -189,7 +191,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       question_valid: isValid,
       context: question.context,
       tasks: taskGroups,
-      tasks_complete: areMissingValuesCorrect,
+      missing_data: areMissingValuesCorrect,
       reasoning: question.reasoning,
       reasoning_valid: isReasoningValid,
       categories: question.categories,
@@ -209,7 +211,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       case 'question':
         return isValid !== undefined;
       case 'tasks':
-        return taskGroups.some((group) => group.tasks.some((t) => t.valid));
+        return tasksCompleted;
       case 'reasoning':
         return isReasoningValid !== undefined;
       case 'missingValues':
@@ -224,7 +226,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   const isFormCompleted = (): boolean => {
     return (
       isValid !== undefined &&
-      taskGroups.some((group) => group.tasks.some((t) => t.valid)) &&
+      tasksCompleted &&
       isReasoningValid !== undefined &&
       areMissingValuesCorrect !== undefined &&
       (!needsFeedback || feedback.trim().length > 0)
@@ -318,7 +320,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               <div className='flex items-center'>
-                {isValid !== undefined && (
+                {/* {isValid !== undefined && (
                   <span
                     className={cn(
                       'mr-3 text-sm px-2 py-1 rounded-full',
@@ -329,7 +331,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   >
                     {isValid ? 'Valid' : 'Invalid'}
                   </span>
-                )}
+                )} */}
                 {isSectionCompleted('question') && (
                   <Button
                     variant='ghost'
@@ -420,7 +422,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 </span>
               </div>
               <div className='flex items-center'>
-                {taskGroups.some((group) =>
+                {/* {taskGroups.some((group) =>
                   group.tasks.some((t) => t.valid)
                 ) && (
                   <span className='mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'>
@@ -430,7 +432,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     }{' '}
                     selected
                   </span>
-                )}
+                )} */}
                 {isSectionCompleted('tasks') && (
                   <Button
                     variant='ghost'
@@ -452,8 +454,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           <AccordionContent className='px-6 pb-6 dark:text-foreground'>
             <div className='space-y-4'>
               <p className='text-sm text-muted-foreground'>
-                Select the data elements that are necessary to answer this
-                question:
+                Select the data elements (if any) that are necessary to answer
+                this question:
               </p>
 
               {/* <div className="space-y-6"> */}
@@ -485,28 +487,18 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               <div className='mt-6 text-center'>
-                {noTasksSelected ? (
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center mx-auto text-black dark:text-black
-                   border-black-900 dark:border-red-800 bg-white
-                   hover:bg-red-50 dark:hover:bg-red-900/20'
-                    onClick={() => moveToNextSection('tasks')}
-                  >
-                    <span>Nothing Valid</span>
-                  </Button>
-                ) : (
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center mx-auto text-black dark:text-white border:black-600rk:border-green-900 bg-white 
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='flex items-center mx-auto text-black dark:text-white border:black-600rk:border-green-900 bg-white 
                    hover:bg-green-50 dark:hover:bg-green-900/20'
-                    onClick={() => moveToNextSection('tasks')}
-                  >
-                    <span>Complete and move to next section</span>
-                  </Button>
-                )}
+                  onClick={() => {
+                    setTasksCompleted(true);
+                    moveToNextSection('tasks');
+                  }}
+                >
+                  <span>Complete and move to next section</span>
+                </Button>
               </div>
             </div>
           </AccordionContent>
@@ -526,7 +518,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 </span>
               </div>
               <div className='flex items-center'>
-                {areMissingValuesCorrect !== undefined && (
+                {/* {areMissingValuesCorrect !== undefined && (
                   <span
                     className={cn(
                       'mr-3 text-sm px-2 py-1 rounded-full',
@@ -537,7 +529,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   >
                     {areMissingValuesCorrect ? 'Valid' : 'Invalid'}
                   </span>
-                )}
+                )} */}
                 {isSectionCompleted('missingValues') && (
                   <Button
                     variant='ghost'
@@ -642,7 +634,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 <span className='text-lg font-medium'>Reasoning</span>
               </div>
               <div className='flex items-center'>
-                {isReasoningValid !== undefined && (
+                {/* {isReasoningValid !== undefined && (
                   <span
                     className={cn(
                       'mr-3 text-sm px-2 py-1 rounded-full',
@@ -653,7 +645,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   >
                     {isReasoningValid ? 'Valid' : 'Invalid'}
                   </span>
-                )}
+                )} */}
                 {isSectionCompleted('reasoning') && (
                   <Button
                     variant='ghost'
@@ -749,10 +741,18 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 <span className='text-lg font-medium'>Critical Feedback</span>
               </div>
               <div className='flex items-center'>
-                {feedback && (
-                  <span className='mr-3 text-sm px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'>
-                    Provided
-                  </span>
+                {isSectionCompleted('feedback') && (
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccordionChange('feedback');
+                    }}
+                  >
+                    <CheckCircle size={20} />
+                  </Button>
                 )}
               </div>
             </div>
