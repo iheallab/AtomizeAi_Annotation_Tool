@@ -57,7 +57,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
             question_valid?: boolean;
             reasoning_valid?: boolean;
             main_feedback?: string;
-            tasks_complete?: boolean;
+            missing_data?: boolean;
             retrieval_tasks: {
               task_id: number;
               task: string;
@@ -78,7 +78,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
             isReasoningValid: q.reasoning_valid ?? undefined,
             annotated_by: q.annotated_by,
             feedback: q.main_feedback ?? undefined,
-            isCompleted: q.tasks_complete ?? undefined,
+            isCompleted: q.missing_data ?? undefined,
             tasks: q.retrieval_tasks.map((taskGroup) => ({
               id: String(taskGroup.task_id),
               name: taskGroup.task,
@@ -129,7 +129,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         question_valid: response.question_valid,
         reasoning_valid: response.reasoning_valid,
         main_feedback: response.feedback || '',
-        tasks_complete: response.tasks_complete,
+        missing_data: response.missing_data,
         annotated_by: response.annotated_by, // Replace with actual userId if needed
 
         retrieval_tasks: response.tasks.map((taskGroup) => ({

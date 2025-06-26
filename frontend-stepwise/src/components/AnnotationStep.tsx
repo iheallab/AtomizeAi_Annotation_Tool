@@ -51,7 +51,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   );
   const [areMissingValuesCorrect, setAreMissingValuesCorrect] = useState<
     boolean | undefined
-  >(question.tasks_complete);
+  >(question.missing_data);
   const [feedback, setFeedback] = useState<string>(question.feedback || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tasksCompleted, setTasksCompleted] = useState(
@@ -73,7 +73,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     setIsValid(question.question_valid ?? question.isValid);
     setTaskGroups(JSON.parse(JSON.stringify(question.tasks)));
     setIsReasoningValid(question.reasoning_valid ?? question.isReasoningValid);
-    setAreMissingValuesCorrect(question.tasks_complete ?? question.isCompleted);
+    setAreMissingValuesCorrect(question.missing_data ?? question.isCompleted);
     setFeedback(question.feedback || '');
     setTasksCompleted(questionCompleted ? true : false);
 
@@ -169,7 +169,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     // tasks: TaskGroup[];
     // reasoning: string;
     // reasoning_valid?: boolean;
-    // tasks_complete?: boolean;
+    // missing_data?: boolean;
     // feedback?: string;
     // categories: string[];
     // annotated_by: number;
@@ -191,7 +191,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       question_valid: isValid,
       context: question.context,
       tasks: taskGroups,
-      tasks_complete: areMissingValuesCorrect,
+      missing_data: areMissingValuesCorrect,
       reasoning: question.reasoning,
       reasoning_valid: isReasoningValid,
       categories: question.categories,

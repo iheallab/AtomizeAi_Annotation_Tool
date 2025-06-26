@@ -187,7 +187,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 				"annotated_by":    annotationReq.AnnotatedBy,
 				"main_feedback":   annotationReq.MainFeedback,
 				"question_valid":  annotationReq.QuestionValid,
-				"tasks_complete":  annotationReq.TasksComplete,
+				"missing_data":    annotationReq.MissingData,
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)
