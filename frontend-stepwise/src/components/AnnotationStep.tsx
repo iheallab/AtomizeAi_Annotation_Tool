@@ -148,12 +148,14 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (
-      isValid === undefined ||
-      isReasoningValid === undefined ||
-      areMissingValuesCorrect === undefined
-    ) {
-      return;
+    if (isValid) {
+      if (
+        isValid === undefined ||
+        isReasoningValid === undefined ||
+        areMissingValuesCorrect === undefined
+      ) {
+        return;
+      }
     }
 
     if (needsFeedback && !feedback.trim()) {
@@ -224,6 +226,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   };
 
   const isFormCompleted = (): boolean => {
+    if (!isValid) {
+      if (feedback.trim().length > 0) return true;
+      else return false;
+    }
     return (
       isValid !== undefined &&
       tasksCompleted &&
@@ -398,7 +404,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     variant='outline'
                     size='sm'
                     className='flex items-center mx-auto  bg-white text-black dark:text-white border:black-600 hover:bg-green-50 dark:hover:bg-green-900/20'
-                    onClick={() => moveToNextSection('question')}
+                    onClick={() => {
+                      if (isValid === false) {
+                        moveToNextSection('reasoning');
+                      } else {
+                        moveToNextSection('question');
+                      }
+                    }}
                   >
                     <span>Complete and move to next section</span>
                   </Button>
@@ -410,8 +422,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value='tasks'
-          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
+          className={`
+            ${
+              isValid === false ? 'bg-gray-300' : 'bg-secondary'
+            } dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors`}
           ref={sectionRefs.tasks}
+          disabled={isValid === false}
         >
           <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
             <div className='flex items-center w-full justify-between'>
@@ -433,19 +449,34 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     selected
                   </span>
                 )} */}
-                {isSectionCompleted('tasks') && (
+                {isValid === false ? (
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    className='ml-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
                       // moveToNextSection('tasks');
                       handleAccordionChange('tasks');
                     }}
                   >
-                    <CheckCircle size={20} />
+                    Not Required
                   </Button>
+                ) : (
+                  isSectionCompleted('tasks') && (
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // moveToNextSection('tasks');
+                        handleAccordionChange('tasks');
+                      }}
+                    >
+                      <CheckCircle size={20} />
+                    </Button>
+                  )
                 )}
               </div>
             </div>
@@ -506,8 +537,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value='missingValues'
-          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
+          className={`
+            ${
+              isValid === false ? 'bg-gray-300' : 'bg-secondary'
+            } dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors`}
           ref={sectionRefs.missingValues}
+          disabled={isValid === false}
         >
           <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
             <div className='flex items-center w-full justify-between'>
@@ -530,19 +565,34 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     {areMissingValuesCorrect ? 'Valid' : 'Invalid'}
                   </span>
                 )} */}
-                {isSectionCompleted('missingValues') && (
+                {isValid === false ? (
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    className='ml-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      // moveToNextSection('missingValues');
-                      handleAccordionChange('missingValues');
+                      // moveToNextSection('tasks');
+                      handleAccordionChange('tasks');
                     }}
                   >
-                    <CheckCircle size={20} />
+                    Not Required
                   </Button>
+                ) : (
+                  isSectionCompleted('missingValues') && (
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // moveToNextSection('missingValues');
+                        handleAccordionChange('missingValues');
+                      }}
+                    >
+                      <CheckCircle size={20} />
+                    </Button>
+                  )
                 )}
               </div>
             </div>
@@ -606,7 +656,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               {/* Completion CTA */}
-              {isSectionCompleted('missingValues') && (
+              {isSectionCompleted('missingValues') && isValid && (
                 <div className='mt-6 text-center'>
                   <Button
                     variant='outline'
@@ -624,8 +674,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
         <AccordionItem
           value='reasoning'
-          className='bg-secondary dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors'
+          className={`
+            ${
+              isValid === false ? 'bg-gray-300' : 'bg-secondary'
+            } dark:bg-secondary-dark border border-border rounded-2xl mb-6 shadow-soft transition-colors`}
           ref={sectionRefs.reasoning}
+          disabled={isValid === false}
         >
           <AccordionTrigger className='px-6 py-4 group text-left transition-colors'>
             <div className='flex items-center w-full justify-between'>
@@ -646,19 +700,35 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     {isReasoningValid ? 'Valid' : 'Invalid'}
                   </span>
                 )} */}
-                {isSectionCompleted('reasoning') && (
+                {isValid === false ? (
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    className='ml-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                     onClick={(e) => {
                       e.stopPropagation();
-                      // moveToNextSection('reasoning');
-                      handleAccordionChange('reasoning');
+                      // moveToNextSection('tasks');
+                      handleAccordionChange('tasks');
                     }}
                   >
-                    <CheckCircle size={20} />
+                    Not Required
                   </Button>
+                ) : (
+                  isSectionCompleted('reasoning') &&
+                  isValid && (
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='ml-2 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // moveToNextSection('reasoning');
+                        handleAccordionChange('reasoning');
+                      }}
+                    >
+                      <CheckCircle size={20} />
+                    </Button>
+                  )
                 )}
               </div>
             </div>
