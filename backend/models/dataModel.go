@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -32,6 +34,8 @@ type Question struct {
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 	Context        string             `json:"context" bson:"context"`
 	MissingData    *bool              `json:"missing_data" bson:"missing_data"`
+	CreatedAt      *time.Time         `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	UpdatedAt      *time.Time         `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
 // // Question represents the original question entity

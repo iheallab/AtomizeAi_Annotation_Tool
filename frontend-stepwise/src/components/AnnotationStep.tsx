@@ -121,6 +121,18 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     );
   };
 
+  const disableAllTasks = () => {
+    setTaskGroups((prev) =>
+      prev.map((group) => ({
+        ...group,
+        tasks: group.tasks.map((task) => ({
+          ...task,
+          valid: false,
+        })),
+      }))
+    );
+  };
+
   const needsFeedback =
     isValid === false ||
     isReasoningValid === false ||
@@ -407,7 +419,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                     )}
                     onClick={() => {
                       setIsValid(false);
-                      setTaskGroups([]);
+                      disableAllTasks();
                       setAreMissingValuesCorrect(undefined);
                       setIsReasoningValid(undefined);
                     }}
