@@ -219,7 +219,15 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       case 'missingValues':
         return areMissingValuesCorrect !== undefined;
       case 'feedback':
-        return !needsFeedback || feedback.trim().length > 0;
+        if (
+          isValid &&
+          tasksCompleted &&
+          isReasoningValid &&
+          areMissingValuesCorrect
+        )
+          return true;
+        else if (needsFeedback && feedback.trim().length > 0) return true;
+        else return false;
       default:
         return false;
     }
@@ -374,7 +382,14 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                         ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
                         : 'bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10'
                     )}
-                    onClick={() => setIsValid(true)}
+                    onClick={() => {
+                      setIsValid(true);
+                      if (taskGroups.length === 0) {
+                        setTaskGroups(
+                          JSON.parse(JSON.stringify(question.tasks))
+                        );
+                      }
+                    }}
                   >
                     <ThumbsUp size={18} />
                     <span>Yes, valid question</span>
@@ -390,7 +405,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                         ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white'
                         : 'bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10'
                     )}
-                    onClick={() => setIsValid(false)}
+                    onClick={() => {
+                      setIsValid(false);
+                      setTaskGroups([]);
+                      setAreMissingValuesCorrect(undefined);
+                      setIsReasoningValid(undefined);
+                    }}
                   >
                     <ThumbsDown size={18} />
                     <span>No, invalid question</span>
