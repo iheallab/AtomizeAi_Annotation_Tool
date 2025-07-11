@@ -1,5 +1,5 @@
 runtime: nodejs20 # Use the latest supported Node.js runtime
-service: ICU-React # This is your frontend service
+service: icu-react # This is your frontend service
 
 handlers:
   - url: /api/*
