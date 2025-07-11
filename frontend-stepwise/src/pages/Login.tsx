@@ -33,10 +33,10 @@ const Login: React.FC = () => {
     <div className='min-h-screen flex items-center justify-center bg-gray-50 p-4'>
       <Card className='w-full max-w-md'>
         <CardHeader className='space-y-1 flex flex-col items-center'>
-          <div className='flex items-center gap-2 mb-2'>
-            <Heart className='text-blue-600' size={32} />
-            <CardTitle className='text-2xl'>Medical Annotation Tool</CardTitle>
-          </div>
+          <Heart className='text-blue-600' size={32} />
+          <CardTitle className='text-2xl'>
+            ICU-REACT Dataset Annotation Tool
+          </CardTitle>
           <CardDescription>
             Enter your credentials to access the annotation platform
           </CardDescription>

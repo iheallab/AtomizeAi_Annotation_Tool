@@ -14,7 +14,7 @@ export const Header: React.FC = () => {
         <div className='flex items-center'>
           <Heart className='text-primary mr-2 heart-beats' size={20} />
           <h1 className='text-xl font-semibold text-foreground'>
-            Medical Annotation Tool
+            ICU-REACT Dataset Annotation Tool
           </h1>
         </div>
 

@@ -1,8 +1,8 @@
-# Medical Annotation Tool
+# ICU-REACT Dataset Annotation Tool
 
 ## Description
 
-The **Medical Annotation Tool** is designed to assist annotators in validating clinical contexts and questions. Annotators can check if the provided clinical context and questions are valid, and respond to additional questions as required. This tool streamlines the annotation process for medical datasets, ensuring high-quality and accurate data for downstream applications.
+The **ICU-REACT Dataset Annotation Tool** is designed to assist annotators in validating clinical contexts and questions. Annotators can check if the provided clinical context and questions are valid, and respond to additional questions as required. This tool streamlines the annotation process for medical datasets, ensuring high-quality and accurate data for downstream applications.
 
 ## Features
 
@@ -13,7 +13,7 @@ The **Medical Annotation Tool** is designed to assist annotators in validating c
 ## Tech Stack
 
 - **Backend:** Go
-- **Frontend:** React (using [stepwise](https://github.com/stepwise/stepwise))
+- **Frontend:** React Vite
 
 ## Installation
 
@@ -52,18 +52,15 @@ The **Medical Annotation Tool** is designed to assist annotators in validating c
 ## Usage
 
 1. Start both the backend and frontend servers as described above.
-2. Open your browser and navigate to the frontend URL (usually `http://localhost:3000`).
-3. Log in or register as an annotator.
-4. Begin annotating by validating clinical contexts and answering questions as prompted.
+2. Your backend server hosts on `http://localhost:8080`.
+3. Open your browser and navigate to the frontend URL (usually `http://localhost:8081`).
+4. Log in or register as an annotator.
+5. Begin annotating by validating clinical contexts and answering questions as prompted.
 
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
-## License
-
-[MIT License](LICENSE)
-
 ## Contact
 
-For questions or support, please contact [your-email@example.com].
+For questions or support, please contact [hengsun@ufl.edu].
