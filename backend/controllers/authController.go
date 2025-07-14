@@ -63,9 +63,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // UserRequest represents a request to create a new user
 type UserRequest struct {
-	UserId   int    `json:"user_id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	UserId         int       `json:"user_id"`
+	Username       string    `json:"username"`
+	Password       string    `json:"password"`
+	FirstName      string    `json:"first_name"`
+	LastName       string    `json:"last_name"`
+	JobTitle       string    `json:"job_title"`
+	Specialization string    `json:"specialization"`
+	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 }
 
 // AddUser allows an admin to manually add users
@@ -99,7 +104,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//userId
-	userId, err := GetNextUserId("userid")
+	userId, err := GetNextUserId("user_id")
 	if err != nil {
 		http.Error(w, "Error generating user ID", http.StatusInternalServerError)
 		return
@@ -107,9 +112,14 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	// Insert user
 	newUser := models.User{
-		UserId:   userId,
-		Username: userData.Username,
-		Password: hashedPassword,
+		UserId:         userId,
+		Username:       userData.Username,
+		Password:       hashedPassword,
+		FirstName:      userData.FirstName,
+		LastName:       userData.LastName,
+		JobTitle:       userData.JobTitle,
+		Specialization: userData.Specialization,
+		CreatedAt:      time.Now(),
 	}
 
 	_, err = collection.InsertOne(ctx, newUser)

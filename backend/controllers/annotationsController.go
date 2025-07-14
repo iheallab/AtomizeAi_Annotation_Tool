@@ -144,7 +144,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"user_id":     userID,
-		"assigned_at": time.Now().Unix(),
+		"assigned_at": time.Now(),
 		"questions":   finalQuestions,
 	})
 }

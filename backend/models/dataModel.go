@@ -63,7 +63,7 @@ type AnnotationAssignment struct {
 	ID          primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
 	UserID      int                  `json:"user_id" bson:"user_id"`
 	QuestionIDs []primitive.ObjectID `json:"question_ids" bson:"question_ids"`
-	AssignedAt  int64                `json:"assigned_at" bson:"assigned_at"`
+	AssignedAt  time.Time            `json:"assigned_at" bson:"assigned_at"`
 }
 
 // AnnotationsDone tracks completed annotations per user
