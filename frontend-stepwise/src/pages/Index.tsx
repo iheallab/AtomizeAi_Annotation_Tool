@@ -13,6 +13,7 @@ const Index = () => {
     currentQuestionIndex,
     setCurrentQuestionIndex,
     submitAnnotation,
+    skipAnnotation,
     isLoading,
     totalQuestions,
     completedQuestions,
@@ -64,6 +65,7 @@ const Index = () => {
             <AnnotationStep
               question={currentQuestion}
               onSubmit={submitAnnotation}
+              onSkip={skipAnnotation}
             />
           </div>
         </div>

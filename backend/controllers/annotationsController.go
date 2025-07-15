@@ -90,6 +90,16 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error decoding questions", http.StatusInternalServerError)
 		return
 	}
+	questionMap := make(map[int]models.Question)
+	for _, q := range questions {
+		questionMap[q.QuestionID] = q
+	}
+	var orderedQuestions []models.Question
+	for _, id := range assignment.QuestionIDs {
+		if q, exists := questionMap[id]; exists {
+			orderedQuestions = append(orderedQuestions, q)
+		}
+	}
 
 	// Fetch annotations for assigned questions
 	var annotations []models.Question
@@ -117,7 +127,7 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 
 	// Merge annotations with questions
 	var finalQuestions []models.Question
-	for _, question := range questions {
+	for _, question := range orderedQuestions {
 		if annotatedData, exists := annotationMap[question.QuestionID]; exists {
 			// annotatedData.QuestionValid = true // Mark as annotated
 			// fmt.Println("Annotated Question Validity:", annotatedData.QuestionValid)

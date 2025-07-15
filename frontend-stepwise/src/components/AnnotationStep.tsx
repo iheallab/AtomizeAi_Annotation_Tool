@@ -15,9 +15,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   CheckCircle,
-  ChevronDown,
   Tag,
   Send,
+  Replace,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -32,11 +32,13 @@ import QAIcon from '@/components/icons/QAIcon';
 interface AnnotationStepProps {
   question: Question;
   onSubmit: (response: Question) => Promise<void>;
+  onSkip: () => Promise<void>;
 }
 
 export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   question,
   onSubmit,
+  onSkip,
 }) => {
   const questionCompleted = question.annotated_by === -1 ? false : true;
   const [activeAccordion, setActiveAccordion] = useState<string>('');
@@ -54,6 +56,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   >(question.missing_data);
   const [feedback, setFeedback] = useState<string>(question.feedback || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [tasksCompleted, setTasksCompleted] = useState(
     questionCompleted ? true : false
   );
@@ -176,27 +179,6 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     }
 
     setIsSubmitting(true);
-    //   id: string;
-    // question: string;
-    // context: string;
-    // question_valid?: boolean;
-    // tasks: TaskGroup[];
-    // reasoning: string;
-    // reasoning_valid?: boolean;
-    // missing_data?: boolean;
-    // feedback?: string;
-    // categories: string[];
-    // annotated_by: number;
-
-    // {
-
-    //   questionId: question.id,
-    //   isValid: isValid || false,
-    //   tasks: taskGroups,
-    //   isReasoningValid: isReasoningValid || false,
-    //   areMissingValuesCorrect: areMissingValuesCorrect || false,
-    //   feedback: feedback.trim() || undefined,
-    // }
 
     const response: Question = {
       id: question.id,
@@ -217,6 +199,11 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
     await onSubmit(response);
     setIsSubmitting(false);
+  };
+  const handleSkip = async () => {
+    setIsSkipping(true);
+    await onSkip();
+    setIsSkipping(false);
   };
 
   // Check if a section is completed
@@ -904,7 +891,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       </Accordion>
 
       {/* Submit button */}
-      <div className='mt-8 mb-12 text-center'>
+      <div className='text-center'>
         <Button
           onClick={handleSubmit}
           disabled={!isFormCompleted() || isSubmitting}
@@ -913,6 +900,19 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
         >
           {isSubmitting ? 'Submitting...' : 'Submit Annotation'}
           <Send className='ml-2 h-5 w-5' />
+        </Button>
+      </div>
+      {/* Skip button */}
+      <div className='text-center'>
+        <Button
+          onClick={handleSkip}
+          disabled={questionCompleted || isSkipping}
+          className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-8 py-2 rounded-md'
+          size='lg'
+          title='Skip this question, move to the next one, and get a new question at the end of the session'
+        >
+          {isSkipping ? 'Skipping...' : 'Skip Annotation'}
+          <Replace className='ml-2 h-5 w-5' />
         </Button>
       </div>
     </div>

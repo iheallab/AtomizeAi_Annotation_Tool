@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Question, AnnotationResponse, TaskGroup } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { annotationsUrl } from '@/apis/api_url';
+import { annotationsUrl, replaceQuestionByIdUrl } from '@/apis/api_url';
 
 interface QuestionContextType {
   questions: Question[];
@@ -10,6 +11,7 @@ interface QuestionContextType {
   setCurrentQuestionIndex: (index: number) => void;
   updateQuestion: (questionId: number, updates: Partial<Question>) => void;
   submitAnnotation: (response: Question) => Promise<void>;
+  skipAnnotation: () => Promise<void>;
   isLoading: boolean;
   totalQuestions: number;
   completedQuestions: number;
@@ -28,82 +30,81 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(annotationsUrl, {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        });
+  const fetchQuestions = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(annotationsUrl, {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch questions');
-        }
-
-        const result = await response.json();
-        const rawQuestions = result.questions;
-
-        const parsedQuestions: Question[] = rawQuestions.map(
-          (q: {
-            _id: string;
-            question_id: number;
-            question: string;
-            context: string;
-            reasoning: string;
-            category: string[];
-            annotated_by: number;
-            question_valid?: boolean;
-            reasoning_valid?: boolean;
-            main_feedback?: string;
-            missing_data?: boolean;
-            retrieval_tasks: {
-              task_id: number;
-              task: string;
-              variables: {
-                variable: string;
-                valid: boolean;
-              }[];
-            }[];
-          }) => ({
-            _id: q._id,
-            id: q.question_id,
-            question: q.question,
-            context: q.context,
-            reasoning: q.reasoning,
-            categories: q.category,
-            missingValues: '',
-            isValid: q.question_valid ?? undefined,
-            isReasoningValid: q.reasoning_valid ?? undefined,
-            annotated_by: q.annotated_by,
-            feedback: q.main_feedback ?? undefined,
-            isCompleted: q.missing_data ?? undefined,
-            tasks: q.retrieval_tasks.map((taskGroup) => ({
-              id: String(taskGroup.task_id),
-              name: taskGroup.task,
-              tasks: taskGroup.variables.map((v, idx) => ({
-                id: `${taskGroup.task_id}-${idx}`,
-                name: v.variable,
-                valid: v.valid,
-              })),
-            })),
-          })
-        );
-
-        setQuestions(parsedQuestions);
-      } catch (error) {
-        console.error('Error fetching questions:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load questions. Please try again.',
-        });
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error('Failed to fetch questions');
       }
-    };
 
+      const result = await response.json();
+      const rawQuestions = result.questions;
+
+      const parsedQuestions: Question[] = rawQuestions.map(
+        (q: {
+          _id: string;
+          question_id: number;
+          question: string;
+          context: string;
+          reasoning: string;
+          category: string[];
+          annotated_by: number;
+          question_valid?: boolean;
+          reasoning_valid?: boolean;
+          main_feedback?: string;
+          missing_data?: boolean;
+          retrieval_tasks: {
+            task_id: number;
+            task: string;
+            variables: {
+              variable: string;
+              valid: boolean;
+            }[];
+          }[];
+        }) => ({
+          _id: q._id,
+          id: q.question_id,
+          question: q.question,
+          context: q.context,
+          reasoning: q.reasoning,
+          categories: q.category,
+          missingValues: '',
+          isValid: q.question_valid ?? undefined,
+          isReasoningValid: q.reasoning_valid ?? undefined,
+          annotated_by: q.annotated_by,
+          feedback: q.main_feedback ?? undefined,
+          isCompleted: q.missing_data ?? undefined,
+          tasks: q.retrieval_tasks.map((taskGroup) => ({
+            id: String(taskGroup.task_id),
+            name: taskGroup.task,
+            tasks: taskGroup.variables.map((v, idx) => ({
+              id: `${taskGroup.task_id}-${idx}`,
+              name: v.variable,
+              valid: v.valid,
+            })),
+          })),
+        })
+      );
+      setQuestions(parsedQuestions);
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load questions. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (user) {
       fetchQuestions();
     }
@@ -176,6 +177,49 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const skipAnnotation = async () => {
+    if (!user) throw new Error('User not authenticated');
+    let res;
+    try {
+      const userID = user?.userId || -1;
+      res = await fetch(replaceQuestionByIdUrl + '?user_id=' + userID, {
+        method: 'POST',
+        body: JSON.stringify({
+          question_id: questions[currentQuestionIndex].id,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to replace question');
+      }
+
+      await fetchQuestions(); // Refresh questions after skipping
+
+      toast({
+        title: 'Annotation Skipped',
+        description:
+          'Your annotation has been skipped and replaced successfully.',
+      });
+    } catch (error) {
+      console.error('Error skipping annotation:', error);
+
+      if (res.status === 409) {
+        toast({
+          variant: 'destructive',
+          title: 'Skip Error',
+          description: 'No new questions available to reassign.',
+        });
+        throw new Error('No new questions available to assign');
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Skip Error',
+          description: 'Failed to skip the annotation. Please try again.',
+        });
+      }
+      return;
+    }
+  };
+
   const totalQuestions = questions.length;
   const completedQuestions = questions.filter(
     (q) => q.annotated_by !== -1
@@ -189,6 +233,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         setCurrentQuestionIndex,
         updateQuestion,
         submitAnnotation,
+        skipAnnotation,
         isLoading,
         totalQuestions,
         completedQuestions,
