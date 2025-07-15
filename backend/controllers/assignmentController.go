@@ -22,6 +22,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	assignmentsCollection := db.GetCollection("assignments")
 	questionCollection := db.GetCollection("questions")
 	usersCollection := db.GetCollection("users")
+	annotationsCollection := db.GetCollection("annotations")
 
 	userIDStr := r.URL.Query().Get("user_id")
 	if userIDStr == "" {
@@ -47,18 +48,29 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Step 1: Fetch already assigned question IDs
-	var existingAssignment struct {
-		QuestionIDs []int `bson:"question_ids"`
-	}
-	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&existingAssignment)
-	if err != nil && err != mongo.ErrNoDocuments {
-		http.Error(w, "Error checking existing assignment", http.StatusInternalServerError)
+	// Step 1: Fetch already assigned question IDs from annotations collection
+	cursor, err := annotationsCollection.Find(ctx, bson.M{"annotated_by": userID})
+	if err != nil {
+		http.Error(w, "Error fetching annotations", http.StatusInternalServerError)
 		return
 	}
+	defer cursor.Close(ctx)
+
 	assignedMap := make(map[int]bool)
-	for _, id := range existingAssignment.QuestionIDs {
-		assignedMap[id] = true
+	for cursor.Next(ctx) {
+		var annotation struct {
+			QuestionID int `bson:"question_id"`
+		}
+		if err := cursor.Decode(&annotation); err != nil {
+			http.Error(w, "Error decoding annotation", http.StatusInternalServerError)
+			return
+		}
+		assignedMap[annotation.QuestionID] = true
+	}
+
+	if err := cursor.Err(); err != nil {
+		http.Error(w, "Cursor error", http.StatusInternalServerError)
+		return
 	}
 
 	// get username by userid
@@ -74,7 +86,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Step 2: Fetch all questions
-	cursor, err := questionCollection.Find(ctx, bson.M{})
+	cursor, err = questionCollection.Find(ctx, bson.M{})
 	if err != nil {
 		http.Error(w, "Error fetching questions", http.StatusInternalServerError)
 		return
@@ -115,10 +127,11 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 
 	// Update document:
 	update := bson.M{
-		"$addToSet": bson.M{"question_ids": bson.M{"$each": selectedIDs}}, // Merge new question IDs
+		// "$addToSet": bson.M{"question_ids": bson.M{"$each": selectedIDs}}, // Merge new question IDs
 		"$set": bson.M{
-			"assigned_at": time.Now(), // Always update timestamp
-			"username":    user.Username,
+			"question_ids": selectedIDs,
+			"assigned_at":  time.Now(), // Always update timestamp
+			"username":     user.Username,
 		},
 	}
 
