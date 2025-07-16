@@ -60,10 +60,11 @@ type Question struct {
 
 // AnnotationAssignment tracks which annotators are assigned which questions
 type AnnotationAssignment struct {
-	ID          primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
-	UserID      int                  `json:"user_id" bson:"user_id"`
-	QuestionIDs []primitive.ObjectID `json:"question_ids" bson:"question_ids"`
-	AssignedAt  time.Time            `json:"assigned_at" bson:"assigned_at"`
+	ID                 primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
+	UserID             int                  `json:"user_id" bson:"user_id"`
+	QuestionIDs        []primitive.ObjectID `json:"question_ids" bson:"question_ids"`
+	SkippedQuestionIDs []primitive.ObjectID `json:"skipped_question_ids" bson:"skipped_question_ids"`
+	AssignedAt         time.Time            `json:"assigned_at" bson:"assigned_at"`
 }
 
 // AnnotationsDone tracks completed annotations per user

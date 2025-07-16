@@ -48,7 +48,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Step 1: Fetch already assigned question IDs from annotations collection
+	// Step 1a: Fetch already assigned question IDs from annotations collection
 	cursor, err := annotationsCollection.Find(ctx, bson.M{"annotated_by": userID})
 	if err != nil {
 		http.Error(w, "Error fetching annotations", http.StatusInternalServerError)
@@ -71,6 +71,21 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	if err := cursor.Err(); err != nil {
 		http.Error(w, "Cursor error", http.StatusInternalServerError)
 		return
+	}
+
+	// Step 1b: Fetch skipped_question_ids from assignments collection and add to assignedMap
+	var assignment struct {
+		Skipped []int `bson:"skipped_question_ids"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&assignment)
+	if err != nil && err != mongo.ErrNoDocuments {
+		http.Error(w, "Error fetching skipped questions", http.StatusInternalServerError)
+		return
+	}
+
+	// Add skipped questions to assignedMap
+	for _, qid := range assignment.Skipped {
+		assignedMap[qid] = true
 	}
 
 	// get username by userid
@@ -229,6 +244,21 @@ func ReplaceQuestionByID(w http.ResponseWriter, r *http.Request) {
 		assignedMap[id] = true
 	}
 
+	// Step 1c: Fetch skipped_question_ids from assignments collection and add to assignedMap
+	var assignment struct {
+		Skipped []int `bson:"skipped_question_ids"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&assignment)
+	if err != nil && err != mongo.ErrNoDocuments {
+		http.Error(w, "Error fetching skipped questions", http.StatusInternalServerError)
+		return
+	}
+
+	// Add skipped questions to assignedMap
+	for _, qid := range assignment.Skipped {
+		assignedMap[qid] = true
+	}
+
 	// get username by userid
 	var user models.User
 	err = usersCollection.FindOne(ctx, bson.M{"userid": userID}).Decode(&user)
@@ -324,4 +354,63 @@ func ReplaceQuestionByID(w http.ResponseWriter, r *http.Request) {
 		"upsertedCount": updateResult.UpsertedCount,
 	})
 	fmt.Println("Replaced question ID", requestData.QuestionID, "with", selectedIDs[0], "for user:", userID)
+}
+
+func SkipQuestionByID(w http.ResponseWriter, r *http.Request) {
+	assignmentsCollection := db.GetCollection("assignments")
+
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr) // Convert string to int
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	var requestData struct {
+		QuestionID int `json:"question_id"` // Number of questions to randomly assign
+	}
+	err = json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid JSON Format", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Query to check if an assignment exists for this user
+	updateFilter := bson.M{"user_id": userID}
+
+	// Update document:
+	update := bson.M{
+		"$pull": bson.M{
+			"question_ids": requestData.QuestionID, // Remove this question ID
+		},
+		"$addToSet": bson.M{"skipped_question_ids": bson.M{"$each": []int{requestData.QuestionID}}},
+	}
+
+	// Ensure upsert works correctly
+	opts := options.Update().SetUpsert(true)
+
+	// Perform update
+	updateResult, err := assignmentsCollection.UpdateOne(ctx, updateFilter, update, opts)
+	if err != nil {
+		http.Error(w, "Error removing question id from the list", http.StatusInternalServerError)
+		return
+	}
+
+	// Return success response
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Question Id " + strconv.Itoa(requestData.QuestionID) + " has been skipped",
+		"user_id":       userID,
+		"question_id":   requestData.QuestionID,
+		"modifiedCount": updateResult.ModifiedCount,
+		"upsertedCount": updateResult.UpsertedCount,
+	})
 }

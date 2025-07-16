@@ -25,6 +25,8 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/add_assignment", controllers.AddAssignment).Methods("POST")
 
+	r.HandleFunc("/skip_question_by_id", controllers.SkipQuestionByID).Methods("POST")
+
 	r.HandleFunc("/replace_question_by_id", controllers.ReplaceQuestionByID).Methods("POST")
 
 	r.HandleFunc("/add_user", controllers.AddUser).Methods("POST")
