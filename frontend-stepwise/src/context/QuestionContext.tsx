@@ -3,7 +3,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Question, AnnotationResponse, TaskGroup } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { annotationsUrl, replaceQuestionByIdUrl } from '@/apis/api_url';
+import {
+  annotationsUrl,
+  replaceQuestionByIdUrl,
+  skipQuestionByIdUrl,
+} from '@/apis/api_url';
 
 interface QuestionContextType {
   questions: Question[];
@@ -182,7 +186,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
     let res;
     try {
       const userID = user?.userId || -1;
-      res = await fetch(replaceQuestionByIdUrl + '?user_id=' + userID, {
+      res = await fetch(skipQuestionByIdUrl + '?user_id=' + userID, {
         method: 'POST',
         body: JSON.stringify({
           question_id: questions[currentQuestionIndex].id,

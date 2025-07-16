@@ -57,6 +57,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   const [feedback, setFeedback] = useState<string>(question.feedback || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
+  const [skipPopover, setSkipPopover] = useState(false);
   const [tasksCompleted, setTasksCompleted] = useState(
     questionCompleted ? true : false
   );
@@ -304,15 +305,24 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             <p className=''>{question.question}</p>
           </div>
 
-          <div className='text-center'>
+          <div className='text-center flex justify-center gap-5'>
             <Button
               variant='outline'
               size='sm'
-              className='flex items-center mx-auto text-black dark:text-white bg-white
+              className='flex items-center text-black dark:text-white bg-white
              border border-border hover:bg-green hover:bg-muted dark:hover:bg-muted/20'
               onClick={() => setActiveAccordion('question')}
             >
               Start Annotation
+            </Button>
+            <Button
+              onClick={() => setSkipPopover(true)}
+              disabled={questionCompleted || isSkipping}
+              className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white border border-border'
+              size='sm'
+            >
+              {isSkipping ? 'Skipping...' : 'Skip Question'}
+              <Replace className='ml-2 h-5 w-5' />
             </Button>
           </div>
         </div>
@@ -898,23 +908,42 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           className='bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-8 py-2 rounded-md'
           size='lg'
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Annotation'}
+          {isSubmitting ? 'Saving...' : 'Save'}
           <Send className='ml-2 h-5 w-5' />
         </Button>
       </div>
-      {/* Skip button */}
-      <div className='text-center'>
-        <Button
-          onClick={handleSkip}
-          disabled={questionCompleted || isSkipping}
-          className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-8 py-2 rounded-md'
-          size='lg'
-          title='Skip this question, move to the next one, and get a new question at the end of the session'
-        >
-          {isSkipping ? 'Skipping...' : 'Skip Annotation'}
-          <Replace className='ml-2 h-5 w-5' />
-        </Button>
-      </div>
+
+      {skipPopover && (
+        <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'>
+          <div className='bg-white dark:bg-background rounded-lg shadow-lg p-6 max-w-md w-full'>
+            <h3 className='text-lg font-semibold mb-4'>Skip Question</h3>
+            <p className='text-sm text-muted-foreground mb-6'>
+              Are you sure you want to skip this question? Once skipped, this
+              question will not be reassigned to you.
+            </p>
+            <div className='flex justify-end gap-4'>
+              <Button
+                variant='outline'
+                size='sm'
+                className='text-black dark:text-white bg-white border border-border hover:bg-muted dark:hover:bg-muted/20'
+                onClick={() => setSkipPopover(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size='sm'
+                className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white border border-border'
+                onClick={async () => {
+                  setSkipPopover(false);
+                  await handleSkip();
+                }}
+              >
+                Confirm Skip
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
