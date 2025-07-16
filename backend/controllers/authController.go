@@ -63,7 +63,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // UserRequest represents a request to create a new user
 type UserRequest struct {
-	UserId         int       `json:"user_id"`
+	UserId         int       `json:"user_id" bson:"user_id"`
 	Username       string    `json:"username"`
 	Password       string    `json:"password"`
 	FirstName      string    `json:"first_name"`

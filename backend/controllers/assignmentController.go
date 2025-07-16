@@ -88,9 +88,10 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		assignedMap[qid] = true
 	}
 
-	// get username by userid
+	print("add assignment for user:", userID)
+	// get username by user_id
 	var user models.User
-	err = usersCollection.FindOne(ctx, bson.M{"userid": userID}).Decode(&user)
+	err = usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			http.Error(w, "User not found", http.StatusNotFound)
@@ -114,7 +115,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Step 3: Filter out already assigned
+	// Step 3: Filter out already assigned & skipped
 	var newQuestionIDs []int
 	for _, q := range availableQuestions {
 		if !assignedMap[q.QuestionID] {
@@ -259,9 +260,9 @@ func ReplaceQuestionByID(w http.ResponseWriter, r *http.Request) {
 		assignedMap[qid] = true
 	}
 
-	// get username by userid
+	// get username by user_id
 	var user models.User
-	err = usersCollection.FindOne(ctx, bson.M{"userid": userID}).Decode(&user)
+	err = usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			http.Error(w, "User not found", http.StatusNotFound)
