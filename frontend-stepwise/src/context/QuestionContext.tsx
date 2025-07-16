@@ -4,6 +4,7 @@ import { Question, AnnotationResponse, TaskGroup } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import {
+  addAssignmentUrl,
   annotationsUrl,
   replaceQuestionByIdUrl,
   skipQuestionByIdUrl,
@@ -16,6 +17,7 @@ interface QuestionContextType {
   updateQuestion: (questionId: number, updates: Partial<Question>) => void;
   submitAnnotation: (response: Question) => Promise<void>;
   skipAnnotation: () => Promise<void>;
+  generateNewAssignment: () => Promise<void>;
   isLoading: boolean;
   totalQuestions: number;
   completedQuestions: number;
@@ -49,6 +51,12 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const result = await response.json();
       const rawQuestions = result.questions;
+
+      if (!rawQuestions || rawQuestions.length === 0) {
+        setQuestions([]); // Clear questions if none found
+        setIsLoading(false);
+        return;
+      }
 
       const parsedQuestions: Question[] = rawQuestions.map(
         (q: {
@@ -164,7 +172,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       toast({
-        title: 'Annotation Submitted',
+        title: 'Annotation Saved',
         description: 'Your annotation has been saved successfully.',
       });
 
@@ -172,11 +180,11 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       }
     } catch (error) {
-      console.error('Error submitting annotation:', error);
+      console.error('Error save annotation:', error);
       toast({
         variant: 'destructive',
         title: 'Submission Error',
-        description: 'Failed to submit your annotation. Please try again.',
+        description: 'Failed to save your annotation. Please try again.',
       });
     }
   };
@@ -197,11 +205,18 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       await fetchQuestions(); // Refresh questions after skipping
+      console.log(
+        'skip annotation after fetching questions',
+        questions,
+        currentQuestionIndex
+      );
+      if (currentQuestionIndex === questions.length - 1) {
+        setCurrentQuestionIndex(questions.length - 1 - 1); // Reset to first question if at the end
+      }
 
       toast({
         title: 'Annotation Skipped',
-        description:
-          'Your annotation has been skipped and replaced successfully.',
+        description: 'Your annotation has been skipped successfully.',
       });
     } catch (error) {
       console.error('Error skipping annotation:', error);
@@ -224,6 +239,40 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const generateNewAssignment = async () => {
+    if (!user) throw new Error('User not authenticated');
+    try {
+      const userID = user?.userId || -1;
+      const res = await fetch(addAssignmentUrl + `?user_id=${userID}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          count: 25,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to assign assignment');
+      }
+
+      await fetchQuestions(); // Refresh questions after replacing
+
+      setCurrentQuestionIndex(0); // Reset to first question
+
+      toast({
+        title: 'Submission Successful',
+        description:
+          'Submission successful! A new assignment has been assigned to you.',
+      });
+    } catch (error) {
+      console.error('Error generating new assignment:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Submission Error',
+        description: 'Failed to submitted. Please try again.',
+      });
+    }
+  };
+
   const totalQuestions = questions.length;
   const completedQuestions = questions.filter(
     (q) => q.annotated_by !== -1
@@ -238,6 +287,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         updateQuestion,
         submitAnnotation,
         skipAnnotation,
+        generateNewAssignment,
         isLoading,
         totalQuestions,
         completedQuestions,

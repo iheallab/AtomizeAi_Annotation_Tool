@@ -40,7 +40,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   onSubmit,
   onSkip,
 }) => {
-  const questionCompleted = question.annotated_by === -1 ? false : true;
+  const questionCompleted = question?.annotated_by === -1 ? false : true;
   const [activeAccordion, setActiveAccordion] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean | undefined>(
     question.question_valid
@@ -914,7 +914,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           onClick={handleSubmit}
           disabled={!isFormCompleted() || isSubmitting}
           className='bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-8 py-2 rounded-md'
-          size='lg'
+          size='sm'
         >
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

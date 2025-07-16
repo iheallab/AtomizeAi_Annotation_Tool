@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
+  Send,
 } from 'lucide-react';
 import {
   Drawer,
@@ -21,15 +22,29 @@ import {
 interface QuestionNavigationProps {
   questions: Question[];
   currentIndex: number;
+  completedQuestions: number;
+  totalQuestions: number;
   onSelectQuestion: (index: number) => void;
+  onSubmit: () => void;
 }
 
 export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   questions,
   currentIndex,
+  completedQuestions,
+  totalQuestions,
   onSelectQuestion,
+  onSubmit,
 }) => {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [skipPopover, setSkipPopover] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    await onSubmit();
+    setIsSubmitting(false);
+  };
 
   return (
     <>
@@ -101,7 +116,8 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
 
       {/* Bottom Navigation Controls */}
       <div className='fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 flex justify-center items-center'>
-        <div className='flex items-center justify-between max-w-md w-full'>
+        <div className='flex justify-end w-[25%]'></div>
+        <div className='flex items-center justify-between max-w-md w-[50%]'>
           <Button
             variant='outline'
             disabled={currentIndex === 0}
@@ -126,7 +142,55 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
             <ArrowRight size={16} />
           </Button>
         </div>
+
+        <div className='flex justify-end w-[25%] pe-10'>
+          <Button
+            variant='outline'
+            onClick={() => setSkipPopover(true)}
+            disabled={completedQuestions !== totalQuestions || isSubmitting}
+            className='bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+            <Send size={16} />
+          </Button>
+        </div>
       </div>
+      {skipPopover && (
+        <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'>
+          <div className='bg-white dark:bg-background rounded-lg shadow-lg p-6 max-w-md w-full'>
+            <h3 className='text-lg font-semibold mb-4'>
+              Submit All Annotations
+            </h3>
+            <p className='text-sm text-muted-foreground mb-6'>
+              Are you sure you want to submit all annotations? Once submitted,
+              you will no longer be able to view these questions, and a new set
+              of questions will be generated for you. Please ensure all
+              questions are answered to the best of your ability before
+              proceeding.
+            </p>
+            <div className='flex justify-end gap-4'>
+              <Button
+                variant='outline'
+                size='sm'
+                className='text-black dark:text-white bg-white border border-border hover:bg-muted dark:hover:bg-muted/20'
+                onClick={() => setSkipPopover(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size='sm'
+                className='bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white border border-border'
+                onClick={async () => {
+                  setSkipPopover(false);
+                  await handleSubmit();
+                }}
+              >
+                Confirm Submit
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

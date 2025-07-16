@@ -6,6 +6,8 @@ import { Header } from '@/components/Header';
 import { AnnotationStep } from '@/components/AnnotationStep';
 import { QuestionNavigation } from '@/components/QuestionNavigation';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Send } from 'lucide-react';
 
 const Index = () => {
   const {
@@ -14,6 +16,7 @@ const Index = () => {
     setCurrentQuestionIndex,
     submitAnnotation,
     skipAnnotation,
+    generateNewAssignment,
     isLoading,
     totalQuestions,
     completedQuestions,
@@ -24,7 +27,7 @@ const Index = () => {
     return <Navigate to='/login' />;
   }
 
-  if (isLoading || questions.length === 0) {
+  if (isLoading) {
     return (
       <div className='min-h-screen flex flex-col bg-background'>
         <Header />
@@ -32,6 +35,28 @@ const Index = () => {
           <div className='text-center p-6 bg-card rounded-lg shadow-soft'>
             <h2 className='text-2xl font-bold mb-4'>Loading questions...</h2>
             <Progress value={33} className='w-64 mx-auto' />
+          </div>
+        </div>
+      </div>
+    );
+  } else if (questions.length === 0) {
+    return (
+      <div className='min-h-screen flex flex-col bg-background'>
+        <Header />
+        <div className='flex-1 flex items-center justify-center'>
+          <div className='text-center p-6 bg-card rounded-lg shadow-soft'>
+            <h2 className='text-2xl font-bold mb-4'>No questions available</h2>
+            <p className='text-muted-foreground'>
+              Please generate a new assignment to get started.
+            </p>
+            <Button
+              variant='outline'
+              onClick={generateNewAssignment}
+              className='my-3 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
+            >
+              Generate New Assignment
+              <Send size={16} />
+            </Button>
           </div>
         </div>
       </div>
@@ -75,7 +100,10 @@ const Index = () => {
       <QuestionNavigation
         questions={questions}
         currentIndex={currentQuestionIndex}
+        completedQuestions={completedQuestions}
+        totalQuestions={totalQuestions}
         onSelectQuestion={setCurrentQuestionIndex}
+        onSubmit={generateNewAssignment}
       />
     </div>
   );
