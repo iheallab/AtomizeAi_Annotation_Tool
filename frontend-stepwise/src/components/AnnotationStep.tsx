@@ -305,25 +305,31 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
             <p className=''>{question.question}</p>
           </div>
 
-          <div className='text-center flex justify-center gap-5'>
-            <Button
-              variant='outline'
-              size='sm'
-              className='flex items-center text-black dark:text-white bg-white
-             border border-border hover:bg-green hover:bg-muted dark:hover:bg-muted/20'
-              onClick={() => setActiveAccordion('question')}
-            >
-              Start Annotation
-            </Button>
-            <Button
-              onClick={() => setSkipPopover(true)}
-              disabled={questionCompleted || isSkipping}
-              className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white border border-border'
-              size='sm'
-            >
-              {isSkipping ? 'Skipping...' : 'Skip Question'}
-              <Replace className='ml-2 h-5 w-5' />
-            </Button>
+          <div className='relative w-full h-10'>
+            {/* Centered Button */}
+            <div className='absolute left-1/2 top-0 transform -translate-x-1/2'>
+              <Button
+                variant='outline'
+                size='sm'
+                className='flex items-center text-black dark:text-white bg-white
+        border border-border hover:bg-green hover:bg-muted dark:hover:bg-muted/20'
+                onClick={() => setActiveAccordion('question')}
+              >
+                Start Annotation
+              </Button>
+            </div>
+
+            {/* Right-aligned Button */}
+            <div className='absolute right-0 top-0'>
+              <Button
+                onClick={() => setSkipPopover(true)}
+                disabled={questionCompleted || isSkipping}
+                className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white border border-border'
+                size='sm'
+              >
+                {isSkipping ? 'Skipping...' : 'Skip'}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -532,7 +538,9 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                           key={task.id}
                           className='flex items-center justify-between p-3 border border-border rounded-md bg-white dark:bg-background transition-colors'
                         >
-                          <span className='font-medium'>{task.name}</span>
+                          <span className='font-medium break-words max-w-[65%]'>
+                            {task.name}
+                          </span>
                           <Switch
                             checked={task.valid}
                             onCheckedChange={(checked) =>
@@ -909,7 +917,6 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
           size='lg'
         >
           {isSubmitting ? 'Saving...' : 'Save'}
-          <Send className='ml-2 h-5 w-5' />
         </Button>
       </div>
 
