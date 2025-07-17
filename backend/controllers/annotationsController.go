@@ -75,6 +75,10 @@ func GetQuestionsToAnnotate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if userID <= 10 {
+		annotationsCollection = db.GetCollection("annotations_dev")
+	}
+
 	// Fetch assigned questions
 	var questions []models.Question
 	cursor, err := questionsCollection.Find(ctx, bson.M{
@@ -211,6 +215,9 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	annotationsCollection := db.GetCollection("annotations")
+	if userID <= 10 {
+		annotationsCollection = db.GetCollection("annotations_dev")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

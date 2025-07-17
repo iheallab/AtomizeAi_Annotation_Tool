@@ -48,6 +48,10 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if userID <= 10 {
+		annotationsCollection = db.GetCollection("annotations_dev")
+	}
+
 	// Step 1a: Fetch already assigned question IDs from annotations collection
 	cursor, err := annotationsCollection.Find(ctx, bson.M{"annotated_by": userID})
 	if err != nil {
@@ -88,7 +92,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		assignedMap[qid] = true
 	}
 
-	print("add assignment for user:", userID)
+	println("add assignment for user:", userID)
 	// get username by user_id
 	var user models.User
 	err = usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
@@ -123,20 +127,48 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Step 4: Randomly select questions
-	if len(newQuestionIDs) == 0 {
-		http.Error(w, "No new questions available to assign", http.StatusConflict)
-		return
-	}
-	rand.Shuffle(len(newQuestionIDs), func(i, j int) {
-		newQuestionIDs[i], newQuestionIDs[j] = newQuestionIDs[j], newQuestionIDs[i]
-	})
-
 	selectedCount := requestData.Count
 	if selectedCount <= 0 || selectedCount > len(newQuestionIDs) {
 		selectedCount = len(newQuestionIDs) // Assign all if count is invalid or exceeds
 	}
-	selectedIDs := newQuestionIDs[:selectedCount]
+	selectedIDs := []int{}
+	// Step 4a: Filter questions based on priority (not annotated by more than 2 annotators)
+	highPriorityQuestions := []int{}
+	lowPriorityQuestions := []int{}
+	for _, q := range newQuestionIDs {
+		annotationCount, err := annotationsCollection.CountDocuments(ctx, bson.M{"question_id": q})
+		if err != nil {
+			http.Error(w, "Error counting annotations", http.StatusInternalServerError)
+			return
+		}
+		if annotationCount < 2 {
+			highPriorityQuestions = append(highPriorityQuestions, q)
+		} else {
+			lowPriorityQuestions = append(lowPriorityQuestions, q)
+		}
+	}
+
+	// Step 4b: Shuffle priority questions and fallback to other questions if needed
+	rand.Shuffle(len(highPriorityQuestions), func(i, j int) {
+		highPriorityQuestions[i], highPriorityQuestions[j] = highPriorityQuestions[j], highPriorityQuestions[i]
+	})
+
+	println("priority questions:", highPriorityQuestions)
+
+	if len(highPriorityQuestions) >= selectedCount {
+		selectedIDs = highPriorityQuestions[:selectedCount]
+	} else {
+		remainingCount := selectedCount - len(highPriorityQuestions)
+
+		println("not enough priority questions, filling with random questions", remainingCount)
+		for _, id := range lowPriorityQuestions {
+			fmt.Println("Low Priority Question IDs:", id)
+		}
+		rand.Shuffle(len(lowPriorityQuestions), func(i, j int) {
+			lowPriorityQuestions[i], lowPriorityQuestions[j] = lowPriorityQuestions[j], lowPriorityQuestions[i]
+		})
+		selectedIDs = append(highPriorityQuestions, lowPriorityQuestions[:remainingCount]...)
+	}
 
 	// Query to check if an assignment exists for this user
 	updateFilter := bson.M{"user_id": userID}
@@ -189,6 +221,10 @@ func ReplaceQuestionByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
 		return
+	}
+
+	if userID <= 10 {
+		annotationsCollection = db.GetCollection("annotations_dev")
 	}
 
 	var requestData struct {

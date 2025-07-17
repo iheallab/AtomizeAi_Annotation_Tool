@@ -261,7 +261,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
       toast({
         title: 'Submission Successful',
         description:
-          'Submission successful! A new assignment has been assigned to you.',
+          'Submission successful! You have been assigned a new set of questions.',
       });
     } catch (error) {
       console.error('Error generating new assignment:', error);
