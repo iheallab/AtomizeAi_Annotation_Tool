@@ -130,7 +130,11 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 	// Success response
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "User added successfully"})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":  "User added successfully",
+		"username": userData.Username,
+		"userID":   userId,
+	})
 
 	fmt.Println("New user added:", userData.Username)
 }
