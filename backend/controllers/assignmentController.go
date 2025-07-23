@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -30,14 +31,14 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := strconv.Atoi(userIDStr) // Convert string to int
+	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
 		return
 	}
 
 	var requestData struct {
-		Count int `json:"count"` // Number of questions to randomly assign
+		Count int `json:"count"`
 	}
 	err = json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
@@ -45,14 +46,14 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if userID <= 10 {
 		annotationsCollection = db.GetCollection("annotations_dev")
 	}
 
-	// Step 1a: Fetch already assigned question IDs from annotations collection
+	// Step 1a: Fetch annotated questions
 	cursor, err := annotationsCollection.Find(ctx, bson.M{"annotated_by": userID})
 	if err != nil {
 		http.Error(w, "Error fetching annotations", http.StatusInternalServerError)
@@ -71,13 +72,12 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		}
 		assignedMap[annotation.QuestionID] = true
 	}
-
 	if err := cursor.Err(); err != nil {
 		http.Error(w, "Cursor error", http.StatusInternalServerError)
 		return
 	}
 
-	// Step 1b: Fetch skipped_question_ids from assignments collection and add to assignedMap
+	// Step 1b: Add skipped questions to assignedMap
 	var assignment struct {
 		Skipped []int `bson:"skipped_question_ids"`
 	}
@@ -86,14 +86,11 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error fetching skipped questions", http.StatusInternalServerError)
 		return
 	}
-
-	// Add skipped questions to assignedMap
 	for _, qid := range assignment.Skipped {
 		assignedMap[qid] = true
 	}
 
-	println("add assignment for user:", userID)
-	// get username by user_id
+	// Step 1c: Get username
 	var user models.User
 	err = usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
 	if err != nil {
@@ -113,87 +110,116 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cursor.Close(ctx)
 
-	var availableQuestions []models.Question
-	if err := cursor.All(ctx, &availableQuestions); err != nil {
+	var allQuestions []models.Question
+	if err := cursor.All(ctx, &allQuestions); err != nil {
 		http.Error(w, "Error decoding questions", http.StatusInternalServerError)
 		return
 	}
 
-	// Step 3: Filter out already assigned & skipped
+	// Step 3: Filter out already assigned or skipped
 	var newQuestionIDs []int
-	for _, q := range availableQuestions {
+	for _, q := range allQuestions {
 		if !assignedMap[q.QuestionID] {
 			newQuestionIDs = append(newQuestionIDs, q.QuestionID)
 		}
 	}
 
-	selectedCount := requestData.Count
-	if selectedCount <= 0 || selectedCount > len(newQuestionIDs) {
-		selectedCount = len(newQuestionIDs) // Assign all if count is invalid or exceeds
+	// Step 4a: Get global assigned counts
+	assignmentAgg := bson.A{
+		bson.M{"$unwind": "$question_ids"},
+		bson.M{"$group": bson.M{
+			"_id":   "$question_ids",
+			"count": bson.M{"$sum": 1},
+		}},
 	}
-	selectedIDs := []int{}
-	// Step 4a: Filter questions based on priority (not annotated by more than 2 annotators)
-	highPriorityQuestions := []int{}
-	lowPriorityQuestions := []int{}
-	for _, q := range newQuestionIDs {
-		annotationCount, err := annotationsCollection.CountDocuments(ctx, bson.M{"question_id": q})
-		if err != nil {
-			http.Error(w, "Error counting annotations", http.StatusInternalServerError)
+	cursor, err = assignmentsCollection.Aggregate(ctx, assignmentAgg)
+	if err != nil {
+		http.Error(w, "Error aggregating assignment data", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	assignedCounts := make(map[int]int)
+	for cursor.Next(ctx) {
+		var result struct {
+			ID    int `bson:"_id"`
+			Count int `bson:"count"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			http.Error(w, "Error decoding assignment counts", http.StatusInternalServerError)
 			return
 		}
-		if annotationCount < 2 {
-			highPriorityQuestions = append(highPriorityQuestions, q)
-		} else {
-			lowPriorityQuestions = append(lowPriorityQuestions, q)
-		}
+		assignedCounts[result.ID] = result.Count
 	}
 
-	// Step 4b: Shuffle priority questions and fallback to other questions if needed
-	rand.Shuffle(len(highPriorityQuestions), func(i, j int) {
-		highPriorityQuestions[i], highPriorityQuestions[j] = highPriorityQuestions[j], highPriorityQuestions[i]
+	// Step 4b: Get global annotation counts
+	annotationAgg := bson.A{
+		bson.M{"$group": bson.M{
+			"_id":   "$question_id",
+			"count": bson.M{"$sum": 1},
+		}},
+	}
+	cursor, err = annotationsCollection.Aggregate(ctx, annotationAgg)
+	if err != nil {
+		http.Error(w, "Error aggregating annotation data", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	annotationCounts := make(map[int]int)
+	for cursor.Next(ctx) {
+		var result struct {
+			ID    int `bson:"_id"`
+			Count int `bson:"count"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			http.Error(w, "Error decoding annotation counts", http.StatusInternalServerError)
+			return
+		}
+		annotationCounts[result.ID] = result.Count
+	}
+
+	// Step 5: Combine usage counts and sort
+	type QuestionUsage struct {
+		ID    int
+		Count int
+	}
+	var usageList []QuestionUsage
+	for _, qid := range newQuestionIDs {
+		count := assignedCounts[qid] + annotationCounts[qid]
+		usageList = append(usageList, QuestionUsage{ID: qid, Count: count})
+	}
+	sort.Slice(usageList, func(i, j int) bool {
+		return usageList[i].Count < usageList[j].Count
 	})
 
-	println("priority questions:", highPriorityQuestions)
-
-	if len(highPriorityQuestions) >= selectedCount {
-		selectedIDs = highPriorityQuestions[:selectedCount]
-	} else {
-		remainingCount := selectedCount - len(highPriorityQuestions)
-
-		println("not enough priority questions, filling with random questions", remainingCount)
-		for _, id := range lowPriorityQuestions {
-			fmt.Println("Low Priority Question IDs:", id)
-		}
-		rand.Shuffle(len(lowPriorityQuestions), func(i, j int) {
-			lowPriorityQuestions[i], lowPriorityQuestions[j] = lowPriorityQuestions[j], lowPriorityQuestions[i]
-		})
-		selectedIDs = append(highPriorityQuestions, lowPriorityQuestions[:remainingCount]...)
+	// Step 6: Pick N questions
+	selectedCount := requestData.Count
+	if selectedCount <= 0 || selectedCount > len(usageList) {
+		selectedCount = len(usageList)
+	}
+	selectedIDs := make([]int, selectedCount)
+	for i := 0; i < selectedCount; i++ {
+		selectedIDs[i] = usageList[i].ID
 	}
 
-	// Query to check if an assignment exists for this user
+	// Step 7: Upsert assignment document
 	updateFilter := bson.M{"user_id": userID}
-
-	// Update document:
 	update := bson.M{
-		// "$addToSet": bson.M{"question_ids": bson.M{"$each": selectedIDs}}, // Merge new question IDs
 		"$set": bson.M{
 			"question_ids": selectedIDs,
-			"assigned_at":  time.Now(), // Always update timestamp
+			"assigned_at":  time.Now(),
 			"username":     user.Username,
 		},
 	}
-
-	// Ensure upsert works correctly
 	opts := options.Update().SetUpsert(true)
-
-	// Perform update
 	updateResult, err := assignmentsCollection.UpdateOne(ctx, updateFilter, update, opts)
 	if err != nil {
 		http.Error(w, "Error updating assignment", http.StatusInternalServerError)
 		return
 	}
 
-	// Return success response
+	// Final response
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message":       "Assignment updated successfully",
@@ -202,7 +228,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		"modifiedCount": updateResult.ModifiedCount,
 		"upsertedCount": updateResult.UpsertedCount,
 	})
-	fmt.Println("Updated assignment for user:", userID, "with questions:", selectedIDs)
+	fmt.Printf("Assigned %d questions to user %d: %v", selectedCount, userID, selectedIDs)
 }
 
 func ReplaceQuestionByID(w http.ResponseWriter, r *http.Request) {
