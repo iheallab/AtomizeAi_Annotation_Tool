@@ -30,6 +30,8 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 				Variables []string `json:"variables"`
 			} `json:"retrieval_tasks"`
 			Reasoning string `json:"reasoning"`
+			Model     string `json:"model"`    // Model used for question generation
+			BatchID   string `json:"batch_id"` // Batch ID for grouping questions
 		} `json:"questions"`
 	}
 
@@ -65,6 +67,8 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 			Category:       category,
 			ICUTopic:       data.ICUTopic,
 			Reasoning:      data.Reasoning,
+			Model:          &data.Model,
+			BatchID:        &data.BatchID,
 			AnnotatedBy:    -1,
 			QuestionValid:  nil,
 			ResoningValid:  nil,

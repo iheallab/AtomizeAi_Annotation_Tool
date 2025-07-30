@@ -36,6 +36,8 @@ type Question struct {
 	MissingData    *bool              `json:"missing_data" bson:"missing_data"`
 	CreatedAt      *time.Time         `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt      *time.Time         `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+	Model          *string            `json:"model,omitempty" bson:"model,omitempty"`
+	BatchID        *string            `json:"batch_id,omitempty" bson:"batch_id,omitempty"`
 }
 
 // // Question represents the original question entity
