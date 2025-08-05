@@ -57,7 +57,6 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(false);
         return;
       }
-
       const parsedQuestions: Question[] = rawQuestions.map(
         (q: {
           _id: string;
@@ -71,6 +70,8 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
           reasoning_valid?: boolean;
           main_feedback?: string;
           missing_data?: boolean;
+          model: string;
+          batch_id: string;
           retrieval_tasks: {
             task_id: number;
             task: string;
@@ -92,6 +93,8 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
           annotated_by: q.annotated_by,
           feedback: q.main_feedback ?? undefined,
           isCompleted: q.missing_data ?? undefined,
+          model: q.model,
+          batch_id: q.batch_id,
           tasks: q.retrieval_tasks.map((taskGroup) => ({
             id: String(taskGroup.task_id),
             name: taskGroup.task,
@@ -144,6 +147,8 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         main_feedback: response.feedback || '',
         missing_data: response.missing_data,
         annotated_by: response.annotated_by, // Replace with actual userId if needed
+        model: response.model,
+        batch_id: response.batch_id,
 
         retrieval_tasks: response.tasks.map((taskGroup) => ({
           task_id: parseInt(taskGroup.id),

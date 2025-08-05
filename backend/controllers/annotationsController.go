@@ -199,7 +199,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the request body
-	var annotationReq models.Question
+	var annotationReq models.Annotation
 	err = json.NewDecoder(r.Body).Decode(&annotationReq)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -225,7 +225,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	filter := bson.M{
 		"question_id":  annotationReq.QuestionID,
 		"annotated_by": annotationReq.AnnotatedBy}
-	var existingAnnotation models.Question
+	var existingAnnotation models.Annotation
 	err = annotationsCollection.FindOne(ctx, filter).Decode(&existingAnnotation)
 
 	if err == nil {
@@ -241,6 +241,8 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"question_valid":  annotationReq.QuestionValid,
 				"missing_data":    annotationReq.MissingData,
 				"reasoning_valid": annotationReq.ResoningValid,
+				"model":           annotationReq.Model,
+				"batch_id":        annotationReq.BatchID,
 				"updated_at":      time.Now(),
 			},
 		}
@@ -257,8 +259,8 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	// Insert new annotation
 	annotationReq.ID = primitive.NewObjectID()
 	now := time.Now()
-	annotationReq.CreatedAt = &now
-	annotationReq.UpdatedAt = &now
+	annotationReq.CreatedAt = now
+	annotationReq.UpdatedAt = now
 	_, err = annotationsCollection.InsertOne(ctx, annotationReq)
 	if err != nil {
 		http.Error(w, "Error inserting annotation", http.StatusInternalServerError)

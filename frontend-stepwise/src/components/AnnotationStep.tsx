@@ -194,6 +194,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       categories: question.categories,
       annotated_by: Number(JSON.parse(localStorage.getItem('user')).userId),
       feedback: feedback.trim(),
+      model: question.model,
+      batch_id: question.batch_id,
       // areMissingValuesCorrect: areMissingValuesCorrect || false,
       // feedback: feedback.trim() || undefined,
     };

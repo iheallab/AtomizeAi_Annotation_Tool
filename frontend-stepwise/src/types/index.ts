@@ -20,6 +20,8 @@ export interface Question {
   feedback?: string;
   categories: string[];
   annotated_by: number;
+  model: string;
+  batch_id: string;
 }
 
 export interface TaskGroup {
