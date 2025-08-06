@@ -41,6 +41,10 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 
+	r.HandleFunc("/check_user_links_with_google", controllers.CheckUserLinksWithGoogle).Methods("GET")
+
+	r.HandleFunc("/link_user_with_google", controllers.LinkUserWithGoogle).Methods("POST")
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},

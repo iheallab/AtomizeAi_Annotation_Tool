@@ -139,6 +139,55 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New user added:", userData.Username)
 }
 
+func CheckUserLinksWithGoogle(w http.ResponseWriter, r *http.Request) {
+	email := r.URL.Query().Get("email")
+
+	collection := db.GetCollection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var user models.User
+	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+
+	// Set response headers
+	w.Header().Set("Content-Type", "application/json")
+
+	if err != nil {
+		// User not found, return false
+		json.NewEncoder(w).Encode(map[string]interface{}{"exists": false})
+		return
+	}
+
+	// User found, return true
+	json.NewEncoder(w).Encode(map[string]interface{}{"exists": true, "user": user})
+}
+
+func LinkUserWithGoogle(w http.ResponseWriter, r *http.Request) {
+	email := r.URL.Query().Get("email")
+	username := r.URL.Query().Get("username")
+
+	collection := db.GetCollection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var user models.User
+	err := collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		http.Error(w, "username not found", http.StatusNotFound)
+		return
+	}
+
+	if user.Email != "" {
+		http.Error(w, "User already linked with Google", http.StatusConflict)
+		return
+	}
+
+	collection.UpdateOne(ctx, bson.M{"username": username}, bson.M{"$set": bson.M{"email": email}})
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{"message": "User linked with Google successfully"})
+}
+
 func GetNextUserId(sequenceName string) (int, error) {
 	collection := db.GetCollection("counters")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

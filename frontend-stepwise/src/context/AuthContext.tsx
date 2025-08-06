@@ -2,11 +2,19 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { userAuthUrl } from '@/apis/api_url';
+import {
+  checkUserLinksWithGoogleUrl,
+  linkUserWithGoogleUrl,
+  userAuthUrl,
+} from '@/apis/api_url';
 
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
+  ifUserLinksWithGoogle: (
+    email: string
+  ) => Promise<{ exists: boolean; user: User }>;
+  linkUserWithGoogle: (email: string, username: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -80,6 +88,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const ifUserLinksWithGoogle = async (email: string) => {
+    const response = await fetch(
+      checkUserLinksWithGoogleUrl + '?email=' + email,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    const data = await response.json();
+    if (data.exists) {
+      return {
+        exists: true,
+        user: data.user,
+      };
+    } else {
+      return {
+        exists: false,
+        user: null,
+      };
+    }
+  };
+
+  const linkUserWithGoogle = async (email: string, username: string) => {
+    const response = await fetch(
+      linkUserWithGoogleUrl + '?email=' + email + '&username=' + username,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    if (response.ok) {
+      toast({
+        title: 'User Linked with Google',
+        description: 'User linked with Google successfully',
+      });
+      // wait for 1 seconds
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      login(username, username);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'User Link with Google Failed',
+        description:
+          response.status === 404
+            ? 'User not found'
+            : response.status === 409
+            ? 'User already linked with Google'
+            : 'User link with Google failed',
+      });
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
@@ -91,7 +151,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        ifUserLinksWithGoogle,
+        linkUserWithGoogle,
+        isLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

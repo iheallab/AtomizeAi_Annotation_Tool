@@ -1,13 +1,13 @@
-import AnnotationComponent from "./annotation_component";
+import AnnotationComponent from './annotation_component';
 
-import React, { useState, useEffect, useContext } from "react";
-import { Button, Space, Spin, Alert, message, Tooltip, Row, Col } from "antd";
-import { useNavigate } from "react-router-dom";
-import "./annotations.css";
-import { QuestionData } from "./types";
-import { StepBackwardFilled, StepForwardOutlined } from "@ant-design/icons";
-import { AuthContext } from "../AuthContext";
-import { backendURI } from "../commons";
+import React, { useState, useEffect, useContext } from 'react';
+import { Button, Space, Spin, Alert, message, Tooltip, Row, Col } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import './annotations.css';
+import { QuestionData } from './types';
+import { StepBackwardFilled, StepForwardOutlined } from '@ant-design/icons';
+import { AuthContext } from '../AuthContext';
+import { backendURI } from '../commons';
 
 const Annotations: React.FC = () => {
   const navigate = useNavigate();
@@ -25,18 +25,18 @@ const Annotations: React.FC = () => {
   const [tasksComplete, setTasksComplete] = useState<boolean[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const success = () => {
-    console.log("Annotations Updated");
+    console.log('Annotations Updated');
     messageApi.open({
-      type: "success",
-      content: "Annotated successfully",
+      type: 'success',
+      content: 'Annotated successfully',
       duration: 2,
     });
   };
   const errorMsg = () => {
-    console.log("Error in Annotations");
+    console.log('Error in Annotations');
     messageApi.open({
-      type: "error",
-      content: "Something Went Wrong",
+      type: 'error',
+      content: 'Something Went Wrong',
       duration: 2,
     });
   };
@@ -65,7 +65,7 @@ const Annotations: React.FC = () => {
       setVariableValidity(initialValidity);
 
       questions.forEach((q, index) => {
-        initialFeedback[q._id] = q.main_feedback || "";
+        initialFeedback[q._id] = q.main_feedback || '';
         // console.log("Question Validity", q.question_valid);
         initialQuestionValidity[index] = q.question_valid ?? null; // Ensuring it gets set
         // console.log("Reasoning Validity", q.reasoning_valid);
@@ -87,45 +87,45 @@ const Annotations: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("jwt");
+      const token = localStorage.getItem('jwt');
 
       if (!token) {
-        setError("No JWT found. Please log in.");
+        setError('No JWT found. Please log in.');
         setIsLoading(false);
-        navigate("/login");
+        navigate('/login');
         return;
       }
 
       try {
-        const response = await fetch(backendURI + "annotations", {
-          method: "GET",
+        const response = await fetch(backendURI + 'annotations', {
+          method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         });
 
         if (!response.ok) {
           // throw new Error(`HTTP error! status: ${response.status}`);
-          navigate("/login");
+          navigate('/login');
         }
 
         const data = await response.json();
-        console.log("Fetched annotations:", data);
+        console.log('Fetched annotations:', data);
         const initialAnsweredState = data.questions.map((q: QuestionData) => {
           // return q.annotated_by == 0 ? false ?? false : true;
           return q.annotated_by == 0 ? false : true;
 
           // console.log(q.annotated, " for this question ", q.question);
         });
-        console.log("Initial answered state:", initialAnsweredState);
+        console.log('Initial answered state:', initialAnsweredState);
         setAnsweredQuestions(initialAnsweredState);
         setQuestions(data.questions);
         // setAnsweredQuestions(new Array(data.questions.length).fill(false));
       } catch (error) {
-        console.error("Error fetching annotations:", error);
+        console.error('Error fetching annotations:', error);
         setError(
-          error instanceof Error ? error.message : "Failed to fetch annotations"
+          error instanceof Error ? error.message : 'Failed to fetch annotations'
         );
       } finally {
         setIsLoading(false);
@@ -136,11 +136,11 @@ const Annotations: React.FC = () => {
   }, []);
 
   const handleSubmit = async () => {
-    console.log("Submitting annotation");
-    console.log("Current question index:", currentQuestionIndex);
-    console.log("Feedback: ", feedback[questions[currentQuestionIndex]._id]);
+    console.log('Submitting annotation');
+    console.log('Current question index:', currentQuestionIndex);
+    console.log('Feedback: ', feedback[questions[currentQuestionIndex]._id]);
     console.log(
-      "Tasks Complete before submit:",
+      'Tasks Complete before submit:',
       tasksComplete[currentQuestionIndex]
     );
 
@@ -156,13 +156,13 @@ const Annotations: React.FC = () => {
           })),
         })
       ),
-      main_feedback: feedback[questions[currentQuestionIndex]._id] || "",
+      main_feedback: feedback[questions[currentQuestionIndex]._id] || '',
       question_valid: questionValid[currentQuestionIndex],
       reasoning_valid: reasoningValid[currentQuestionIndex],
       tasks_complete: tasksComplete[currentQuestionIndex], // ✅ Ensure correct value is included
     };
 
-    console.log("Updated question before API call:", updatedQuestion);
+    console.log('Updated question before API call:', updatedQuestion);
 
     // Update local state optimistically
     setQuestions((prevQuestions) =>
@@ -178,14 +178,14 @@ const Annotations: React.FC = () => {
     });
 
     // Send the update to the backend
-    const token = localStorage.getItem("jwt");
+    const token = localStorage.getItem('jwt');
 
     try {
-      const response = await fetch(backendURI + "annotations", {
-        method: "POST",
+      const response = await fetch(backendURI + 'annotations', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(updatedQuestion),
       });
@@ -196,7 +196,7 @@ const Annotations: React.FC = () => {
       }
 
       const responseData = await response.json();
-      console.log("Annotation updated successfully", responseData);
+      console.log('Annotation updated successfully', responseData);
 
       // ✅ Ensure we update tasksComplete based on response
       setTasksComplete((prev) => {
@@ -207,33 +207,33 @@ const Annotations: React.FC = () => {
 
       success();
     } catch (error) {
-      console.error("Error updating annotation:", error);
+      console.error('Error updating annotation:', error);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <Spin size="large" />
+      <div className='loading-container'>
+        <Spin size='large' />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <Alert message="Error" description={error} type="error" showIcon />
+      <div className='error-container'>
+        <Alert message='Error' description={error} type='error' showIcon />
       </div>
     );
   }
 
   if (!questions.length) {
     return (
-      <div className="no-questions-container">
+      <div className='no-questions-container'>
         <Alert
-          message="No Questions"
-          description="No questions available."
-          type="info"
+          message='No Questions'
+          description='No questions available.'
+          type='info'
           showIcon
         />
       </div>
@@ -372,22 +372,22 @@ const Annotations: React.FC = () => {
   //   </div>
   // );
   return (
-    <div className="annotations-container">
+    <div className='annotations-container'>
       {contextHolder}
       {isLoading ? (
-        <div className="loading-container">
-          <Spin size="large" />
+        <div className='loading-container'>
+          <Spin size='large' />
         </div>
       ) : error ? (
-        <div className="error-container">
-          <Alert message="Error" description={error} type="error" showIcon />
+        <div className='error-container'>
+          <Alert message='Error' description={error} type='error' showIcon />
         </div>
       ) : !questions.length ? (
-        <div className="no-questions-container">
+        <div className='no-questions-container'>
           <Alert
-            message="No Questions"
-            description="No questions available."
-            type="info"
+            message='No Questions'
+            description='No questions available.'
+            type='info'
             showIcon
           />
         </div>
@@ -416,76 +416,77 @@ const Annotations: React.FC = () => {
 
           {/* 🔹 Fixed Bottom Navigation Bar */}
           <Row
-            justify="space-between"
-            align="middle"
+            justify='space-between'
+            align='middle'
             style={{
-              position: "fixed",
+              position: 'fixed',
               bottom: 0,
               left: 0,
-              width: "100%",
-              background: "#fff",
-              padding: "12px 16px",
-              boxShadow: "0 -2px 5px rgba(0,0,0,0.1)",
+              width: '100%',
+              background: '#fff',
+              padding: '12px 16px',
+              boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
               zIndex: 1000,
             }}
           >
             {/* Left: Logout Button */}
             <Col>
-              <Button type="primary" danger onClick={logout}>
+              <Button type='primary' danger onClick={logout}>
                 Logout
               </Button>
             </Col>
 
             {/* Center: Navigation Controls Group */}
             <Col>
-              <Space size="small">
+              <Space size='small'>
                 <Button
-                  type="default"
+                  type='default'
                   // icon={<LeftOutlined />}
                   onClick={() =>
                     setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
                   }
                   disabled={currentQuestionIndex === 0}
+                  style={{ backgroundColor: '#1890ff', color: 'white' }}
                 >
                   {/* Previous */}
-                  <StepBackwardFilled style={{ fontSize: "20px" }} />
+                  <StepBackwardFilled style={{ fontSize: '20px' }} />
                 </Button>
 
                 <Tooltip
                   title={
                     reasoningValid[currentQuestionIndex] === null &&
                     questionValid[currentQuestionIndex] === null
-                      ? "Please annotate reasoning and question validity."
+                      ? 'Please annotate reasoning and question validity.'
                       : reasoningValid[currentQuestionIndex] === null &&
                         !feedback[questions[currentQuestionIndex]._id]
-                      ? "Please annotate reasoning validity."
+                      ? 'Please annotate reasoning validity.'
                       : questionValid[currentQuestionIndex] === null &&
                         !feedback[questions[currentQuestionIndex]._id]
-                      ? "Please annotate question validity."
+                      ? 'Please annotate question validity.'
                       : (!reasoningValid[currentQuestionIndex] ||
                           !questionValid[currentQuestionIndex]) &&
                         !feedback[questions[currentQuestionIndex]._id]
                       ? `Please provide feedback on why ${
                           !reasoningValid[currentQuestionIndex] &&
                           !questionValid[currentQuestionIndex]
-                            ? "both reasoning and question validity"
+                            ? 'both reasoning and question validity'
                             : !reasoningValid[currentQuestionIndex]
-                            ? "reasoning validity"
-                            : "question validity"
+                            ? 'reasoning validity'
+                            : 'question validity'
                         } is marked as false.`
                       : !reasoningValid[currentQuestionIndex] &&
                         !feedback[questions[currentQuestionIndex]._id]
-                      ? "Please provide feedback on why reasoning is marked as false."
+                      ? 'Please provide feedback on why reasoning is marked as false.'
                       : !questionValid[currentQuestionIndex] &&
                         !feedback[questions[currentQuestionIndex]._id]
-                      ? "Please provide feedback on why question validity is marked as false."
-                      : ""
+                      ? 'Please provide feedback on why question validity is marked as false.'
+                      : ''
                   }
                 >
                   <Button
                     // type="primary"
-                    variant="solid"
-                    color="green"
+                    variant='solid'
+                    color='green'
                     onClick={handleSubmit}
                     disabled={
                       !feedback[questions[currentQuestionIndex]._id] &&
@@ -498,7 +499,7 @@ const Annotations: React.FC = () => {
                 </Tooltip>
 
                 <Button
-                  type="default"
+                  type='default'
                   // icon={<RightOutlined />}
                   onClick={() =>
                     setCurrentQuestionIndex((prev) =>
@@ -508,14 +509,14 @@ const Annotations: React.FC = () => {
                   disabled={currentQuestionIndex === questions.length - 1}
                 >
                   {/* Next */}
-                  <StepForwardOutlined style={{ fontSize: "20px" }} />
+                  <StepForwardOutlined style={{ fontSize: '20px' }} />
                 </Button>
               </Space>
             </Col>
 
             {/* Right: Need Help Button */}
             <Col>
-              <Button type="default" onClick={() => setOpenTour(true)}>
+              <Button type='default' onClick={() => setOpenTour(true)}>
                 Need Help?
               </Button>
             </Col>
