@@ -9,3 +9,4 @@ export const checkUserLinksWithGoogleUrl = import.meta.env
   .VITE_CHECK_USER_LINKS_WITH_GOOGLE_URL;
 export const linkUserWithGoogleUrl = import.meta.env
   .VITE_LINK_USER_WITH_GOOGLE_URL;
+export const changePasswordUrl = import.meta.env.VITE_CHANGE_PASSWORD_URL;

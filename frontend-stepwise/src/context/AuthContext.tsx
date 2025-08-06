@@ -3,10 +3,13 @@ import { User } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import {
+  changePasswordUrl,
   checkUserLinksWithGoogleUrl,
   linkUserWithGoogleUrl,
   userAuthUrl,
 } from '@/apis/api_url';
+import { useSetAtom } from 'jotai';
+import { isFirstTimeLoginAtom } from '@/atoms/atoms';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +18,7 @@ interface AuthContextType {
     email: string
   ) => Promise<{ exists: boolean; user: User }>;
   linkUserWithGoogle: (email: string, username: string) => Promise<void>;
+  changePassword: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -28,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const setIsFirstTimeLogin = useSetAtom(isFirstTimeLoginAtom);
 
   // Check for stored token on mount
   useEffect(() => {
@@ -61,6 +66,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           token: data.token,
           userId: data.userId,
         };
+
+        if (username === password) {
+          setIsFirstTimeLogin(true);
+          return;
+        }
 
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
@@ -140,6 +150,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const changePassword = async (username: string, password: string) => {
+    const response = await fetch(changePasswordUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const userData: User = {
+        username,
+        token: data.token,
+        userId: data.userId,
+      };
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsFirstTimeLogin(false);
+      toast({
+        title: 'Password Changed Successfully',
+        description:
+          'Your password has been updated and you are now logged in.',
+      });
+      navigate('/');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Password Change Failed',
+        description: 'Failed to change password. Please try again.',
+      });
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
@@ -158,6 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         ifUserLinksWithGoogle,
         linkUserWithGoogle,
+        changePassword,
         isLoading,
       }}
     >

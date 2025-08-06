@@ -188,6 +188,53 @@ func LinkUserWithGoogle(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"message": "User linked with Google successfully"})
 }
 
+func ChangePassword(w http.ResponseWriter, r *http.Request) {
+	var requestData struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	collection := db.GetCollection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	hashedPassword, err := utils.HashPassword(requestData.Password)
+	if err != nil {
+		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+		return
+	}
+
+	var user models.User
+	err = collection.FindOne(ctx, bson.M{"username": requestData.Username}).Decode(&user)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	_, err = collection.UpdateOne(ctx, bson.M{"username": requestData.Username}, bson.M{"$set": bson.M{"password": hashedPassword}})
+	if err != nil {
+		http.Error(w, "Error updating password", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := utils.GenerateJWTToken(requestData.Username, user.UserId)
+	if err != nil {
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId)}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
 func GetNextUserId(sequenceName string) (int, error) {
 	collection := db.GetCollection("counters")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
