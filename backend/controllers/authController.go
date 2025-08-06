@@ -204,8 +204,14 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
 	var user models.User
-	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	filter := bson.M{"email": email}
+	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -218,7 +224,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId)}
+	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId), "username": user.Username}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
