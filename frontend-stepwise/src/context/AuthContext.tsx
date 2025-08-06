@@ -6,6 +6,7 @@ import {
   changePasswordUrl,
   checkUserLinksWithGoogleUrl,
   linkUserWithGoogleUrl,
+  loginWithGoogleUrl,
   userAuthUrl,
 } from '@/apis/api_url';
 import { useSetAtom } from 'jotai';
@@ -14,6 +15,7 @@ import { isFirstTimeLoginAtom } from '@/atoms/atoms';
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
+  loginWithGoogle: (email: string) => Promise<void>;
   ifUserLinksWithGoogle: (
     email: string
   ) => Promise<{ exists: boolean; user: User }>;
@@ -98,6 +100,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const loginWithGoogle = async (email: string) => {
+    const response = await fetch(loginWithGoogleUrl + '?email=' + email, {
+      method: 'POST',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const userData: User = {
+        username: data.username,
+        token: data.token,
+        userId: data.userId,
+      };
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      navigate('/');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Login with Google Failed',
+        description: 'Failed to login with Google. Please try again.',
+      });
+    }
+  };
+
   const ifUserLinksWithGoogle = async (email: string) => {
     const response = await fetch(
       checkUserLinksWithGoogleUrl + '?email=' + email,
@@ -135,7 +162,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       // wait for 1 seconds
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      login(username, username);
+
+      const data = await response.json();
+      const userData: User = {
+        username,
+        token: data.token,
+        userId: data.userId,
+      };
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      navigate('/');
     } else {
       toast({
         variant: 'destructive',
@@ -198,6 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         user,
         login,
+        loginWithGoogle,
         logout,
         ifUserLinksWithGoogle,
         linkUserWithGoogle,

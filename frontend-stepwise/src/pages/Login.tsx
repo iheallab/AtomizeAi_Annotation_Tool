@@ -36,6 +36,7 @@ const Login: React.FC = () => {
   const [googleLoginSuccess, setGoogleLoginSuccess] = useState(false);
   const {
     login,
+    loginWithGoogle,
     ifUserLinksWithGoogle,
     user,
     isLoading,
@@ -59,6 +60,10 @@ const Login: React.FC = () => {
 
   const handleLinkUserWithGoogle = async (email: string, username: string) => {
     await linkUserWithGoogle(email, username);
+  };
+
+  const handleLoginWithGoogle = async (email: string) => {
+    await loginWithGoogle(email);
   };
 
   if (user) {
@@ -120,7 +125,7 @@ const Login: React.FC = () => {
                       const res = await ifUserLinksWithGoogle(email);
                       if (res.exists) {
                         setGoogleLoginSuccess(true);
-                        await login(res.user.username, res.user.username);
+                        handleLoginWithGoogle(email);
                       } else {
                         setGoogleLoginSuccess(false);
                       }

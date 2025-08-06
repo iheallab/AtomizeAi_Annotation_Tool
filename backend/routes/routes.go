@@ -41,6 +41,8 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 
+	r.HandleFunc("/login_with_google", controllers.LoginWithGoogle).Methods("POST")
+
 	r.HandleFunc("/check_user_links_with_google", controllers.CheckUserLinksWithGoogle).Methods("GET")
 
 	r.HandleFunc("/link_user_with_google", controllers.LinkUserWithGoogle).Methods("POST")

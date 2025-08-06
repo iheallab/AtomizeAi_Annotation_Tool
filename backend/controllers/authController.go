@@ -184,8 +184,44 @@ func LinkUserWithGoogle(w http.ResponseWriter, r *http.Request) {
 
 	collection.UpdateOne(ctx, bson.M{"username": username}, bson.M{"$set": bson.M{"email": email}})
 
+	token, err := utils.GenerateJWTToken(user.Username, user.UserId)
+	if err != nil {
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId), "message": "User linked with Google successfully"}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{"message": "User linked with Google successfully"})
+	json.NewEncoder(w).Encode(response)
+}
+
+func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
+	email := r.URL.Query().Get("email")
+
+	collection := db.GetCollection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var user models.User
+	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	token, err := utils.GenerateJWTToken(user.Username, user.UserId)
+	if err != nil {
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId)}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
