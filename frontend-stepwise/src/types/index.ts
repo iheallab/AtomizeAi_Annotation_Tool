@@ -1,7 +1,8 @@
-export interface User {
+export interface UserType {
   username: string;
   token: string;
   userId: string;
+  email: string;
 }
 
 export interface Question {

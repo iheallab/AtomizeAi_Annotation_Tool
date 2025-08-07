@@ -25,10 +25,8 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   onClose,
   username,
 }) => {
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,10 +76,8 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   };
 
   const handleClose = () => {
-    setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    setShowCurrentPassword(false);
     setShowNewPassword(false);
     setShowConfirmPassword(false);
     onClose();

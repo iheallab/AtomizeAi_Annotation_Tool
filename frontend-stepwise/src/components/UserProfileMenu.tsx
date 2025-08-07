@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Settings, LogOut, ChevronDown, Lock } from 'lucide-react';
+import { User, Settings, LogOut, ChevronDown, Lock, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,16 +14,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
 import { ChangePasswordDialog } from './ChangePasswordDialog';
+import { UserProfileDialog } from './UserProfileDialog';
+import { UserType } from '@/types';
 
 interface UserProfileMenuProps {
-  username: string;
+  user: UserType;
 }
 
-export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
-  username,
-}) => {
+export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ user }) => {
   const { logout } = useAuth();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
 
   return (
     <>
@@ -37,7 +38,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               <div className='w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center'>
                 <User size={16} className='text-primary' />
               </div>
-              <span className='text-sm font-medium'>{username}</span>
+              <span className='text-sm font-medium'>{user.username}</span>
               <ChevronDown size={14} className='text-muted-foreground' />
             </div>
           </Button>
@@ -45,7 +46,9 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
         <DropdownMenuContent align='end' className='w-56'>
           <DropdownMenuLabel>
             <div className='flex flex-col space-y-1'>
-              <p className='text-sm font-medium leading-none'>{username}</p>
+              <p className='text-sm font-medium leading-none'>
+                {user.username}
+              </p>
               <p className='text-xs leading-none text-muted-foreground'>
                 User Account
               </p>
@@ -62,6 +65,10 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                 <Lock size={16} className='mr-2' />
                 Change Password
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsUserProfileOpen(true)}>
+                <Eye size={16} className='mr-2' />
+                View Profile
               </DropdownMenuItem>
               {/* Future settings can be added here */}
               {/* <DropdownMenuItem>
@@ -86,7 +93,13 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
       <ChangePasswordDialog
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
-        username={username}
+        username={user.username}
+      />
+
+      <UserProfileDialog
+        isOpen={isUserProfileOpen}
+        onClose={() => setIsUserProfileOpen(false)}
+        user={user}
       />
     </>
   );

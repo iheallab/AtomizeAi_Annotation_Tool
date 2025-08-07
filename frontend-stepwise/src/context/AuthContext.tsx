@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types';
+import { UserType } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -13,12 +13,12 @@ import { useSetAtom } from 'jotai';
 import { isFirstTimeLoginAtom } from '@/atoms/atoms';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserType | null;
   login: (username: string, password: string) => Promise<void>;
   loginWithGoogle: (email: string) => Promise<void>;
   ifUserLinksWithGoogle: (
     email: string
-  ) => Promise<{ exists: boolean; user: User }>;
+  ) => Promise<{ exists: boolean; user: UserType }>;
   linkUserWithGoogle: (email: string, username: string) => Promise<void>;
   changePassword: (username: string, password: string) => Promise<void>;
   logout: () => void;
@@ -30,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -63,10 +63,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (response.ok) {
         const data = await response.json();
-        const userData: User = {
-          username,
+        const userData: UserType = {
+          username: data.user.username,
           token: data.token,
           userId: data.userId,
+          email: data.user.email,
         };
 
         if (username === password) {
@@ -107,10 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (response.ok) {
       const data = await response.json();
-      const userData: User = {
-        username: data.username,
+      const userData: UserType = {
+        username: data.user.username,
         token: data.token,
         userId: data.userId,
+        email: data.user.email,
       };
 
       localStorage.setItem('user', JSON.stringify(userData));
@@ -164,10 +166,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const data = await response.json();
-      const userData: User = {
-        username,
+      const userData: UserType = {
+        username: data.user.username,
         token: data.token,
         userId: data.userId,
+        email: data.user.email,
       };
 
       localStorage.setItem('user', JSON.stringify(userData));
@@ -196,10 +199,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (response.ok) {
       const data = await response.json();
-      const userData: User = {
-        username,
+      const userData: UserType = {
+        username: data.user.username,
         token: data.token,
         userId: data.userId,
+        email: data.user.email,
       };
 
       localStorage.setItem('user', JSON.stringify(userData));

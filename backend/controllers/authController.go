@@ -37,7 +37,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(loginData.Username)
 	fmt.Println(loginData.Password)
 	var user models.User
+	// Try finding user by username first
 	err = collection.FindOne(ctx, bson.M{"username": loginData.Username}).Decode(&user)
+	if err != nil {
+		// If not found by username, try finding by email if email is provided
+		err = collection.FindOne(ctx, bson.M{
+			"email": loginData.Username,
+		}).Decode(&user)
+	}
 	if err != nil {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
@@ -54,7 +61,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId)}
+	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
@@ -191,7 +198,7 @@ func LinkUserWithGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId), "message": "User linked with Google successfully"}
+	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user, "message": "User linked with Google successfully"}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
@@ -224,7 +231,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId), "username": user.Username}
+	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
@@ -272,7 +279,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]string{"token": token, "userId": strconv.Itoa(user.UserId)}
+	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

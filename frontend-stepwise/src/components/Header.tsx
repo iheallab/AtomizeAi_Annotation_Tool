@@ -17,7 +17,7 @@ export const Header: React.FC = () => {
         </div>
 
         <div className='flex items-center gap-4'>
-          <UserProfileMenu username={user?.username || 'User'} />
+          <UserProfileMenu user={user} />
         </div>
       </div>
     </header>
