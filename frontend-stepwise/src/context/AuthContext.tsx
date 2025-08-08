@@ -68,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           token: data.token,
           userId: data.userId,
           email: data.user.email,
+          role: data.user.role,
         };
 
         if (username === password) {
@@ -113,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         token: data.token,
         userId: data.userId,
         email: data.user.email,
+        role: data.user.role,
       };
 
       localStorage.setItem('user', JSON.stringify(userData));
@@ -171,6 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         token: data.token,
         userId: data.userId,
         email: data.user.email,
+        role: data.user.role,
       };
 
       localStorage.setItem('user', JSON.stringify(userData));
@@ -204,6 +207,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         token: data.token,
         userId: data.userId,
         email: data.user.email,
+        role: data.user.role,
       };
 
       localStorage.setItem('user', JSON.stringify(userData));

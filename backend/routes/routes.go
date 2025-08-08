@@ -5,6 +5,8 @@ import (
 	"backend/controllers"
 	"net/http"
 
+	"backend/middleware"
+
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -48,6 +50,9 @@ func InitializeRoutes() http.Handler {
 	r.HandleFunc("/link_user_with_google", controllers.LinkUserWithGoogle).Methods("POST")
 
 	r.HandleFunc("/change_password", controllers.ChangePassword).Methods("POST")
+
+	// Admin routes
+	r.HandleFunc("/api/admin/user-stats", middleware.AuthMiddleware(controllers.GetUserStats)).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

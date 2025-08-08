@@ -3,6 +3,7 @@ export interface UserType {
   token: string;
   userId: string;
   email: string;
+  role: string;
 }
 
 export interface Question {
