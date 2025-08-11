@@ -90,7 +90,20 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		assignedMap[qid] = true
 	}
 
-	// Step 1c: Get username
+	// Step 1c: Add current user's existing assignments to assignedMap
+	var existingAssignment struct {
+		QuestionIDs []int `bson:"question_ids"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&existingAssignment)
+	if err != nil && err != mongo.ErrNoDocuments {
+		http.Error(w, "Error fetching existing assignments", http.StatusInternalServerError)
+		return
+	}
+	for _, qid := range existingAssignment.QuestionIDs {
+		assignedMap[qid] = true
+	}
+
+	// Step 1d: Get username
 	var user models.User
 	err = usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
 	if err != nil {
@@ -124,59 +137,89 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Step 4a: Get global assigned counts
-	assignmentAgg := bson.A{
-		bson.M{"$unwind": "$question_ids"},
-		bson.M{"$group": bson.M{
-			"_id":   "$question_ids",
-			"count": bson.M{"$sum": 1},
-		}},
+	// Step 4: Calculate assignment counts using the same logic as GetQuestionAssignmentSummary
+	// Step 4a: Get all question IDs from annotations with user details
+	annotationPipeline := mongo.Pipeline{
+		{{"$project", bson.D{
+			{"question_id", 1},
+			{"annotated_by", 1},
+			{"_id", 0},
+		}}},
 	}
-	cursor, err = assignmentsCollection.Aggregate(ctx, assignmentAgg)
+
+	annotationCursor, err := annotationsCollection.Aggregate(ctx, annotationPipeline)
 	if err != nil {
-		http.Error(w, "Error aggregating assignment data", http.StatusInternalServerError)
+		http.Error(w, "Error fetching annotation data", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer annotationCursor.Close(ctx)
 
-	assignedCounts := make(map[int]int)
-	for cursor.Next(ctx) {
-		var result struct {
-			ID    int `bson:"_id"`
-			Count int `bson:"count"`
-		}
-		if err := cursor.Decode(&result); err != nil {
-			http.Error(w, "Error decoding assignment counts", http.StatusInternalServerError)
-			return
-		}
-		assignedCounts[result.ID] = result.Count
+	var annotationResults []struct {
+		QuestionID  int `bson:"question_id"`
+		AnnotatedBy int `bson:"annotated_by"`
 	}
 
-	// Step 4b: Get global annotation counts
-	annotationAgg := bson.A{
-		bson.M{"$group": bson.M{
-			"_id":   "$question_id",
-			"count": bson.M{"$sum": 1},
-		}},
-	}
-	cursor, err = annotationsCollection.Aggregate(ctx, annotationAgg)
-	if err != nil {
-		http.Error(w, "Error aggregating annotation data", http.StatusInternalServerError)
+	if err = annotationCursor.All(ctx, &annotationResults); err != nil {
+		http.Error(w, "Error parsing annotation data", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
 
-	annotationCounts := make(map[int]int)
-	for cursor.Next(ctx) {
-		var result struct {
-			ID    int `bson:"_id"`
-			Count int `bson:"count"`
+	// Step 4b: Get all question IDs from assignments with user details
+	assignmentPipeline := mongo.Pipeline{
+		{{"$match", bson.D{
+			{"user_id", bson.D{{"$gt", 10}}},
+		}}},
+		{{"$project", bson.D{
+			{"question_ids", 1},
+			{"user_id", 1},
+			{"_id", 0},
+		}}},
+		{{"$unwind", "$question_ids"}},
+	}
+
+	assignmentCursor, err := assignmentsCollection.Aggregate(ctx, assignmentPipeline)
+	if err != nil {
+		http.Error(w, "Error fetching assignment data", http.StatusInternalServerError)
+		return
+	}
+	defer assignmentCursor.Close(ctx)
+
+	var assignmentResults []struct {
+		QuestionID int `bson:"question_ids"`
+		UserID     int `bson:"user_id"`
+	}
+
+	if err = assignmentCursor.All(ctx, &assignmentResults); err != nil {
+		http.Error(w, "Error parsing assignment data", http.StatusInternalServerError)
+		return
+	}
+
+	// Step 4c: Calculate assignment counts and user details (same as GetQuestionAssignmentSummary)
+	questionAssignmentCounts := make(map[int]int)
+	questionUserDetails := make(map[int]map[int]bool) // question_id -> map[user_id]bool for deduplication
+
+	// Count annotations
+	for _, result := range annotationResults {
+		if questionUserDetails[result.QuestionID] == nil {
+			questionUserDetails[result.QuestionID] = make(map[int]bool)
 		}
-		if err := cursor.Decode(&result); err != nil {
-			http.Error(w, "Error decoding annotation counts", http.StatusInternalServerError)
-			return
+		// Only count if this user hasn't been counted for this question before
+		if !questionUserDetails[result.QuestionID][result.AnnotatedBy] {
+			questionAssignmentCounts[result.QuestionID]++
+			questionUserDetails[result.QuestionID][result.AnnotatedBy] = true
 		}
-		annotationCounts[result.ID] = result.Count
+	}
+
+	// Count assignments
+	for _, result := range assignmentResults {
+		if questionUserDetails[result.QuestionID] == nil {
+			questionUserDetails[result.QuestionID] = make(map[int]bool)
+		}
+		// Only count if this user hasn't been counted for this question before
+		if !questionUserDetails[result.QuestionID][result.UserID] {
+			questionAssignmentCounts[result.QuestionID]++
+			questionUserDetails[result.QuestionID][result.UserID] = true
+		}
 	}
 
 	// Step 5: Combine usage counts and sort
@@ -186,7 +229,7 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 	var usageList []QuestionUsage
 	for _, qid := range newQuestionIDs {
-		count := assignedCounts[qid] + annotationCounts[qid]
+		count := questionAssignmentCounts[qid]
 		usageList = append(usageList, QuestionUsage{ID: qid, Count: count})
 	}
 	sort.Slice(usageList, func(i, j int) bool {
@@ -202,7 +245,8 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < selectedCount; i++ {
 		selectedIDs[i] = usageList[i].ID
 	}
-
+	// print usageList ids
+	fmt.Println(usageList)
 	// Step 7: Upsert assignment document
 	updateFilter := bson.M{"user_id": userID}
 	update := bson.M{

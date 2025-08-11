@@ -52,7 +52,9 @@ func InitializeRoutes() http.Handler {
 	r.HandleFunc("/change_password", controllers.ChangePassword).Methods("POST")
 
 	// Admin routes
-	r.HandleFunc("/api/admin/user-stats", middleware.AuthMiddleware(controllers.GetUserStats)).Methods("GET")
+	r.HandleFunc("/api/admin/user_stats", middleware.AuthMiddleware(controllers.GetUserStats)).Methods("GET")
+
+	r.HandleFunc("/api/admin/question_assignment_summary", controllers.GetQuestionAssignmentSummary).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
