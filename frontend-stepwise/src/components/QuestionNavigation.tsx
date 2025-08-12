@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import { Question } from '@/types';
 import { cn } from '@/lib/utils';
 import {
@@ -25,7 +26,7 @@ interface QuestionNavigationProps {
   completedQuestions: number;
   totalQuestions: number;
   onSelectQuestion: (index: number) => void;
-  onSubmit: () => void;
+  // onSubmit: () => void;
 }
 
 export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
@@ -34,15 +35,21 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   completedQuestions,
   totalQuestions,
   onSelectQuestion,
-  onSubmit,
+  // onSubmit,
 }) => {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skipPopover, setSkipPopover] = useState(false);
 
+  const { toast } = useToast();
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    await onSubmit();
+    toast({
+      title: 'Submission Successful',
+      description: 'Submission successful!',
+    });
+    // await onSubmit();
     setIsSubmitting(false);
   };
 
@@ -162,11 +169,15 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
               Submit All Annotations
             </h3>
             <p className='text-sm text-muted-foreground mb-6'>
-              Are you sure you want to submit all annotations? Once submitted,
+              {/* Are you sure you want to submit all annotations? Once submitted,
               you will no longer be able to view these questions, and a new set
               of questions will be generated for you. Please ensure all
               questions are answered to the best of your ability before
-              proceeding.
+              proceeding.  */}
+              Are you sure you want to submit all annotations? Your work will be
+              saved and remain available for review until your next batch is
+              assigned. Please confirm that all questions are answered to the
+              best of your ability before submitting.
             </p>
             <div className='flex justify-end gap-4'>
               <Button
