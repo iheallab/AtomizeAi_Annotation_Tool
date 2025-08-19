@@ -47,16 +47,18 @@ const Index = () => {
           <div className='text-center p-6 bg-card rounded-lg shadow-soft'>
             <h2 className='text-2xl font-bold mb-4'>No questions available</h2>
             <p className='text-muted-foreground'>
-              Please generate a new assignment to get started.
+              {/* Please generate a new assignment to get started. */}
+              If you require a new assignment, please contact technical support,
+              or wait until additional questions are assigned to you.
             </p>
-            <Button
+            {/* <Button
               variant='outline'
               onClick={generateNewAssignment}
               className='my-3 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
             >
               Generate New Assignment
               <Send size={16} />
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
@@ -103,7 +105,7 @@ const Index = () => {
         completedQuestions={completedQuestions}
         totalQuestions={totalQuestions}
         onSelectQuestion={setCurrentQuestionIndex}
-        onSubmit={generateNewAssignment}
+        // onSubmit={generateNewAssignment}
       />
     </div>
   );
