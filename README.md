@@ -38,7 +38,7 @@ The **ICU-REACT Dataset Annotation Tool** is designed to assist annotators in va
 
 1. Navigate to the frontend directory:
    ```bash
-   cd frontend-stepwise
+   cd frontend
    ```
 2. Install dependencies:
    ```bash

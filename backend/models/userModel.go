@@ -15,5 +15,6 @@ type User struct {
 	Email          string    `json:"email"`
 	JobTitle       string    `json:"job_title"`
 	Specialization string    `json:"specialization"`
+	Role           string    `json:"role" bson:"role"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 }

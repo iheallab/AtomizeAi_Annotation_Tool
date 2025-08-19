@@ -1,21 +1,39 @@
-import { Routes, Route } from "react-router-dom";
-import LoginForm from "./components/auth/login";
-import Annotations from "./components/annot/annotations";
-// import  Home  from "./components/home";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
+import { AuthProvider } from './context/AuthContext';
+import { QuestionProvider } from './context/QuestionContext';
+import { ThemeProvider } from './context/ThemeContext';
 
-const App = () => {
-  return (
-    <Routes>
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Annotations />} />
-      </Route>
-      <Route path="/login" element={<LoginForm />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/annotations" element={<Annotations />} />
-      </Route>
-    </Routes>
-  );
-};
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <ThemeProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <QuestionProvider>
+              <Routes>
+                <Route path='/login' element={<Login />} />
+                <Route path='/admin' element={<Admin />} />
+                <Route path='/' element={<Index />} />
+                <Route path='*' element={<NotFound />} />
+              </Routes>
+            </QuestionProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
