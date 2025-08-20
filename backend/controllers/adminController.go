@@ -178,9 +178,7 @@ func GetAnnotatorProgress(w http.ResponseWriter, r *http.Request) {
 
 		// Add skipped questions from current batch
 		for _, skippedID := range skippedQuestions {
-			if !skippedMap[skippedID] { // This shouldn't happen, but just in case
-				currentSkippedQuestions = append(currentSkippedQuestions, skippedID)
-			}
+			currentSkippedQuestions = append(currentSkippedQuestions, skippedID)
 		}
 
 		// Calculate historical completed questions (not in current batch)

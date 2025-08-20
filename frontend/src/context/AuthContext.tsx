@@ -53,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (username: string, password: string) => {
     setIsLoading(true);
-    console.log('Trying to login with details : ', username, password);
     try {
       const response = await fetch(userAuthUrl, {
         method: 'POST',

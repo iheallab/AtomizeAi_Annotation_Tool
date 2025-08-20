@@ -36,6 +36,8 @@ import {
   X,
   Plus,
   UserPlus,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -113,6 +115,7 @@ type AnnotatorSortField =
   | 'completionRate'
   | 'totalAssigned'
   | 'completed'
+  | 'skipped'
   | 'lastActive'
   | 'historicalCompleted';
 type AnnotatorSortDirection = 'asc' | 'desc';
@@ -190,6 +193,9 @@ const Admin = () => {
     useState(false);
   const [selectedUserForAssignment, setSelectedUserForAssignment] =
     useState<AnnotatorProgress | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [isAssigningQuestions, setIsAssigningQuestions] = useState(false);
 
   // Add User Form State
   const [addUserForm, setAddUserForm] = useState({
@@ -208,6 +214,7 @@ const Admin = () => {
   });
 
   const fetchAdminData = async () => {
+    setIsLoading(true);
     try {
       const token = user?.token;
       if (!token) {
@@ -269,6 +276,8 @@ const Admin = () => {
         title: 'Error',
         description: 'Failed to load admin dashboard data',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -322,6 +331,7 @@ const Admin = () => {
     sortField: SortField,
     sortDirection: SortDirection
   ) => {
+    if (!questions) return [];
     return [...questions].sort((a, b) => {
       let comparison = 0;
 
@@ -426,6 +436,9 @@ const Admin = () => {
         case 'completed':
           comparison = a.completed - b.completed;
           break;
+        case 'skipped':
+          comparison = a.skipped - b.skipped;
+          break;
         case 'lastActive':
           comparison =
             new Date(a.lastActive).getTime() - new Date(b.lastActive).getTime();
@@ -528,6 +541,7 @@ const Admin = () => {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsAddingUser(true);
 
     try {
       const token = user?.token;
@@ -573,11 +587,14 @@ const Admin = () => {
         title: 'Error',
         description: 'Failed to add user',
       });
+    } finally {
+      setIsAddingUser(false);
     }
   };
 
   const handleAssignQuestions = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsAssigningQuestions(true);
 
     if (!selectedUserForAssignment) return;
 
@@ -628,6 +645,8 @@ const Admin = () => {
         title: 'Error',
         description: 'Failed to assign questions',
       });
+    } finally {
+      setIsAssigningQuestions(false);
     }
   };
 
@@ -653,7 +672,7 @@ const Admin = () => {
       <div className='border rounded-lg p-4'>
         <div className='flex items-center justify-between mb-4'>
           <h3 className={`text-lg font-semibold ${color}`}>
-            {title} ({questions.length})
+            {title} ({questions?.length || 0})
           </h3>
           <Button
             variant='outline'
@@ -677,7 +696,7 @@ const Admin = () => {
 
         {state.isExpanded && (
           <div className='space-y-4'>
-            {questions.length === 0 ? (
+            {!questions || questions.length === 0 ? (
               <p className='text-muted-foreground text-center py-4'>
                 No questions in this category
               </p>
@@ -803,18 +822,41 @@ const Admin = () => {
     annotatorState.currentPage
   );
 
-  console.log('paginatedAnnotators', paginatedAnnotators);
-
   return (
     <div className='min-h-screen flex flex-col bg-background'>
       <Header />
 
       <main className='flex-1 p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          <h1 className='text-3xl font-bold'>Admin Dashboard</h1>
+          <div className='flex items-center justify-between'>
+            <h1 className='text-3xl font-bold'>Admin Dashboard</h1>
+            <Button
+              onClick={fetchAdminData}
+              variant='outline'
+              className='flex items-center gap-2'
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                <RefreshCw className='h-4 w-4' />
+              )}
+              Refresh Data
+            </Button>
+          </div>
 
           {/* Annotator Progress Tracking */}
-          <Card>
+          <Card className='relative'>
+            {isLoading && (
+              <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <Loader2 className='h-6 w-6 animate-spin' />
+                  <span className='text-sm font-medium'>
+                    Loading annotator data...
+                  </span>
+                </div>
+              </div>
+            )}
             <CardHeader>
               <CardTitle>Annotator Progress Tracking</CardTitle>
               <CardDescription>
@@ -828,8 +870,13 @@ const Admin = () => {
                   <Button
                     onClick={openAddUserModal}
                     className='flex items-center gap-2'
+                    disabled={isAddingUser}
                   >
-                    <UserPlus className='h-4 w-4' />
+                    {isAddingUser ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      <UserPlus className='h-4 w-4' />
+                    )}
                     Add New User
                   </Button>
                 </div>
@@ -863,7 +910,12 @@ const Admin = () => {
                 </div>
                 {/* Summary Stats */}
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold'>
                         {annotatorProgress.summary.totalAnnotators}
@@ -873,7 +925,12 @@ const Admin = () => {
                       </p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold text-green-600'>
                         {annotatorProgress.summary.finishedAnnotators}
@@ -881,7 +938,12 @@ const Admin = () => {
                       <p className='text-sm text-muted-foreground'>Completed</p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold text-blue-600'>
                         {Math.round(
@@ -995,6 +1057,20 @@ const Admin = () => {
                                   <Button
                                     variant='ghost'
                                     onClick={() =>
+                                      handleAnnotatorSort('skipped')
+                                    }
+                                    className='h-auto p-0 font-semibold hover:bg-transparent'
+                                  >
+                                    Skipped
+                                    <span className='ml-1'>
+                                      {getAnnotatorSortIcon('skipped')}
+                                    </span>
+                                  </Button>
+                                </TableHead>
+                                <TableHead>
+                                  <Button
+                                    variant='ghost'
+                                    onClick={() =>
                                       handleAnnotatorSort('lastActive')
                                     }
                                     className='h-auto p-0 font-semibold hover:bg-transparent'
@@ -1066,6 +1142,7 @@ const Admin = () => {
                                     {annotator.totalAssigned}
                                   </TableCell>
                                   <TableCell>{annotator.completed}</TableCell>
+                                  <TableCell>{annotator.skipped}</TableCell>
                                   <TableCell>
                                     {new Date(
                                       annotator.lastActive
@@ -1088,8 +1165,13 @@ const Admin = () => {
                                         openAssignQuestionsModal(annotator);
                                       }}
                                       className='flex items-center gap-1'
+                                      disabled={isAssigningQuestions}
                                     >
-                                      <Plus className='h-3 w-3' />
+                                      {isAssigningQuestions ? (
+                                        <Loader2 className='h-3 w-3 animate-spin' />
+                                      ) : (
+                                        <Plus className='h-3 w-3' />
+                                      )}
                                       Assign
                                     </Button>
                                   </TableCell>
@@ -1158,7 +1240,17 @@ const Admin = () => {
           </Card>
 
           {/* Question Assignment Summary */}
-          <Card>
+          <Card className='relative'>
+            {isLoading && (
+              <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <Loader2 className='h-6 w-6 animate-spin' />
+                  <span className='text-sm font-medium'>
+                    Loading assignment data...
+                  </span>
+                </div>
+              </div>
+            )}
             <CardHeader>
               <CardTitle>Question Assignment Summary</CardTitle>
               <CardDescription>
@@ -1182,7 +1274,12 @@ const Admin = () => {
                 </div>
 
                 <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold'>
                         {summary.total_questions}
@@ -1192,7 +1289,12 @@ const Admin = () => {
                       </p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold text-blue-600'>
                         {summary.less_than_twice.count}
@@ -1202,7 +1304,12 @@ const Admin = () => {
                       </p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold text-green-600'>
                         {summary.exactly_twice.count}
@@ -1212,7 +1319,12 @@ const Admin = () => {
                       </p>
                     </CardContent>
                   </Card>
-                  <Card>
+                  <Card className='relative'>
+                    {isLoading && (
+                      <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      </div>
+                    )}
                     <CardContent className='pt-6'>
                       <div className='text-2xl font-bold text-orange-600'>
                         {summary.more_than_twice.count}
@@ -1228,7 +1340,17 @@ const Admin = () => {
           </Card>
 
           {/* Question Assignment Details */}
-          <Card>
+          <Card className='relative'>
+            {isLoading && (
+              <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <Loader2 className='h-6 w-6 animate-spin' />
+                  <span className='text-sm font-medium'>
+                    Loading question details...
+                  </span>
+                </div>
+              </div>
+            )}
             <CardHeader>
               <CardTitle>Question Assignment Details</CardTitle>
               <CardDescription>
@@ -1239,21 +1361,21 @@ const Admin = () => {
               <div className='space-y-6'>
                 {renderCategoryTable(
                   'less_than_twice',
-                  summary.less_than_twice.questions,
+                  summary?.less_than_twice?.questions,
                   'Assigned Less Than 2 Times',
                   'text-blue-600'
                 )}
 
                 {renderCategoryTable(
                   'exactly_twice',
-                  summary.exactly_twice.questions,
+                  summary?.exactly_twice?.questions,
                   'Assigned Exactly 2 Times',
                   'text-green-600'
                 )}
 
                 {renderCategoryTable(
                   'more_than_twice',
-                  summary.more_than_twice.questions,
+                  summary?.more_than_twice?.questions,
                   'Assigned More Than 2 Times',
                   'text-orange-600'
                 )}
@@ -1341,7 +1463,7 @@ const Admin = () => {
                   <CardTitle className='text-lg'>Progress Overview</CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-4'>
-                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
                     <div className='text-center'>
                       <div className='text-2xl font-bold text-blue-600'>
                         {selectedAnnotator.totalAssigned}
@@ -1356,6 +1478,14 @@ const Admin = () => {
                       </div>
                       <div className='text-sm text-muted-foreground'>
                         Current Batch Completed
+                      </div>
+                    </div>
+                    <div className='text-center'>
+                      <div className='text-2xl font-bold text-red-600'>
+                        {selectedAnnotator.skipped}
+                      </div>
+                      <div className='text-sm text-muted-foreground'>
+                        Skipped
                       </div>
                     </div>
                     <div className='text-center'>
@@ -1387,7 +1517,7 @@ const Admin = () => {
               </Card>
 
               {/* Question Details */}
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <Card>
                   <CardHeader className='pb-3'>
                     <CardTitle className='text-lg'>
@@ -1431,6 +1561,26 @@ const Admin = () => {
 
                 <Card>
                   <CardHeader className='pb-3'>
+                    <CardTitle className='text-lg'>Skipped Questions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedAnnotator.skippedQuestions.length > 0 ? (
+                      <div className='space-y-2'>
+                        <div className='text-sm text-red-600'>
+                          Skipped:{' '}
+                          {selectedAnnotator.skippedQuestions.join(', ')}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className='text-sm text-muted-foreground'>
+                        No skipped questions
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className='pb-3'>
                     <CardTitle className='text-lg'>
                       Historical Questions
                     </CardTitle>
@@ -1464,7 +1614,7 @@ const Admin = () => {
                   <CardTitle className='text-lg'>Summary Statistics</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+                  <div className='grid grid-cols-2 md:grid-cols-5 gap-4 text-center'>
                     <div>
                       <div className='text-lg font-bold'>
                         {selectedAnnotator.completedQuestions.length}
@@ -1487,6 +1637,14 @@ const Admin = () => {
                       </div>
                       <div className='text-xs text-muted-foreground'>
                         Current Completed
+                      </div>
+                    </div>
+                    <div>
+                      <div className='text-lg font-bold'>
+                        {selectedAnnotator.skipped}
+                      </div>
+                      <div className='text-xs text-muted-foreground'>
+                        Skipped
                       </div>
                     </div>
                     <div>
@@ -1593,8 +1751,12 @@ const Admin = () => {
                 />
               </div>
             </div>
-            <Button type='submit' className='w-full'>
-              Add User
+            <Button type='submit' className='w-full' disabled={isAddingUser}>
+              {isAddingUser ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                'Add User'
+              )}
             </Button>
           </form>
         </DialogContent>
@@ -1636,8 +1798,16 @@ const Admin = () => {
                 />
               </div>
             </div>
-            <Button type='submit' className='w-full'>
-              Assign Questions
+            <Button
+              type='submit'
+              className='w-full'
+              disabled={isAssigningQuestions}
+            >
+              {isAssigningQuestions ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                'Assign Questions'
+              )}
             </Button>
           </form>
         </DialogContent>
