@@ -51,7 +51,8 @@ func InitializeRoutes() http.Handler {
 
 	// Admin routes
 
-	r.HandleFunc("/api/admin/question_assignment_summary", controllers.GetQuestionAssignmentSummary).Methods("GET")
+	r.HandleFunc("/admin/question_assignment_summary", controllers.GetQuestionAssignmentSummary).Methods("GET")
+	r.HandleFunc("/admin/annotator_progress", controllers.GetAnnotatorProgress).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
