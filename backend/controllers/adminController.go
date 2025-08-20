@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"backend/db"
-	"backend/models"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserStats struct {
@@ -39,22 +37,42 @@ type AdminStatsResponse struct {
 	Summary AnnotationSummary `json:"summary"`
 }
 
-func GetUserStats(w http.ResponseWriter, r *http.Request) {
-	// Check if user is admin
-	userID := r.Context().Value("user_id").(int)
-	usersCollection := db.GetCollection("users")
+type AnnotatorProgress struct {
+	UserId             int       `json:"userId"`
+	Username           string    `json:"username"`
+	FirstName          string    `json:"firstName"`
+	LastName           string    `json:"lastName"`
+	Email              string    `json:"email"`
+	TotalAssigned      int       `json:"totalAssigned"`
+	Completed          int       `json:"completed"`
+	Skipped            int       `json:"skipped"`
+	CompletionRate     float64   `json:"completionRate"`
+	IsFinished         bool      `json:"isFinished"`
+	LastActive         time.Time `json:"lastActive"`
+	AssignedQuestions  []int     `json:"assignedQuestions"`
+	CompletedQuestions []int     `json:"completedQuestions"`
+	SkippedQuestions   []int     `json:"skippedQuestions"`
+}
+
+type AnnotatorProgressResponse struct {
+	Annotators []AnnotatorProgress `json:"annotators"`
+	Summary    struct {
+		TotalAnnotators    int     `json:"totalAnnotators"`
+		FinishedAnnotators int     `json:"finishedAnnotators"`
+		AverageCompletion  float64 `json:"averageCompletion"`
+	} `json:"summary"`
+}
+
+func GetAnnotatorProgress(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var adminUser models.User
-	err := usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&adminUser)
-	if err != nil || adminUser.Role != "admin" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+	// Get collections
+	usersCollection := db.GetCollection("users")
+	assignmentsCollection := db.GetCollection("assignments")
+	annotationsCollection := db.GetCollection("annotations")
 
-	// Get all users
-	var users []models.User
+	// Get all users (annotators)
 	cursor, err := usersCollection.Find(ctx, bson.M{})
 	if err != nil {
 		http.Error(w, "Error fetching users", http.StatusInternalServerError)
@@ -62,96 +80,178 @@ func GetUserStats(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cursor.Close(ctx)
 
+	var users []struct {
+		UserId    int    `bson:"user_id"`
+		Username  string `bson:"username"`
+		FirstName string `bson:"firstname"`
+		LastName  string `bson:"lastname"`
+		Email     string `bson:"email"`
+	}
+
 	if err = cursor.All(ctx, &users); err != nil {
 		http.Error(w, "Error parsing users", http.StatusInternalServerError)
 		return
 	}
 
-	// Get annotations collection
-	annotationsCollection := db.GetCollection("annotations")
+	var annotators []AnnotatorProgress
+	totalCompletion := 0.0
+	finishedCount := 0
 
-	// Prepare response
-	var userStats []UserStats
-	var summary AnnotationSummary
-
-	// Calculate stats for each user
 	for _, user := range users {
-		// Get user's annotations
-		annotationCount, err := annotationsCollection.CountDocuments(ctx, bson.M{"annotated_by": user.UserId})
-		if err != nil {
+		// Skip admin users (assuming user_id <= 10 are admins)
+		if user.UserId <= 10 {
 			continue
 		}
 
-		validCount, err := annotationsCollection.CountDocuments(ctx, bson.M{
-			"annotated_by":   user.UserId,
-			"question_valid": true,
-		})
+		// Get user's current assignments (current batch)
+		var assignment struct {
+			QuestionIDs        []int `bson:"question_ids"`
+			SkippedQuestionIDs []int `bson:"skipped_question_ids"`
+		}
+
+		err := assignmentsCollection.FindOne(ctx, bson.M{"user_id": user.UserId}).Decode(&assignment)
+		if err != nil && err != mongo.ErrNoDocuments {
+			continue // Skip if error (not just no documents)
+		}
+
+		// Get user's annotations (all historical annotations)
+		annotationCollection := annotationsCollection
+		if user.UserId <= 10 {
+			annotationCollection = db.GetCollection("annotations_dev")
+		}
+
+		annotationCursor, err := annotationCollection.Find(ctx, bson.M{"annotated_by": user.UserId})
 		if err != nil {
 			continue
 		}
+		defer annotationCursor.Close(ctx)
 
-		invalidCount, err := annotationsCollection.CountDocuments(ctx, bson.M{
-			"annotated_by":   user.UserId,
-			"question_valid": false,
-		})
-		if err != nil {
+		var annotations []struct {
+			QuestionID int       `bson:"question_id"`
+			CreatedAt  time.Time `bson:"created_at"`
+		}
+
+		if err = annotationCursor.All(ctx, &annotations); err != nil {
 			continue
 		}
 
-		// Get last active time from the most recent annotation
-		var lastAnnotation models.Annotation
-		opts := options.FindOne().SetSort(bson.M{"updated_at": -1})
-		err = annotationsCollection.FindOne(ctx,
-			bson.M{"annotated_by": user.UserId},
-			opts,
-		).Decode(&lastAnnotation)
+		// Create a map of all completed questions (historical)
+		allCompletedQuestions := make(map[int]bool)
+		var lastActive time.Time
 
-		lastActive := user.CreatedAt
-		if err == nil {
-			lastActive = lastAnnotation.UpdatedAt
+		// Find the most recent annotation timestamp
+		for _, annotation := range annotations {
+			allCompletedQuestions[annotation.QuestionID] = true
+			if annotation.CreatedAt.After(lastActive) {
+				lastActive = annotation.CreatedAt
+			}
 		}
 
-		stats := UserStats{
-			UserId:           user.UserId,
-			Username:         user.Username,
-			FirstName:        user.FirstName,
-			LastName:         user.LastName,
-			Email:            user.Email,
-			TotalAnnotations: int(annotationCount),
-			ValidQuestions:   int(validCount),
-			InvalidQuestions: int(invalidCount),
-			LastActive:       lastActive,
+		// If no annotations found, use a default time (or skip this user)
+		if lastActive.IsZero() {
+			lastActive = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC) // Unix epoch start
 		}
 
-		userStats = append(userStats, stats)
-
-		// Update summary
-		summary.TotalQuestions += int(annotationCount)
-		summary.ValidQuestions += int(validCount)
-		summary.InvalidQuestions += int(invalidCount)
-		summary.CompletedQuestions += int(validCount + invalidCount)
-	}
-
-	// Get skipped questions from assignments
-	assignmentsCollection := db.GetCollection("annotation_assignments")
-	pipeline := mongo.Pipeline{
-		{{"$group", bson.D{
-			{"_id", nil},
-			{"totalSkipped", bson.D{{"$sum", bson.D{{"$size", "$skipped_question_ids"}}}}},
-		}}},
-	}
-
-	cursor, err = assignmentsCollection.Aggregate(ctx, pipeline)
-	if err == nil {
-		var result []bson.M
-		if err = cursor.All(ctx, &result); err == nil && len(result) > 0 {
-			summary.SkippedQuestions = int(result[0]["totalSkipped"].(int64))
+		// Calculate current assigned questions (excluding skipped)
+		currentAssignedQuestions := make([]int, 0)
+		skippedQuestions := assignment.SkippedQuestionIDs
+		skippedMap := make(map[int]bool)
+		for _, skipped := range skippedQuestions {
+			skippedMap[skipped] = true
 		}
+
+		for _, questionID := range assignment.QuestionIDs {
+			if !skippedMap[questionID] {
+				currentAssignedQuestions = append(currentAssignedQuestions, questionID)
+			}
+		}
+
+		// Calculate completion of current batch
+		currentCompletedQuestions := make([]int, 0)
+		currentSkippedQuestions := make([]int, 0)
+
+		for _, questionID := range currentAssignedQuestions {
+			if allCompletedQuestions[questionID] {
+				currentCompletedQuestions = append(currentCompletedQuestions, questionID)
+			}
+		}
+
+		// Add skipped questions from current batch
+		for _, skippedID := range skippedQuestions {
+			currentSkippedQuestions = append(currentSkippedQuestions, skippedID)
+		}
+
+		// Calculate historical completed questions (not in current batch)
+		historicalCompletedQuestions := make([]int, 0)
+		currentAssignedMap := make(map[int]bool)
+		for _, qid := range currentAssignedQuestions {
+			currentAssignedMap[qid] = true
+		}
+		for _, qid := range skippedQuestions {
+			currentAssignedMap[qid] = true
+		}
+
+		for questionID := range allCompletedQuestions {
+			if !currentAssignedMap[questionID] {
+				historicalCompletedQuestions = append(historicalCompletedQuestions, questionID)
+			}
+		}
+
+		// Calculate completion rate based on current batch only
+		completionRate := 0.0
+		totalCurrentAssigned := len(currentAssignedQuestions)
+		if totalCurrentAssigned > 0 {
+			completionRate = float64(len(currentCompletedQuestions)) / float64(totalCurrentAssigned) * 100
+		}
+
+		// Check if finished current batch
+		isFinished := totalCurrentAssigned > 0 && len(currentCompletedQuestions) >= totalCurrentAssigned
+
+		if isFinished {
+			finishedCount++
+		}
+		totalCompletion += completionRate
+
+		// Get last active time (use current time as placeholder, you might want to track this separately)
+		// lastActive is already calculated above from the most recent annotation
+
+		annotator := AnnotatorProgress{
+			UserId:             user.UserId,
+			Username:           user.Username,
+			FirstName:          user.FirstName,
+			LastName:           user.LastName,
+			Email:              user.Email,
+			TotalAssigned:      totalCurrentAssigned,           // Only current batch
+			Completed:          len(currentCompletedQuestions), // Only current batch completed
+			Skipped:            len(currentSkippedQuestions),   // Only current batch skipped
+			CompletionRate:     completionRate,                 // Based on current batch
+			IsFinished:         isFinished,                     // Based on current batch
+			LastActive:         lastActive,
+			AssignedQuestions:  currentAssignedQuestions,                                           // Current batch only
+			CompletedQuestions: append(currentCompletedQuestions, historicalCompletedQuestions...), // All completed (for reference)
+			SkippedQuestions:   currentSkippedQuestions,                                            // Current batch only
+		}
+
+		annotators = append(annotators, annotator)
 	}
 
-	response := AdminStatsResponse{
-		Users:   userStats,
-		Summary: summary,
+	// Calculate summary
+	averageCompletion := 0.0
+	if len(annotators) > 0 {
+		averageCompletion = totalCompletion / float64(len(annotators))
+	}
+
+	response := AnnotatorProgressResponse{
+		Annotators: annotators,
+		Summary: struct {
+			TotalAnnotators    int     `json:"totalAnnotators"`
+			FinishedAnnotators int     `json:"finishedAnnotators"`
+			AverageCompletion  float64 `json:"averageCompletion"`
+		}{
+			TotalAnnotators:    len(annotators),
+			FinishedAnnotators: finishedCount,
+			AverageCompletion:  averageCompletion,
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")

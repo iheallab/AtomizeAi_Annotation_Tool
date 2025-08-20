@@ -50,7 +50,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ user }) => {
                 {user.username}
               </p>
               <p className='text-xs leading-none text-muted-foreground'>
-                User Account
+                {user.role === 'admin' ? 'Admin' : 'Annotator'}
               </p>
             </div>
           </DropdownMenuLabel>

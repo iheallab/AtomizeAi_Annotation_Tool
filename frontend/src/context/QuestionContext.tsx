@@ -210,11 +210,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       await fetchQuestions(); // Refresh questions after skipping
-      console.log(
-        'skip annotation after fetching questions',
-        questions,
-        currentQuestionIndex
-      );
+
       if (currentQuestionIndex === questions.length - 1) {
         setCurrentQuestionIndex(questions.length - 1 - 1); // Reset to first question if at the end
       }

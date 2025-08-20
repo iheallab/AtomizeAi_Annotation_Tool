@@ -5,8 +5,6 @@ import (
 	"backend/controllers"
 	"net/http"
 
-	"backend/middleware"
-
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -25,13 +23,9 @@ func InitializeRoutes() http.Handler {
 
 	// r.HandleFunc("/questions", controllers.DeleteQuestion).Methods("DELETE")
 
-	r.HandleFunc("/add_assignment", controllers.AddAssignment).Methods("POST")
-
 	r.HandleFunc("/skip_question_by_id", controllers.SkipQuestionByID).Methods("POST")
 
 	// r.HandleFunc("/replace_question_by_id", controllers.ReplaceQuestionByID).Methods("POST")
-
-	r.HandleFunc("/add_user", controllers.AddUser).Methods("POST")
 
 	r.HandleFunc("/annotations", controllers.GetQuestionsToAnnotate).Methods("GET")
 
@@ -52,9 +46,14 @@ func InitializeRoutes() http.Handler {
 	r.HandleFunc("/change_password", controllers.ChangePassword).Methods("POST")
 
 	// Admin routes
-	r.HandleFunc("/api/admin/user_stats", middleware.AuthMiddleware(controllers.GetUserStats)).Methods("GET")
 
-	r.HandleFunc("/api/admin/question_assignment_summary", controllers.GetQuestionAssignmentSummary).Methods("GET")
+	r.HandleFunc("/admin/add_user", controllers.AddUser).Methods("POST")
+
+	r.HandleFunc("/admin/add_assignment", controllers.AddAssignment).Methods("POST")
+
+	r.HandleFunc("/admin/question_assignment_summary", controllers.GetQuestionAssignmentSummary).Methods("GET")
+
+	r.HandleFunc("/admin/annotator_progress", controllers.GetAnnotatorProgress).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

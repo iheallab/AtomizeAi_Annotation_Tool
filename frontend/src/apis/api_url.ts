@@ -11,3 +11,7 @@ export const checkUserLinksWithGoogleUrl = import.meta.env
 export const linkUserWithGoogleUrl = import.meta.env
   .VITE_LINK_USER_WITH_GOOGLE_URL;
 export const changePasswordUrl = import.meta.env.VITE_CHANGE_PASSWORD_URL;
+export const questionAssignmentSummaryUrl = import.meta.env
+  .VITE_QUESTION_ASSIGNMENT_SUMMARY_URL;
+export const annotatorProgressUrl = import.meta.env.VITE_ANNOTATOR_PROGRESS_URL;
+export const addUserUrl = import.meta.env.VITE_ADD_USER_URL;
