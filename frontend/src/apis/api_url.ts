@@ -14,3 +14,4 @@ export const changePasswordUrl = import.meta.env.VITE_CHANGE_PASSWORD_URL;
 export const questionAssignmentSummaryUrl = import.meta.env
   .VITE_QUESTION_ASSIGNMENT_SUMMARY_URL;
 export const annotatorProgressUrl = import.meta.env.VITE_ANNOTATOR_PROGRESS_URL;
+export const addUserUrl = import.meta.env.VITE_ADD_USER_URL;

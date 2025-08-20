@@ -22,6 +22,8 @@ import { useToast } from '@/components/ui/use-toast';
 import {
   questionAssignmentSummaryUrl,
   annotatorProgressUrl,
+  addUserUrl,
+  addAssignmentUrl,
 } from '@/apis/api_url';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +34,8 @@ import {
   Clock,
   AlertCircle,
   X,
+  Plus,
+  UserPlus,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -41,6 +45,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface QuestionDetail {
   question_id: number;
@@ -163,7 +177,7 @@ const Admin = () => {
       },
     });
   const [annotatorState, setAnnotatorState] = useState<AnnotatorState>({
-    isExpanded: false,
+    isExpanded: true,
     currentPage: 1,
     sortField: 'completionRate',
     sortDirection: 'desc',
@@ -171,73 +185,94 @@ const Admin = () => {
   const [selectedAnnotator, setSelectedAnnotator] =
     useState<AnnotatorProgress | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isAssignQuestionsModalOpen, setIsAssignQuestionsModalOpen] =
+    useState(false);
+  const [selectedUserForAssignment, setSelectedUserForAssignment] =
+    useState<AnnotatorProgress | null>(null);
 
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        const token = user?.token;
-        if (!token) {
+  // Add User Form State
+  const [addUserForm, setAddUserForm] = useState({
+    username: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    jobTitle: '',
+    specialization: '',
+  });
+
+  // Assign Questions Form State
+  const [assignQuestionsForm, setAssignQuestionsForm] = useState({
+    questionCount: 25,
+  });
+
+  const fetchAdminData = async () => {
+    try {
+      const token = user?.token;
+      if (!token) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      // Fetch question assignment summary
+      const statsResponse = await fetch(questionAssignmentSummaryUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'GET',
+      });
+
+      if (!statsResponse.ok) {
+        if (statsResponse.status === 401) {
           toast({
             variant: 'destructive',
-            title: 'Authentication Error',
-            description: 'Please log in again',
+            title: 'Unauthorized',
+            description: "You don't have permission to access this page",
           });
           return;
         }
-
-        // Fetch question assignment summary
-        const statsResponse = await fetch(questionAssignmentSummaryUrl, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'GET',
-        });
-
-        if (!statsResponse.ok) {
-          if (statsResponse.status === 401) {
-            toast({
-              variant: 'destructive',
-              title: 'Unauthorized',
-              description: "You don't have permission to access this page",
-            });
-            return;
-          }
-          throw new Error('Failed to fetch admin data');
-        }
-
-        const data: QuestionAssignmentResponse = await statsResponse.json();
-
-        if (data.summary) {
-          setSummary(data.summary);
-        }
-
-        if (data.detailed_counts) {
-          setDetailedCounts(data.detailed_counts);
-        }
-
-        // Fetch annotator progress
-        const annotatorResponse = await fetch(annotatorProgressUrl, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'GET',
-        });
-
-        if (annotatorResponse.ok) {
-          const annotatorData: AnnotatorProgressResponse =
-            await annotatorResponse.json();
-          setAnnotatorProgress(annotatorData);
-        }
-      } catch (error) {
-        console.error('Error fetching admin data:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load admin dashboard data',
-        });
+        throw new Error('Failed to fetch admin data');
       }
-    };
 
+      const data: QuestionAssignmentResponse = await statsResponse.json();
+
+      if (data.summary) {
+        setSummary(data.summary);
+      }
+
+      if (data.detailed_counts) {
+        setDetailedCounts(data.detailed_counts);
+      }
+
+      // Fetch annotator progress
+      const annotatorResponse = await fetch(annotatorProgressUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'GET',
+      });
+
+      if (annotatorResponse.ok) {
+        const annotatorData: AnnotatorProgressResponse =
+          await annotatorResponse.json();
+        setAnnotatorProgress(annotatorData);
+      }
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load admin dashboard data',
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchAdminData();
   }, [toast]);
 
@@ -463,6 +498,139 @@ const Admin = () => {
     setSelectedAnnotator(null);
   };
 
+  const openAddUserModal = () => {
+    setIsAddUserModalOpen(true);
+  };
+
+  const closeAddUserModal = () => {
+    setIsAddUserModalOpen(false);
+    setAddUserForm({
+      username: '',
+      password: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      jobTitle: '',
+      specialization: '',
+    });
+  };
+
+  const openAssignQuestionsModal = (annotator: AnnotatorProgress) => {
+    setSelectedUserForAssignment(annotator);
+    setIsAssignQuestionsModalOpen(true);
+  };
+
+  const closeAssignQuestionsModal = () => {
+    setIsAssignQuestionsModalOpen(false);
+    setSelectedUserForAssignment(null);
+    setAssignQuestionsForm({ questionCount: 25 });
+  };
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = user?.token;
+      if (!token) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      const response = await fetch(addUserUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(addUserForm),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: 'Success',
+          description: `User ${result.username} added successfully with ID: ${result.userID}`,
+        });
+        closeAddUserModal();
+        // Refresh annotator data
+        fetchAdminData();
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorData.message || 'Failed to add user',
+        });
+      }
+    } catch (error) {
+      console.error('Error adding user:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to add user',
+      });
+    }
+  };
+
+  const handleAssignQuestions = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedUserForAssignment) return;
+
+    try {
+      const token = user?.token;
+      if (!token) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `${addAssignmentUrl}?user_id=${selectedUserForAssignment.userId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ count: assignQuestionsForm.questionCount }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: 'Success',
+          description: `Assigned ${result.assigned_ids.length} questions to ${selectedUserForAssignment.username}`,
+        });
+        closeAssignQuestionsModal();
+        // Refresh annotator data
+        fetchAdminData();
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorData.message || 'Failed to assign questions',
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning questions:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to assign questions',
+      });
+    }
+  };
+
   const renderCategoryTable = (
     category: string,
     questions: QuestionDetail[],
@@ -655,12 +823,30 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <div className='space-y-4'>
+                {/* Action Buttons */}
+                <div className='flex gap-2 mb-4'>
+                  <Button
+                    onClick={openAddUserModal}
+                    className='flex items-center gap-2'
+                  >
+                    <UserPlus className='h-4 w-4' />
+                    Add New User
+                  </Button>
+                </div>
                 {/* Helpful Description */}
                 <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4'>
                   <h4 className='font-semibold text-blue-800 mb-2'>
                     How to interpret the data:
                   </h4>
                   <ul className='text-sm text-blue-700 space-y-1'>
+                    <li>
+                      • <strong>Status:</strong> "Completed" means all current
+                      batch questions are finished
+                    </li>
+                    <li>
+                      • <strong>Progress:</strong> Percentage based on current
+                      batch completion only
+                    </li>
                     <li>
                       • <strong>Assigned:</strong> Current batch of questions
                       assigned to the annotator
@@ -670,16 +856,8 @@ const Admin = () => {
                       that have been annotated
                     </li>
                     <li>
-                      • <strong>Historical Completed:</strong> Questions
-                      completed from previous batches
-                    </li>
-                    <li>
-                      • <strong>Progress:</strong> Percentage based on current
-                      batch completion only
-                    </li>
-                    <li>
-                      • <strong>Status:</strong> "Completed" means all current
-                      batch questions are finished
+                      • <strong>History:</strong> Questions completed from
+                      previous batches
                     </li>
                   </ul>
                 </div>
@@ -835,7 +1013,7 @@ const Admin = () => {
                                     }
                                     className='h-auto p-0 font-semibold hover:bg-transparent'
                                   >
-                                    Historical Completed
+                                    History
                                     <span className='ml-1'>
                                       {getAnnotatorSortIcon(
                                         'historicalCompleted'
@@ -843,6 +1021,7 @@ const Admin = () => {
                                     </span>
                                   </Button>
                                 </TableHead>
+                                <TableHead>Actions</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -868,13 +1047,8 @@ const Admin = () => {
                                   </TableCell>
                                   <TableCell>{annotator.userId}</TableCell>
                                   <TableCell>
-                                    <div>
-                                      <div className='font-medium'>
-                                        {annotator.username}
-                                      </div>
-                                      <div className='text-sm text-muted-foreground'>
-                                        {annotator.email}
-                                      </div>
+                                    <div className='font-medium'>
+                                      {annotator.username}
                                     </div>
                                   </TableCell>
                                   <TableCell>
@@ -904,6 +1078,20 @@ const Admin = () => {
                                   <TableCell>
                                     {annotator.completedQuestions.length -
                                       annotator.completed}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant='outline'
+                                      size='sm'
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openAssignQuestionsModal(annotator);
+                                      }}
+                                      className='flex items-center gap-1'
+                                    >
+                                      <Plus className='h-3 w-3' />
+                                      Assign
+                                    </Button>
                                   </TableCell>
                                 </TableRow>
                               ))}
@@ -1315,6 +1503,143 @@ const Admin = () => {
               </Card>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add User Modal */}
+      <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
+        <DialogContent className='max-w-md max-h-[80vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center justify-between'>
+              <span>Add New User</span>
+            </DialogTitle>
+            <DialogDescription>
+              Enter details to add a new user to the system.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddUser} className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <Label htmlFor='username'>Username</Label>
+                <Input
+                  id='username'
+                  value={addUserForm.username}
+                  onChange={(e) =>
+                    setAddUserForm({ ...addUserForm, username: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor='password'>Password</Label>
+                <Input
+                  type='password'
+                  id='password'
+                  value={addUserForm.password}
+                  onChange={(e) =>
+                    setAddUserForm({ ...addUserForm, password: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor='firstName'>First Name</Label>
+                <Input
+                  id='firstName'
+                  value={addUserForm.firstName}
+                  onChange={(e) =>
+                    setAddUserForm({
+                      ...addUserForm,
+                      firstName: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor='lastName'>Last Name</Label>
+                <Input
+                  id='lastName'
+                  value={addUserForm.lastName}
+                  onChange={(e) =>
+                    setAddUserForm({ ...addUserForm, lastName: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor='jobTitle'>Job Title</Label>
+                <Input
+                  id='jobTitle'
+                  value={addUserForm.jobTitle}
+                  onChange={(e) =>
+                    setAddUserForm({ ...addUserForm, jobTitle: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor='specialization'>Specialization</Label>
+                <Input
+                  id='specialization'
+                  value={addUserForm.specialization}
+                  onChange={(e) =>
+                    setAddUserForm({
+                      ...addUserForm,
+                      specialization: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            <Button type='submit' className='w-full'>
+              Add User
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Questions Modal */}
+      <Dialog
+        open={isAssignQuestionsModalOpen}
+        onOpenChange={setIsAssignQuestionsModalOpen}
+      >
+        <DialogContent className='max-w-md max-h-[80vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center justify-between'>
+              <span>
+                Assign Questions to {selectedUserForAssignment?.username}
+              </span>
+            </DialogTitle>
+            <DialogDescription>
+              Select the number of questions to assign to this annotator.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAssignQuestions} className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <Label htmlFor='questionCount'>Number of Questions</Label>
+                <Input
+                  type='number'
+                  id='questionCount'
+                  value={assignQuestionsForm.questionCount}
+                  onChange={(e) =>
+                    setAssignQuestionsForm({
+                      ...assignQuestionsForm,
+                      questionCount: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                  min='1'
+                  max='100'
+                  required
+                />
+              </div>
+            </div>
+            <Button type='submit' className='w-full'>
+              Assign Questions
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
