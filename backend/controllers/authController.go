@@ -71,9 +71,9 @@ type UserRequest struct {
 	UserId         int       `json:"user_id" bson:"user_id"`
 	Username       string    `json:"username"`
 	Password       string    `json:"password"`
-	FirstName      string    `json:"first_name"`
-	LastName       string    `json:"last_name"`
-	JobTitle       string    `json:"job_title"`
+	FirstName      string    `json:"firstName"`
+	LastName       string    `json:"lastName"`
+	JobTitle       string    `json:"jobTitle"`
 	Specialization string    `json:"specialization"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 }
