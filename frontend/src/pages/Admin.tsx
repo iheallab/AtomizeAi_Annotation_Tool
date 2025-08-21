@@ -1506,7 +1506,7 @@ const Admin = () => {
                         ? 'N/A'
                         : new Date(
                             selectedAnnotator.lastActive
-                          ).toLocaleDateString()}
+                          ).toLocaleString()}
                     </div>
                     <div>
                       <span className='font-medium'>Completion Rate:</span>{' '}
