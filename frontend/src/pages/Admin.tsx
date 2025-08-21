@@ -193,7 +193,6 @@ const Admin = () => {
     useState(false);
   const [selectedUserForAssignment, setSelectedUserForAssignment] =
     useState<AnnotatorProgress | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [isAssigningQuestions, setIsAssigningQuestions] = useState(false);
 
@@ -213,8 +212,24 @@ const Admin = () => {
     questionCount: 25,
   });
 
+  // Granular loading states
+  const [isLoadingAnnotatorData, setIsLoadingAnnotatorData] = useState(false);
+  const [isLoadingAssignmentData, setIsLoadingAssignmentData] = useState(false);
+  const [isLoadingAnnotatorTable, setIsLoadingAnnotatorTable] = useState(false);
+  const [isLoadingAssignmentTables, setIsLoadingAssignmentTables] =
+    useState(false);
+  const [isLoadingAnnotatorStats, setIsLoadingAnnotatorStats] = useState(false);
+  const [isLoadingAssignmentStats, setIsLoadingAssignmentStats] =
+    useState(false);
+
   const fetchAdminData = async () => {
-    setIsLoading(true);
+    setIsLoadingAnnotatorData(true);
+    setIsLoadingAssignmentData(true);
+    setIsLoadingAnnotatorTable(true);
+    setIsLoadingAssignmentTables(true);
+    setIsLoadingAnnotatorStats(true);
+    setIsLoadingAssignmentStats(true);
+
     try {
       const token = user?.token;
       if (!token) {
@@ -256,6 +271,11 @@ const Admin = () => {
         setDetailedCounts(data.detailed_counts);
       }
 
+      // Mark assignment statistics and data as loaded
+      setIsLoadingAssignmentStats(false);
+      setIsLoadingAssignmentData(false);
+      setIsLoadingAssignmentTables(false);
+
       // Fetch annotator progress
       const annotatorResponse = await fetch(annotatorProgressUrl, {
         headers: {
@@ -269,6 +289,11 @@ const Admin = () => {
           await annotatorResponse.json();
         setAnnotatorProgress(annotatorData);
       }
+
+      // Mark annotator data as loaded
+      setIsLoadingAnnotatorStats(false);
+      setIsLoadingAnnotatorData(false);
+      setIsLoadingAnnotatorTable(false);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       toast({
@@ -277,7 +302,13 @@ const Admin = () => {
         description: 'Failed to load admin dashboard data',
       });
     } finally {
-      setIsLoading(false);
+      // Ensure all loading states are reset
+      setIsLoadingAnnotatorData(false);
+      setIsLoadingAssignmentData(false);
+      setIsLoadingAnnotatorTable(false);
+      setIsLoadingAssignmentTables(false);
+      setIsLoadingAnnotatorStats(false);
+      setIsLoadingAssignmentStats(false);
     }
   };
 
@@ -669,7 +700,17 @@ const Admin = () => {
     );
 
     return (
-      <div className='border rounded-lg p-4'>
+      <div className='border rounded-lg p-4 relative'>
+        {isLoadingAssignmentTables && (
+          <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+            <div className='flex items-center gap-2'>
+              <Loader2 className='h-6 w-6 animate-spin' />
+              <span className='text-sm font-medium'>
+                Loading {title.toLowerCase()}...
+              </span>
+            </div>
+          </div>
+        )}
         <div className='flex items-center justify-between mb-4'>
           <h3 className={`text-lg font-semibold ${color}`}>
             {title} ({questions?.length || 0})
@@ -834,9 +875,17 @@ const Admin = () => {
               onClick={fetchAdminData}
               variant='outline'
               className='flex items-center gap-2'
-              disabled={isLoading}
+              disabled={
+                isLoadingAnnotatorStats ||
+                isLoadingAssignmentStats ||
+                isLoadingAnnotatorData ||
+                isLoadingAssignmentData
+              }
             >
-              {isLoading ? (
+              {isLoadingAnnotatorStats ||
+              isLoadingAssignmentStats ||
+              isLoadingAnnotatorData ||
+              isLoadingAssignmentData ? (
                 <Loader2 className='h-4 w-4 animate-spin' />
               ) : (
                 <RefreshCw className='h-4 w-4' />
@@ -847,7 +896,7 @@ const Admin = () => {
 
           {/* Annotator Progress Tracking */}
           <Card className='relative'>
-            {isLoading && (
+            {isLoadingAnnotatorData && (
               <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                 <div className='flex items-center gap-2'>
                   <Loader2 className='h-6 w-6 animate-spin' />
@@ -911,7 +960,7 @@ const Admin = () => {
                 {/* Summary Stats */}
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAnnotatorStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -926,7 +975,7 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAnnotatorStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -939,7 +988,7 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAnnotatorStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -959,7 +1008,17 @@ const Admin = () => {
                 </div>
 
                 {/* Annotator Table Section */}
-                <div className='border rounded-lg p-4'>
+                <div className='border rounded-lg p-4 relative'>
+                  {isLoadingAnnotatorTable && (
+                    <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
+                      <div className='flex items-center gap-2'>
+                        <Loader2 className='h-6 w-6 animate-spin' />
+                        <span className='text-sm font-medium'>
+                          Loading annotator table...
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-semibold text-gray-700'>
                       Annotator Details ({annotatorProgress.annotators.length})
@@ -1241,7 +1300,7 @@ const Admin = () => {
 
           {/* Question Assignment Summary */}
           <Card className='relative'>
-            {isLoading && (
+            {isLoadingAssignmentData && (
               <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                 <div className='flex items-center gap-2'>
                   <Loader2 className='h-6 w-6 animate-spin' />
@@ -1275,7 +1334,7 @@ const Admin = () => {
 
                 <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAssignmentStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -1290,7 +1349,7 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAssignmentStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -1305,7 +1364,7 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAssignmentStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -1320,7 +1379,7 @@ const Admin = () => {
                     </CardContent>
                   </Card>
                   <Card className='relative'>
-                    {isLoading && (
+                    {isLoadingAssignmentStats && (
                       <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                         <Loader2 className='h-4 w-4 animate-spin' />
                       </div>
@@ -1341,7 +1400,7 @@ const Admin = () => {
 
           {/* Question Assignment Details */}
           <Card className='relative'>
-            {isLoading && (
+            {isLoadingAssignmentTables && (
               <div className='absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg'>
                 <div className='flex items-center gap-2'>
                   <Loader2 className='h-6 w-6 animate-spin' />
