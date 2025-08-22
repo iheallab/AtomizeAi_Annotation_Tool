@@ -182,9 +182,7 @@ func GetAnnotatorProgress(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Add skipped questions from current batch
-		for _, skippedID := range skippedQuestions {
-			currentSkippedQuestions = append(currentSkippedQuestions, skippedID)
-		}
+		currentSkippedQuestions = append(currentSkippedQuestions, skippedQuestions...)
 
 		// Calculate historical completed questions (not in current batch)
 		historicalCompletedQuestions := make([]int, 0)
@@ -274,10 +272,10 @@ func GetQuestionAssignmentSummary(w http.ResponseWriter, r *http.Request) {
 
 	// Step 1: Get all question IDs from annotations with user details
 	annotationPipeline := mongo.Pipeline{
-		{{"$project", bson.D{
-			{"question_id", 1},
-			{"annotated_by", 1},
-			{"_id", 0},
+		{{Key: "$project", Value: bson.D{
+			{Key: "question_id", Value: 1},
+			{Key: "annotated_by", Value: 1},
+			{Key: "_id", Value: 0},
 		}}},
 	}
 
@@ -300,15 +298,15 @@ func GetQuestionAssignmentSummary(w http.ResponseWriter, r *http.Request) {
 
 	// Step 2: Get all question IDs from assignments with user details
 	assignmentPipeline := mongo.Pipeline{
-		{{"$match", bson.D{
-			{"user_id", bson.D{{"$gt", 10}}},
+		{{Key: "$match", Value: bson.D{
+			{Key: "user_id", Value: bson.D{{Key: "$gt", Value: 10}}},
 		}}},
-		{{"$project", bson.D{
-			{"question_ids", 1},
-			{"user_id", 1},
-			{"_id", 0},
+		{{Key: "$project", Value: bson.D{
+			{Key: "question_ids", Value: 1},
+			{Key: "user_id", Value: 1},
+			{Key: "_id", Value: 0},
 		}}},
-		{{"$unwind", "$question_ids"}},
+		{{Key: "$unwind", Value: "$question_ids"}},
 	}
 
 	assignmentCursor, err := assignmentsCollection.Aggregate(ctx, assignmentPipeline)
@@ -330,9 +328,9 @@ func GetQuestionAssignmentSummary(w http.ResponseWriter, r *http.Request) {
 
 	// Step 3: Get all question IDs from questions collection
 	questionsPipeline := mongo.Pipeline{
-		{{"$project", bson.D{
-			{"question_id", 1},
-			{"_id", 0},
+		{{Key: "$project", Value: bson.D{
+			{Key: "question_id", Value: 1},
+			{Key: "_id", Value: 0},
 		}}},
 	}
 
