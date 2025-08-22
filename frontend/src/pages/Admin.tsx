@@ -25,6 +25,8 @@ import {
   addUserUrl,
   addAssignmentUrl,
   downloadAllDataUrl,
+  manuallyAssignQuestionsUrl,
+  getAllQuestionsUrl,
 } from '@/apis/api_url';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +42,8 @@ import {
   RefreshCw,
   Loader2,
   Download,
+  Search,
+  Filter,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -65,6 +69,8 @@ interface QuestionDetail {
   question_id: number;
   user_ids: number[];
   count: number;
+  category: string | string[];
+  icu_topic: string;
 }
 
 interface AssignmentCategory {
@@ -202,6 +208,26 @@ const Admin = () => {
   const [isAssigningQuestions, setIsAssigningQuestions] = useState(false);
   const [isDownloadOptionsModalOpen, setIsDownloadOptionsModalOpen] =
     useState(false);
+  const [isManualAssignmentModalOpen, setIsManualAssignmentModalOpen] =
+    useState(false);
+  const [selectedUserForManualAssignment, setSelectedUserForManualAssignment] =
+    useState<AnnotatorProgress | null>(null);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [allQuestions, setAllQuestions] = useState<any[]>([]);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
+  const [questionSearchTerm, setQuestionSearchTerm] = useState('');
+  const [questionFilterCategory, setQuestionFilterCategory] = useState('all');
+  const [isManualAssigning, setIsManualAssigning] = useState(false);
+  const [questionSortField, setQuestionSortField] = useState<
+    'question_id' | 'question' | 'category' | 'icu_topic'
+  >('question_id');
+  const [questionSortDirection, setQuestionSortDirection] = useState<
+    'asc' | 'desc'
+  >('asc');
+  const [isAssignOptionsModalOpen, setIsAssignOptionsModalOpen] =
+    useState(false);
+  const [selectedUserForAssignOptions, setSelectedUserForAssignOptions] =
+    useState<AnnotatorProgress | null>(null);
 
   // Download Options State
   const [downloadOptions, setDownloadOptions] = useState({
@@ -805,6 +831,205 @@ const Admin = () => {
     }
   };
 
+  const openManualAssignmentModal = async (annotator: AnnotatorProgress) => {
+    setSelectedUserForManualAssignment(annotator);
+    setIsManualAssignmentModalOpen(true);
+    setSelectedQuestionIds([]);
+    setQuestionSearchTerm('');
+    setQuestionFilterCategory('all');
+
+    // Fetch all questions
+    await fetchAllQuestions();
+  };
+
+  const closeManualAssignmentModal = () => {
+    setIsManualAssignmentModalOpen(false);
+    setSelectedUserForManualAssignment(null);
+    setSelectedQuestionIds([]);
+    setQuestionSearchTerm('');
+    setQuestionFilterCategory('all');
+  };
+
+  const fetchAllQuestions = async () => {
+    setIsLoadingQuestions(true);
+    try {
+      const token = user?.token;
+      if (!token) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      const response = await fetch(getAllQuestionsUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAllQuestions(data.questions || []);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to fetch questions',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to fetch questions',
+      });
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
+
+  const handleManualAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedQuestionIds.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please select at least one question',
+      });
+      return;
+    }
+
+    setIsManualAssigning(true);
+    try {
+      const token = user?.token;
+      if (!token || !selectedUserForManualAssignment) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `${manuallyAssignQuestionsUrl}?user_id=${selectedUserForManualAssignment.userId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ question_ids: selectedQuestionIds }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: 'Success',
+          description: `Manually assigned ${result.assigned_ids.length} questions to ${selectedUserForManualAssignment.username}`,
+        });
+        closeManualAssignmentModal();
+        // Refresh annotator data
+        fetchAdminData();
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorData.message || 'Failed to assign questions',
+        });
+      }
+    } catch (error) {
+      console.error('Error manually assigning questions:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to assign questions',
+      });
+    } finally {
+      setIsManualAssigning(false);
+    }
+  };
+
+  const toggleQuestionSelection = (questionId: number) => {
+    setSelectedQuestionIds((prev) =>
+      prev.includes(questionId)
+        ? prev.filter((id) => id !== questionId)
+        : [...prev, questionId]
+    );
+  };
+
+  const filteredQuestions = allQuestions.filter((question) => {
+    const matchesSearch =
+      question.question
+        .toLowerCase()
+        .includes(questionSearchTerm.toLowerCase()) ||
+      question.question_id.toString().includes(questionSearchTerm);
+    const matchesCategory =
+      questionFilterCategory === 'all' ||
+      (question.category && question.category.includes(questionFilterCategory));
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleQuestionSort = (
+    field: 'question_id' | 'question' | 'category' | 'icu_topic'
+  ) => {
+    if (questionSortField === field) {
+      setQuestionSortDirection(
+        questionSortDirection === 'asc' ? 'desc' : 'asc'
+      );
+    } else {
+      setQuestionSortField(field);
+      setQuestionSortDirection('asc');
+    }
+  };
+
+  const getQuestionSortIcon = (
+    field: 'question_id' | 'question' | 'category' | 'icu_topic'
+  ) => {
+    if (questionSortField !== field) {
+      return <ArrowUpDown className='h-4 w-4' />;
+    }
+    return questionSortDirection === 'asc' ? (
+      <ChevronUp className='h-4 w-4' />
+    ) : (
+      <ChevronDown className='h-4 w-4' />
+    );
+  };
+
+  const sortedQuestions = [...filteredQuestions].sort((a, b) => {
+    let comparison = 0;
+
+    switch (questionSortField) {
+      case 'question_id':
+        comparison = a.question_id - b.question_id;
+        break;
+      case 'question':
+        comparison = a.question.localeCompare(b.question);
+        break;
+      case 'category':
+        const aCategory = Array.isArray(a.category)
+          ? a.category.join(', ')
+          : a.category || '';
+        const bCategory = Array.isArray(b.category)
+          ? b.category.join(', ')
+          : b.category || '';
+        comparison = aCategory.localeCompare(bCategory);
+        break;
+      case 'icu_topic':
+        comparison = (a.icu_topic || '').localeCompare(b.icu_topic || '');
+        break;
+    }
+
+    return questionSortDirection === 'asc' ? comparison : -comparison;
+  });
+
   const renderCategoryTable = (
     category: string,
     questions: QuestionDetail[],
@@ -986,6 +1211,30 @@ const Admin = () => {
     sortedAnnotators,
     annotatorState.currentPage
   );
+
+  const openAssignOptionsModal = (annotator: AnnotatorProgress) => {
+    setSelectedUserForAssignOptions(annotator);
+    setIsAssignOptionsModalOpen(true);
+  };
+
+  const closeAssignOptionsModal = () => {
+    setIsAssignOptionsModalOpen(false);
+    setSelectedUserForAssignOptions(null);
+  };
+
+  const handleAutoAssign = () => {
+    if (selectedUserForAssignOptions) {
+      closeAssignOptionsModal();
+      openAssignQuestionsModal(selectedUserForAssignOptions);
+    }
+  };
+
+  const handleManualAssign = async () => {
+    if (selectedUserForAssignOptions) {
+      closeAssignOptionsModal();
+      await openManualAssignmentModal(selectedUserForAssignOptions);
+    }
+  };
 
   return (
     <div className='min-h-screen flex flex-col bg-background'>
@@ -1384,12 +1633,16 @@ const Admin = () => {
                                       size='sm'
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        openAssignQuestionsModal(annotator);
+                                        openAssignOptionsModal(annotator);
                                       }}
                                       className='flex items-center gap-1'
-                                      disabled={isAssigningQuestions}
+                                      disabled={
+                                        isAssigningQuestions ||
+                                        isManualAssigning
+                                      }
                                     >
-                                      {isAssigningQuestions ? (
+                                      {isAssigningQuestions ||
+                                      isManualAssigning ? (
                                         <Loader2 className='h-3 w-3 animate-spin' />
                                       ) : (
                                         <Plus className='h-3 w-3' />
@@ -2035,6 +2288,212 @@ const Admin = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Manual Assignment Modal */}
+      <Dialog
+        open={isManualAssignmentModalOpen}
+        onOpenChange={setIsManualAssignmentModalOpen}
+      >
+        <DialogContent className='max-w-4xl max-h-[80vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center justify-between'>
+              <span>
+                Manually Assign Questions to{' '}
+                {selectedUserForManualAssignment?.username}
+              </span>
+            </DialogTitle>
+            <DialogDescription>
+              Select questions to manually assign to this annotator.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <Label htmlFor='questionSearch'>Search Questions</Label>
+                <Input
+                  id='questionSearch'
+                  placeholder='Enter question text or ID'
+                  value={questionSearchTerm}
+                  onChange={(e) => setQuestionSearchTerm(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor='questionCategory'>Filter by Category</Label>
+                <Select
+                  onValueChange={(value) => setQuestionFilterCategory(value)}
+                  defaultValue={questionFilterCategory}
+                >
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='All Categories' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>All Categories</SelectItem>
+                    <SelectItem value='endocrine'>Endocrine</SelectItem>
+                    <SelectItem value='cardiovascular'>
+                      Cardiovascular
+                    </SelectItem>
+                    <SelectItem value='respiratory'>Respiratory</SelectItem>
+                    <SelectItem value='renal'>Renal</SelectItem>
+                    <SelectItem value='neurological'>Neurological</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className='overflow-y-auto max-h-[60vh]'>
+              {isLoadingQuestions ? (
+                <div className='flex items-center justify-center py-8'>
+                  <Loader2 className='h-6 w-6 animate-spin mr-2' />
+                  <span>Loading questions...</span>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Select</TableHead>
+                      <TableHead>
+                        <Button
+                          variant='ghost'
+                          onClick={() => handleQuestionSort('question_id')}
+                          className='h-auto p-0 font-semibold hover:bg-transparent'
+                        >
+                          Question ID
+                          <span className='ml-1'>
+                            {getQuestionSortIcon('question_id')}
+                          </span>
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant='ghost'
+                          onClick={() => handleQuestionSort('question')}
+                          className='h-auto p-0 font-semibold hover:bg-transparent'
+                        >
+                          Question Text
+                          <span className='ml-1'>
+                            {getQuestionSortIcon('question')}
+                          </span>
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant='ghost'
+                          onClick={() => handleQuestionSort('category')}
+                          className='h-auto p-0 font-semibold hover:bg-transparent'
+                        >
+                          Category
+                          <span className='ml-1'>
+                            {getQuestionSortIcon('category')}
+                          </span>
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant='ghost'
+                          onClick={() => handleQuestionSort('icu_topic')}
+                          className='h-auto p-0 font-semibold hover:bg-transparent'
+                        >
+                          ICU Topic
+                          <span className='ml-1'>
+                            {getQuestionSortIcon('icu_topic')}
+                          </span>
+                        </Button>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedQuestions.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className='text-center py-8'>
+                          No questions found matching your criteria
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sortedQuestions.map((question) => (
+                        <TableRow key={question.question_id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedQuestionIds.includes(
+                                question.question_id
+                              )}
+                              onCheckedChange={() =>
+                                toggleQuestionSelection(question.question_id)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>{question.question_id}</TableCell>
+                          <TableCell className='max-w-md'>
+                            <div
+                              className='line-clamp-3 text-sm cursor-help'
+                              title={question.question}
+                            >
+                              {question.question}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className='flex flex-wrap gap-1'>
+                              {Array.isArray(question.category) ? (
+                                question.category.map((cat, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant='secondary'
+                                    className='text-xs px-2 py-1 rounded-full'
+                                  >
+                                    {cat}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <Badge
+                                  variant='secondary'
+                                  className='text-xs px-2 py-1 rounded-full'
+                                >
+                                  {question.category}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>{question.icu_topic}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+            <div className='flex justify-between items-center'>
+              <div className='text-sm text-muted-foreground'>
+                {selectedQuestionIds.length} question(s) selected
+              </div>
+              <div className='flex gap-2'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={closeManualAssignmentModal}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  disabled={
+                    isManualAssigning || selectedQuestionIds.length === 0
+                  }
+                  onClick={handleManualAssignment}
+                >
+                  {isManualAssigning ? (
+                    <>
+                      <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                      Assigning...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className='h-4 w-4 mr-2' />
+                      Assign Selected ({selectedQuestionIds.length})
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Download Options Modal */}
       <Dialog
         open={isDownloadOptionsModalOpen}
@@ -2184,6 +2643,64 @@ const Admin = () => {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Options Modal */}
+      <Dialog
+        open={isAssignOptionsModalOpen}
+        onOpenChange={setIsAssignOptionsModalOpen}
+      >
+        <DialogContent className='max-w-md'>
+          <DialogHeader>
+            <DialogTitle>
+              Assign Questions to {selectedUserForAssignOptions?.username}
+            </DialogTitle>
+            <DialogDescription>
+              Choose how you want to assign questions to this annotator.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-4'>
+            <div className='grid grid-cols-1 gap-3'>
+              <Button
+                onClick={handleAutoAssign}
+                className='flex items-center justify-start gap-3 p-4 h-auto'
+                variant='outline'
+              >
+                <div className='flex items-center gap-3'>
+                  <Plus className='h-5 w-5' />
+                  <div className='text-left'>
+                    <div className='font-semibold'>Auto Assign</div>
+                    <div className='text-sm text-muted-foreground'>
+                      Automatically assign 25 questions based on priority
+                    </div>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                onClick={handleManualAssign}
+                className='flex items-center justify-start gap-3 p-4 h-auto'
+                variant='outline'
+              >
+                <div className='flex items-center gap-3'>
+                  <Filter className='h-5 w-5' />
+                  <div className='text-left'>
+                    <div className='font-semibold'>Manual Assign</div>
+                    <div className='text-sm text-muted-foreground'>
+                      Select specific questions to assign
+                    </div>
+                  </div>
+                </div>
+              </Button>
+            </div>
+
+            <div className='flex justify-end'>
+              <Button variant='outline' onClick={closeAssignOptionsModal}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

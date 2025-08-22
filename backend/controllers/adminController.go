@@ -6,10 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"backend/models"
 )
 
 type UserStats struct {
@@ -568,4 +572,135 @@ func DownloadAllData(w http.ResponseWriter, r *http.Request) {
 
 	// Write the response
 	w.Write(jsonData)
+}
+
+func ManuallyAssignQuestions(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	assignmentsCollection := db.GetCollection("assignments")
+	questionCollection := db.GetCollection("questions")
+	usersCollection := db.GetCollection("users")
+
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	var requestData struct {
+		QuestionIDs []int `json:"question_ids"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid JSON Format", http.StatusBadRequest)
+		return
+	}
+
+	if len(requestData.QuestionIDs) == 0 {
+		http.Error(w, "No question IDs provided", http.StatusBadRequest)
+		return
+	}
+
+	// Verify user exists
+	var user models.User
+	err = usersCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error fetching user", http.StatusInternalServerError)
+		return
+	}
+
+	// Verify all questions exist
+	cursor, err := questionCollection.Find(ctx, bson.M{"question_id": bson.M{"$in": requestData.QuestionIDs}})
+	if err != nil {
+		http.Error(w, "Error fetching questions", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var foundQuestions []models.Question
+	if err := cursor.All(ctx, &foundQuestions); err != nil {
+		http.Error(w, "Error decoding questions", http.StatusInternalServerError)
+		return
+	}
+
+	if len(foundQuestions) != len(requestData.QuestionIDs) {
+		http.Error(w, "Some questions not found", http.StatusBadRequest)
+		return
+	}
+
+	// Upsert assignment document
+	updateFilter := bson.M{"user_id": userID}
+	update := bson.M{
+		"$set": bson.M{
+			"question_ids": requestData.QuestionIDs,
+			"assigned_at":  time.Now(),
+			"username":     user.Username,
+		},
+	}
+	opts := options.Update().SetUpsert(true)
+	updateResult, err := assignmentsCollection.UpdateOne(ctx, updateFilter, update, opts)
+	if err != nil {
+		http.Error(w, "Error updating assignment", http.StatusInternalServerError)
+		return
+	}
+
+	// Final response
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Manual assignment updated successfully",
+		"user_id":       userID,
+		"username":      user.Username,
+		"assigned_ids":  requestData.QuestionIDs,
+		"modifiedCount": updateResult.ModifiedCount,
+		"upsertedCount": updateResult.UpsertedCount,
+	})
+}
+
+func GetAllQuestions(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	questionCollection := db.GetCollection("questions")
+
+	// Fetch all questions with basic info
+	cursor, err := questionCollection.Find(ctx, bson.M{})
+	if err != nil {
+		http.Error(w, "Error fetching questions", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var questions []bson.M
+	if err = cursor.All(ctx, &questions); err != nil {
+		http.Error(w, "Error parsing questions", http.StatusInternalServerError)
+		return
+	}
+
+	// Return simplified question data for selection
+	var simplifiedQuestions []map[string]interface{}
+	for _, q := range questions {
+		simplifiedQuestions = append(simplifiedQuestions, map[string]interface{}{
+			"question_id": q["question_id"],
+			"question":    q["question"],
+			"category":    q["category"],
+			"icu_topic":   q["icu_topic"],
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"questions": simplifiedQuestions,
+		"total":     len(simplifiedQuestions),
+	})
 }

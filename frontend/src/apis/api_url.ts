@@ -16,3 +16,6 @@ export const questionAssignmentSummaryUrl = import.meta.env
 export const annotatorProgressUrl = import.meta.env.VITE_ANNOTATOR_PROGRESS_URL;
 export const addUserUrl = import.meta.env.VITE_ADD_USER_URL;
 export const downloadAllDataUrl = import.meta.env.VITE_DOWNLOAD_ALL_DATA_URL;
+export const manuallyAssignQuestionsUrl = import.meta.env
+  .VITE_MANUALLY_ASSIGN_QUESTIONS_URL;
+export const getAllQuestionsUrl = import.meta.env.VITE_GET_ALL_QUESTIONS_URL;

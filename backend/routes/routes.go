@@ -57,6 +57,10 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/admin/download_all_data", controllers.DownloadAllData).Methods("GET")
 
+	r.HandleFunc("/admin/manually_assign_questions", controllers.ManuallyAssignQuestions).Methods("POST")
+
+	r.HandleFunc("/admin/get_all_questions", controllers.GetAllQuestions).Methods("GET")
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
