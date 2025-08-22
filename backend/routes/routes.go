@@ -55,6 +55,8 @@ func InitializeRoutes() http.Handler {
 
 	r.HandleFunc("/admin/annotator_progress", controllers.GetAnnotatorProgress).Methods("GET")
 
+	r.HandleFunc("/admin/download_all_data", controllers.DownloadAllData).Methods("GET")
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},

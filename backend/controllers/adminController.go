@@ -4,6 +4,7 @@ import (
 	"backend/db"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -435,4 +436,136 @@ func GetQuestionAssignmentSummary(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+func DownloadAllData(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Parse query parameters
+	query := r.URL.Query()
+	includeUsers := false
+	includeQuestions := false
+	includeAnnotations := false
+
+	// Only override defaults if parameters are explicitly set
+	if val := query.Get("include_users"); val != "" {
+		includeUsers = val != "false"
+	}
+	if val := query.Get("include_questions"); val != "" {
+		includeQuestions = val != "false"
+	}
+	if val := query.Get("include_annotations"); val != "" {
+		includeAnnotations = val != "false"
+	}
+
+	format := query.Get("format")
+	if format == "" {
+		format = "json" // Default format
+	}
+
+	// Get collections
+	usersCollection := db.GetCollection("users")
+	questionsCollection := db.GetCollection("questions")
+	annotationsCollection := db.GetCollection("annotations")
+
+	response := map[string]interface{}{
+		"exported_at": time.Now().UTC().Format(time.RFC3339),
+	}
+
+	// Fetch users if requested
+	if includeUsers {
+		userCursor, err := usersCollection.Find(ctx, bson.M{})
+		if err != nil {
+			http.Error(w, "Error fetching users", http.StatusInternalServerError)
+			return
+		}
+		defer userCursor.Close(ctx)
+
+		var users []bson.M
+		if err = userCursor.All(ctx, &users); err != nil {
+			http.Error(w, "Error parsing users", http.StatusInternalServerError)
+			return
+		}
+		response["users"] = users
+		response["total_users"] = len(users)
+	}
+
+	// Fetch questions if requested
+	if includeQuestions {
+		questionCursor, err := questionsCollection.Find(ctx, bson.M{})
+		if err != nil {
+			http.Error(w, "Error fetching questions", http.StatusInternalServerError)
+			return
+		}
+		defer questionCursor.Close(ctx)
+
+		var questions []bson.M
+		if err = questionCursor.All(ctx, &questions); err != nil {
+			http.Error(w, "Error parsing questions", http.StatusInternalServerError)
+			return
+		}
+		response["questions"] = questions
+		response["total_questions"] = len(questions)
+	}
+
+	// Fetch annotations if requested
+	if includeAnnotations {
+		annotationCursor, err := annotationsCollection.Find(ctx, bson.M{})
+		if err != nil {
+			http.Error(w, "Error fetching annotations", http.StatusInternalServerError)
+			return
+		}
+		defer annotationCursor.Close(ctx)
+
+		var annotations []bson.M
+		if err = annotationCursor.All(ctx, &annotations); err != nil {
+			http.Error(w, "Error parsing annotations", http.StatusInternalServerError)
+			return
+		}
+		response["annotations"] = annotations
+		response["total_annotations"] = len(annotations)
+	}
+
+	var jsonData []byte
+	var err error
+	var filename string
+	var contentType string
+
+	if format == "csv" {
+		// For CSV format, we'll create a simple CSV structure
+		// This is a basic implementation - you might want to enhance it
+		csvData := "Collection,Count\n"
+		if includeUsers {
+			csvData += fmt.Sprintf("Users,%d\n", response["total_users"])
+		}
+		if includeQuestions {
+			csvData += fmt.Sprintf("Questions,%d\n", response["total_questions"])
+		}
+		if includeAnnotations {
+			csvData += fmt.Sprintf("Annotations,%d\n", response["total_annotations"])
+		}
+		csvData += fmt.Sprintf("Exported At,%s\n", response["exported_at"])
+
+		jsonData = []byte(csvData)
+		filename = "data_export.csv"
+		contentType = "text/csv"
+	} else {
+		// JSON format
+		jsonData, err = json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			http.Error(w, "Error serializing data", http.StatusInternalServerError)
+			return
+		}
+		filename = "data_export.json"
+		contentType = "application/json"
+	}
+
+	// Set headers for file download
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(jsonData)))
+
+	// Write the response
+	w.Write(jsonData)
 }

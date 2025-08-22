@@ -24,6 +24,7 @@ import {
   annotatorProgressUrl,
   addUserUrl,
   addAssignmentUrl,
+  downloadAllDataUrl,
 } from '@/apis/api_url';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +39,7 @@ import {
   UserPlus,
   RefreshCw,
   Loader2,
+  Download,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -50,6 +52,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -197,6 +200,16 @@ const Admin = () => {
     useState<AnnotatorProgress | null>(null);
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [isAssigningQuestions, setIsAssigningQuestions] = useState(false);
+  const [isDownloadOptionsModalOpen, setIsDownloadOptionsModalOpen] =
+    useState(false);
+
+  // Download Options State
+  const [downloadOptions, setDownloadOptions] = useState({
+    includeUsers: false,
+    includeQuestions: false,
+    includeAnnotations: true,
+    format: 'json' as 'json' | 'csv',
+  });
 
   // Add User Form State
   const [addUserForm, setAddUserForm] = useState({
@@ -223,6 +236,7 @@ const Admin = () => {
   const [isLoadingAnnotatorStats, setIsLoadingAnnotatorStats] = useState(false);
   const [isLoadingAssignmentStats, setIsLoadingAssignmentStats] =
     useState(false);
+  const [isDownloadingData, setIsDownloadingData] = useState(false);
 
   const fetchAdminData = async () => {
     setIsLoadingAnnotatorData(true);
@@ -576,6 +590,108 @@ const Admin = () => {
     setIsAssignQuestionsModalOpen(false);
     setSelectedUserForAssignment(null);
     setAssignQuestionsForm({ questionCount: 25 });
+  };
+
+  const openDownloadOptionsModal = () => {
+    setIsDownloadOptionsModalOpen(true);
+  };
+
+  const closeDownloadOptionsModal = () => {
+    setIsDownloadOptionsModalOpen(false);
+    // Reset options to default
+    setDownloadOptions({
+      includeUsers: true,
+      includeQuestions: true,
+      includeAnnotations: true,
+      format: 'json',
+    });
+  };
+
+  const handleDownloadWithOptions = async () => {
+    setIsDownloadingData(true);
+    closeDownloadOptionsModal();
+
+    try {
+      const token = user?.token;
+      if (!token) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      // Build query parameters based on options
+      const params = new URLSearchParams();
+      if (downloadOptions.includeUsers) params.append('include_users', 'true');
+      if (downloadOptions.includeQuestions)
+        params.append('include_questions', 'true');
+      if (downloadOptions.includeAnnotations)
+        params.append('include_annotations', 'true');
+      params.append('format', downloadOptions.format);
+
+      const url = `${downloadAllDataUrl}?${params.toString()}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Get the filename from the response headers
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = `data_export_${new Date().toISOString().split('T')[0]}.${
+          downloadOptions.format
+        }`;
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        // Create a blob from the response
+        const blob = await response.blob();
+
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast({
+          title: 'Success',
+          description: 'Data downloaded successfully',
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorData.message || 'Failed to download data',
+        });
+      }
+    } catch (error) {
+      console.error('Error downloading data:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to download data',
+      });
+    } finally {
+      setIsDownloadingData(false);
+    }
   };
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -935,6 +1051,19 @@ const Admin = () => {
                       <UserPlus className='h-4 w-4' />
                     )}
                     Add New User
+                  </Button>
+                  <Button
+                    onClick={() => setIsDownloadOptionsModalOpen(true)}
+                    variant='outline'
+                    className='flex items-center gap-2'
+                    disabled={isDownloadingData}
+                  >
+                    {isDownloadingData ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      <Download className='h-4 w-4' />
+                    )}
+                    Download Raw Data
                   </Button>
                 </div>
                 {/* Helpful Description */}
@@ -1902,6 +2031,158 @@ const Admin = () => {
                 'Assign Questions'
               )}
             </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Download Options Modal */}
+      <Dialog
+        open={isDownloadOptionsModalOpen}
+        onOpenChange={setIsDownloadOptionsModalOpen}
+      >
+        <DialogContent className='max-w-md max-h-[80vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center justify-between'>
+              <span>Download Options</span>
+            </DialogTitle>
+            <DialogDescription>
+              Select which data to include in your download.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Validate that at least one option is selected
+              if (
+                !downloadOptions.includeUsers &&
+                !downloadOptions.includeQuestions &&
+                !downloadOptions.includeAnnotations
+              ) {
+                toast({
+                  variant: 'destructive',
+                  title: 'Error',
+                  description:
+                    'Please select at least one data type to download.',
+                });
+                return;
+              }
+              handleDownloadWithOptions();
+            }}
+            className='space-y-6'
+          >
+            {/* Data Selection */}
+            <div className='space-y-4'>
+              <Label className='text-base font-semibold'>Data to Include</Label>
+              <div className='space-y-3'>
+                <div className='flex items-center space-x-2'>
+                  <Checkbox
+                    id='includeUsers'
+                    checked={downloadOptions.includeUsers}
+                    onCheckedChange={(checked) =>
+                      setDownloadOptions({
+                        ...downloadOptions,
+                        includeUsers: checked as boolean,
+                      })
+                    }
+                  />
+                  <Label htmlFor='includeUsers' className='text-sm font-normal'>
+                    Users ({annotatorProgress.summary.totalAnnotators} users)
+                  </Label>
+                </div>
+                <div className='flex items-center space-x-2'>
+                  <Checkbox
+                    id='includeQuestions'
+                    checked={downloadOptions.includeQuestions}
+                    onCheckedChange={(checked) =>
+                      setDownloadOptions({
+                        ...downloadOptions,
+                        includeQuestions: checked as boolean,
+                      })
+                    }
+                  />
+                  <Label
+                    htmlFor='includeQuestions'
+                    className='text-sm font-normal'
+                  >
+                    Questions ({summary.total_questions} questions)
+                  </Label>
+                </div>
+                <div className='flex items-center space-x-2'>
+                  <Checkbox
+                    id='includeAnnotations'
+                    checked={downloadOptions.includeAnnotations}
+                    onCheckedChange={(checked) =>
+                      setDownloadOptions({
+                        ...downloadOptions,
+                        includeAnnotations: checked as boolean,
+                      })
+                    }
+                  />
+                  <Label
+                    htmlFor='includeAnnotations'
+                    className='text-sm font-normal'
+                  >
+                    Annotations (all annotation data)
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {/* Format Selection */}
+            <div className='space-y-2'>
+              <Label htmlFor='format' className='text-base font-semibold'>
+                Export Format
+              </Label>
+              <Select
+                onValueChange={(value) =>
+                  setDownloadOptions({
+                    ...downloadOptions,
+                    format: value as 'json' | 'csv',
+                  })
+                }
+                defaultValue={downloadOptions.format}
+              >
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Select a format' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='json'>JSON (Recommended)</SelectItem>
+                  <SelectItem value='csv'>CSV (Summary only)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className='text-xs text-muted-foreground'>
+                JSON includes all data. CSV provides a summary with counts only.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className='flex gap-2 pt-4'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={closeDownloadOptionsModal}
+                className='flex-1'
+              >
+                Cancel
+              </Button>
+              <Button
+                type='submit'
+                className='flex-1'
+                disabled={isDownloadingData}
+              >
+                {isDownloadingData ? (
+                  <>
+                    <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className='h-4 w-4 mr-2' />
+                    Download
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
