@@ -117,7 +117,9 @@ type AnnotatorSortField =
   | 'completed'
   | 'skipped'
   | 'lastActive'
-  | 'historicalCompleted';
+  | 'historicalCompleted'
+  | 'status'
+  | 'userId';
 type AnnotatorSortDirection = 'asc' | 'desc';
 
 interface CategoryState {
@@ -479,6 +481,12 @@ const Admin = () => {
             a.completedQuestions.length -
             a.completed -
             (b.completedQuestions.length - b.completed);
+          break;
+        case 'status':
+          comparison = a.isFinished ? 1 : b.isFinished ? -1 : 0;
+          break;
+        case 'userId':
+          comparison = a.userId - b.userId;
           break;
       }
 
@@ -1054,8 +1062,34 @@ const Admin = () => {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>Status</TableHead>
-                                <TableHead>User ID</TableHead>
+                                <TableHead>
+                                  <Button
+                                    variant='ghost'
+                                    onClick={() =>
+                                      handleAnnotatorSort('status')
+                                    }
+                                    className='h-auto p-0 font-semibold hover:bg-transparent'
+                                  >
+                                    Status
+                                    <span className='ml-1'>
+                                      {getAnnotatorSortIcon('status')}
+                                    </span>
+                                  </Button>
+                                </TableHead>
+                                <TableHead>
+                                  <Button
+                                    variant='ghost'
+                                    onClick={() =>
+                                      handleAnnotatorSort('userId')
+                                    }
+                                    className='h-auto p-0 font-semibold hover:bg-transparent'
+                                  >
+                                    User ID
+                                    <span className='ml-1'>
+                                      {getAnnotatorSortIcon('userId')}
+                                    </span>
+                                  </Button>
+                                </TableHead>
                                 <TableHead>
                                   <Button
                                     variant='ghost'
@@ -1140,7 +1174,7 @@ const Admin = () => {
                                     </span>
                                   </Button>
                                 </TableHead>
-                                <TableHead>
+                                {/* <TableHead>
                                   <Button
                                     variant='ghost'
                                     onClick={() =>
@@ -1155,7 +1189,7 @@ const Admin = () => {
                                       )}
                                     </span>
                                   </Button>
-                                </TableHead>
+                                </TableHead> */}
                                 <TableHead>Actions</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -1211,10 +1245,10 @@ const Admin = () => {
                                           annotator.lastActive
                                         ).toLocaleDateString()}
                                   </TableCell>
-                                  <TableCell>
+                                  {/* <TableCell>
                                     {annotator.completedQuestions.length -
                                       annotator.completed}
-                                  </TableCell>
+                                  </TableCell> */}
                                   <TableCell>
                                     <Button
                                       variant='outline'
