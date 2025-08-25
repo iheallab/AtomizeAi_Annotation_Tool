@@ -28,6 +28,7 @@ import FeedbackIcon from '@/components/icons/FeedbackIcon';
 import MissingIcon from '@/components/icons/MissingIcon';
 import DataElementsIcon from '@/components/icons/DataElementsIcon';
 import QAIcon from '@/components/icons/QAIcon';
+import { AddTasksComponent } from '@/components/AddTasksComponent';
 
 interface AnnotationStepProps {
   question: Question;
@@ -61,6 +62,12 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   const [tasksCompleted, setTasksCompleted] = useState(
     questionCompleted ? true : false
   );
+  const [adjudicatorAddedTasks, setAdjudicatorAddedTasks] = useState<string[]>(
+    question.adjudicator_added_tasks || []
+  );
+  const [validReasoning, setValidReasoning] = useState<string>(
+    question.adjudicator_added_reasoning || ''
+  );
   // References for scrolling
   const sectionRefs = {
     questionContext: useRef<HTMLDivElement>(null),
@@ -79,6 +86,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     setAreMissingValuesCorrect(question.missing_data ?? question.isCompleted);
     setFeedback(question.feedback || '');
     setTasksCompleted(questionCompleted ? true : false);
+    setAdjudicatorAddedTasks(question.adjudicator_added_tasks || []);
+    setValidReasoning(question.adjudicator_added_reasoning || '');
 
     // Reset accordion state for completed questions or start with question section for new ones
     // if (question.annotated_by == 0) {
@@ -173,6 +182,21 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       }
     }
 
+    // Check if user selected "No" for missing data but didn't add any tasks
+    if (
+      areMissingValuesCorrect === false &&
+      adjudicatorAddedTasks.length === 0
+    ) {
+      setActiveAccordion('missingValues');
+      return;
+    }
+
+    // Check if user selected "No" for reasoning but didn't provide valid reasoning
+    if (isReasoningValid === false && validReasoning.trim().length === 0) {
+      setActiveAccordion('reasoning');
+      return;
+    }
+
     if (needsFeedback && !feedback.trim()) {
       setActiveAccordion('feedback');
       return;
@@ -195,6 +219,8 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       feedback: feedback.trim(),
       model: question.model,
       batch_id: question.batch_id,
+      adjudicator_added_tasks: adjudicatorAddedTasks,
+      adjudicator_added_reasoning: validReasoning,
       // areMissingValuesCorrect: areMissingValuesCorrect || false,
       // feedback: feedback.trim() || undefined,
     };
@@ -216,15 +242,30 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       case 'tasks':
         return tasksCompleted;
       case 'reasoning':
-        return isReasoningValid !== undefined;
+        if (isReasoningValid === true) {
+          return true; // If user selects "Yes", mark as completed
+        } else if (isReasoningValid === false) {
+          // If user selects "No", they must provide valid reasoning
+          return validReasoning.trim().length > 0;
+        }
+        return false; // If no answer selected yet
       case 'missingValues':
-        return areMissingValuesCorrect !== undefined;
+        if (areMissingValuesCorrect === true) {
+          return true; // If user selects "Yes", mark as completed
+        } else if (areMissingValuesCorrect === false) {
+          // If user selects "No", they must add at least one task
+          return adjudicatorAddedTasks.length > 0;
+        }
+        return false; // If no answer selected yet
       case 'feedback':
         if (
           isValid &&
           tasksCompleted &&
-          isReasoningValid &&
-          areMissingValuesCorrect
+          (isReasoningValid === true ||
+            (isReasoningValid === false && validReasoning.trim().length > 0)) &&
+          (areMissingValuesCorrect === true ||
+            (areMissingValuesCorrect === false &&
+              adjudicatorAddedTasks.length > 0))
         )
           return true;
         else if (needsFeedback && feedback.trim().length > 0) return true;
@@ -239,11 +280,22 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       if (feedback.trim().length > 0) return true;
       else return false;
     }
+
+    // Check if missing values section is properly completed
+    const missingValuesCompleted =
+      areMissingValuesCorrect === true ||
+      (areMissingValuesCorrect === false && adjudicatorAddedTasks.length > 0);
+
+    // Check if reasoning section is properly completed
+    const reasoningCompleted =
+      isReasoningValid === true ||
+      (isReasoningValid === false && validReasoning.trim().length > 0);
+
     return (
       isValid !== undefined &&
       tasksCompleted &&
-      isReasoningValid !== undefined &&
-      areMissingValuesCorrect !== undefined &&
+      reasoningCompleted &&
+      missingValuesCompleted &&
       (!needsFeedback || feedback.trim().length > 0)
     );
   };
@@ -693,6 +745,17 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                 </div>
               </div>
 
+              {/* Add Tasks Component - Show when user selects "No" */}
+              {areMissingValuesCorrect === false && (
+                <div className='mt-6'>
+                  <AddTasksComponent
+                    existingTopics={taskGroups.map((group) => group.name)}
+                    onTasksChange={setAdjudicatorAddedTasks}
+                    initialTasks={adjudicatorAddedTasks}
+                  />
+                </div>
+              )}
+
               {/* Completion CTA */}
               {isSectionCompleted('missingValues') && isValid && (
                 <div className='mt-6 text-center'>
@@ -819,6 +882,27 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                   </Button>
                 </div>
               </div>
+
+              {/* Valid Reasoning Input - Show when user selects "No" */}
+              {isReasoningValid === false && (
+                <div className='mt-6'>
+                  <div className='bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800'>
+                    <h4 className='text-sm font-medium text-red-900 dark:text-red-100 mb-2'>
+                      Provide Valid Reasoning
+                    </h4>
+                    <p className='text-sm text-red-700 dark:text-red-300 mb-3'>
+                      Please explain what the correct reasoning should be for
+                      this question.
+                    </p>
+                    <Textarea
+                      value={validReasoning}
+                      onChange={(e) => setValidReasoning(e.target.value)}
+                      placeholder='Please provide the correct reasoning for this question...'
+                      className='min-h-[120px] bg-white dark:bg-background border border-red-300 dark:border-red-700'
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Completion CTA */}
               {isSectionCompleted('reasoning') && (

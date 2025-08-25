@@ -146,6 +146,8 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
         reasoning_valid: response.reasoning_valid,
         main_feedback: response.feedback || '',
         missing_data: response.missing_data,
+        adjudicator_added_tasks: response.adjudicator_added_tasks || [],
+        adjudicator_added_reasoning: response.adjudicator_added_reasoning || '',
         annotated_by: response.annotated_by, // Replace with actual userId if needed
         model: response.model,
         batch_id: response.batch_id,

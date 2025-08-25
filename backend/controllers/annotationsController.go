@@ -232,18 +232,20 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 		// Annotation exists, update it
 		update := bson.M{
 			"$set": bson.M{
-				"question_id":     annotationReq.QuestionID,
-				"question":        annotationReq.Question,
-				"category":        annotationReq.Category,
-				"retrieval_tasks": annotationReq.RetrievalTasks,
-				"annotated_by":    annotationReq.AnnotatedBy,
-				"main_feedback":   annotationReq.MainFeedback,
-				"question_valid":  annotationReq.QuestionValid,
-				"missing_data":    annotationReq.MissingData,
-				"reasoning_valid": annotationReq.ResoningValid,
-				"model":           annotationReq.Model,
-				"batch_id":        annotationReq.BatchID,
-				"updated_at":      time.Now(),
+				"question_id":              annotationReq.QuestionID,
+				"question":                 annotationReq.Question,
+				"category":                 annotationReq.Category,
+				"retrieval_tasks":          annotationReq.RetrievalTasks,
+				"annotated_by":             annotationReq.AnnotatedBy,
+				"main_feedback":            annotationReq.MainFeedback,
+				"question_valid":           annotationReq.QuestionValid,
+				"missing_data":             annotationReq.MissingData,
+				"reasoning_valid":          annotationReq.ResoningValid,
+				"adjudicator_added_tasks":  annotationReq.AdjudicatorAddedTasks,
+				"adjudicator_added_reasoning": annotationReq.AdjudicatorAddedReasoning,
+				"model":                    annotationReq.Model,
+				"batch_id":                 annotationReq.BatchID,
+				"updated_at":               time.Now(),
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)

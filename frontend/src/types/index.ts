@@ -24,6 +24,8 @@ export interface Question {
   annotated_by: number;
   model: string;
   batch_id: string;
+  adjudicator_added_tasks?: string[];
+  adjudicator_added_reasoning?: string;
 }
 
 export interface TaskGroup {
