@@ -64,6 +64,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface QuestionDetail {
   question_id: number;
@@ -218,6 +219,11 @@ const Admin = () => {
   const [questionSearchTerm, setQuestionSearchTerm] = useState('');
   const [questionFilterCategory, setQuestionFilterCategory] = useState('all');
   const [isManualAssigning, setIsManualAssigning] = useState(false);
+  const [isManualAssigningByIDs, setIsManualAssigningByIDs] = useState(false);
+  const [questionIDsString, setQuestionIDsString] = useState('');
+  const [manualAssignmentTab, setManualAssignmentTab] = useState<
+    'select' | 'paste'
+  >('select');
   const [questionSortField, setQuestionSortField] = useState<
     'question_id' | 'question' | 'category' | 'icu_topic'
   >('question_id');
@@ -848,6 +854,8 @@ const Admin = () => {
     setSelectedQuestionIds([]);
     setQuestionSearchTerm('');
     setQuestionFilterCategory('all');
+    setQuestionIDsString('');
+    setManualAssignmentTab('select');
   };
 
   const fetchAllQuestions = async () => {
@@ -954,6 +962,88 @@ const Admin = () => {
       });
     } finally {
       setIsManualAssigning(false);
+    }
+  };
+
+  const handleManualAssignmentByIDs = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!questionIDsString.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please enter at least one question ID',
+      });
+      return;
+    }
+
+    // Parse the question IDs from the string
+    const questionIds = questionIDsString
+      .split(/[,\s\n]+/)
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0)
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
+
+    if (questionIds.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No valid question IDs found in the input',
+      });
+      return;
+    }
+
+    setIsManualAssigningByIDs(true);
+    try {
+      const token = user?.token;
+      if (!token || !selectedUserForManualAssignment) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `${manuallyAssignQuestionsUrl}?user_id=${selectedUserForManualAssignment.userId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ question_ids: questionIds }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: 'Success',
+          description: `Manually assigned ${result.assigned_ids.length} questions to ${selectedUserForManualAssignment.username} (${questionIds.length} IDs parsed)`,
+        });
+        closeManualAssignmentModal();
+        setQuestionIDsString('');
+        // Refresh annotator data
+        fetchAdminData();
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorData.message || 'Failed to assign questions',
+        });
+      }
+    } catch (error) {
+      console.error('Error manually assigning questions by IDs:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to assign questions',
+      });
+    } finally {
+      setIsManualAssigningByIDs(false);
     }
   };
 
@@ -2302,195 +2392,265 @@ const Admin = () => {
               </span>
             </DialogTitle>
             <DialogDescription>
-              Select questions to manually assign to this annotator.
+              Choose how to assign questions to this annotator.
             </DialogDescription>
           </DialogHeader>
-          <div className='space-y-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <Label htmlFor='questionSearch'>Search Questions</Label>
-                <Input
-                  id='questionSearch'
-                  placeholder='Enter question text or ID'
-                  value={questionSearchTerm}
-                  onChange={(e) => setQuestionSearchTerm(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor='questionCategory'>Filter by Category</Label>
-                <Select
-                  onValueChange={(value) => setQuestionFilterCategory(value)}
-                  defaultValue={questionFilterCategory}
-                >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='All Categories' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='all'>All Categories</SelectItem>
-                    <SelectItem value='endocrine'>Endocrine</SelectItem>
-                    <SelectItem value='cardiovascular'>
-                      Cardiovascular
-                    </SelectItem>
-                    <SelectItem value='respiratory'>Respiratory</SelectItem>
-                    <SelectItem value='renal'>Renal</SelectItem>
-                    <SelectItem value='neurological'>Neurological</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className='overflow-y-auto max-h-[60vh]'>
-              {isLoadingQuestions ? (
-                <div className='flex items-center justify-center py-8'>
-                  <Loader2 className='h-6 w-6 animate-spin mr-2' />
-                  <span>Loading questions...</span>
+          <Tabs
+            value={manualAssignmentTab}
+            onValueChange={(value) =>
+              setManualAssignmentTab(value as 'select' | 'paste')
+            }
+            className='w-full'
+          >
+            <TabsList className='grid w-full grid-cols-2'>
+              <TabsTrigger value='select'>Select Questions</TabsTrigger>
+              <TabsTrigger value='paste'>Paste Question IDs</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value='select' className='space-y-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div>
+                  <Label htmlFor='questionSearch'>Search Questions</Label>
+                  <Input
+                    id='questionSearch'
+                    placeholder='Enter question text or ID'
+                    value={questionSearchTerm}
+                    onChange={(e) => setQuestionSearchTerm(e.target.value)}
+                  />
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Select</TableHead>
-                      <TableHead>
-                        <Button
-                          variant='ghost'
-                          onClick={() => handleQuestionSort('question_id')}
-                          className='h-auto p-0 font-semibold hover:bg-transparent'
-                        >
-                          Question ID
-                          <span className='ml-1'>
-                            {getQuestionSortIcon('question_id')}
-                          </span>
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant='ghost'
-                          onClick={() => handleQuestionSort('question')}
-                          className='h-auto p-0 font-semibold hover:bg-transparent'
-                        >
-                          Question Text
-                          <span className='ml-1'>
-                            {getQuestionSortIcon('question')}
-                          </span>
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant='ghost'
-                          onClick={() => handleQuestionSort('category')}
-                          className='h-auto p-0 font-semibold hover:bg-transparent'
-                        >
-                          Category
-                          <span className='ml-1'>
-                            {getQuestionSortIcon('category')}
-                          </span>
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant='ghost'
-                          onClick={() => handleQuestionSort('icu_topic')}
-                          className='h-auto p-0 font-semibold hover:bg-transparent'
-                        >
-                          ICU Topic
-                          <span className='ml-1'>
-                            {getQuestionSortIcon('icu_topic')}
-                          </span>
-                        </Button>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedQuestions.length === 0 ? (
+                <div>
+                  <Label htmlFor='questionCategory'>Filter by Category</Label>
+                  <Select
+                    onValueChange={(value) => setQuestionFilterCategory(value)}
+                    defaultValue={questionFilterCategory}
+                  >
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='All Categories' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All Categories</SelectItem>
+                      <SelectItem value='endocrine'>Endocrine</SelectItem>
+                      <SelectItem value='cardiovascular'>
+                        Cardiovascular
+                      </SelectItem>
+                      <SelectItem value='respiratory'>Respiratory</SelectItem>
+                      <SelectItem value='renal'>Renal</SelectItem>
+                      <SelectItem value='neurological'>Neurological</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className='overflow-y-auto max-h-[60vh]'>
+                {isLoadingQuestions ? (
+                  <div className='flex items-center justify-center py-8'>
+                    <Loader2 className='h-6 w-6 animate-spin mr-2' />
+                    <span>Loading questions...</span>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={5} className='text-center py-8'>
-                          No questions found matching your criteria
-                        </TableCell>
+                        <TableHead>Select</TableHead>
+                        <TableHead>
+                          <Button
+                            variant='ghost'
+                            onClick={() => handleQuestionSort('question_id')}
+                            className='h-auto p-0 font-semibold hover:bg-transparent'
+                          >
+                            Question ID
+                            <span className='ml-1'>
+                              {getQuestionSortIcon('question_id')}
+                            </span>
+                          </Button>
+                        </TableHead>
+                        <TableHead>
+                          <Button
+                            variant='ghost'
+                            onClick={() => handleQuestionSort('question')}
+                            className='h-auto p-0 font-semibold hover:bg-transparent'
+                          >
+                            Question Text
+                            <span className='ml-1'>
+                              {getQuestionSortIcon('question')}
+                            </span>
+                          </Button>
+                        </TableHead>
+                        <TableHead>
+                          <Button
+                            variant='ghost'
+                            onClick={() => handleQuestionSort('category')}
+                            className='h-auto p-0 font-semibold hover:bg-transparent'
+                          >
+                            Category
+                            <span className='ml-1'>
+                              {getQuestionSortIcon('category')}
+                            </span>
+                          </Button>
+                        </TableHead>
+                        <TableHead>
+                          <Button
+                            variant='ghost'
+                            onClick={() => handleQuestionSort('icu_topic')}
+                            className='h-auto p-0 font-semibold hover:bg-transparent'
+                          >
+                            ICU Topic
+                            <span className='ml-1'>
+                              {getQuestionSortIcon('icu_topic')}
+                            </span>
+                          </Button>
+                        </TableHead>
                       </TableRow>
-                    ) : (
-                      sortedQuestions.map((question) => (
-                        <TableRow key={question.question_id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedQuestionIds.includes(
-                                question.question_id
-                              )}
-                              onCheckedChange={() =>
-                                toggleQuestionSelection(question.question_id)
-                              }
-                            />
+                    </TableHeader>
+                    <TableBody>
+                      {sortedQuestions.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className='text-center py-8'>
+                            No questions found matching your criteria
                           </TableCell>
-                          <TableCell>{question.question_id}</TableCell>
-                          <TableCell className='max-w-md'>
-                            <div
-                              className='line-clamp-3 text-sm cursor-help'
-                              title={question.question}
-                            >
-                              {question.question}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className='flex flex-wrap gap-1'>
-                              {Array.isArray(question.category) ? (
-                                question.category.map((cat, index) => (
+                        </TableRow>
+                      ) : (
+                        sortedQuestions.map((question) => (
+                          <TableRow key={question.question_id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedQuestionIds.includes(
+                                  question.question_id
+                                )}
+                                onCheckedChange={() =>
+                                  toggleQuestionSelection(question.question_id)
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>{question.question_id}</TableCell>
+                            <TableCell className='max-w-md'>
+                              <div
+                                className='line-clamp-3 text-sm cursor-help'
+                                title={question.question}
+                              >
+                                {question.question}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className='flex flex-wrap gap-1'>
+                                {Array.isArray(question.category) ? (
+                                  question.category.map((cat, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant='secondary'
+                                      className='text-xs px-2 py-1 rounded-full'
+                                    >
+                                      {cat}
+                                    </Badge>
+                                  ))
+                                ) : (
                                   <Badge
-                                    key={index}
                                     variant='secondary'
                                     className='text-xs px-2 py-1 rounded-full'
                                   >
-                                    {cat}
+                                    {question.category}
                                   </Badge>
-                                ))
-                              ) : (
-                                <Badge
-                                  variant='secondary'
-                                  className='text-xs px-2 py-1 rounded-full'
-                                >
-                                  {question.category}
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>{question.icu_topic}</TableCell>
-                        </TableRow>
-                      ))
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>{question.icu_topic}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+              <div className='flex justify-between items-center'>
+                <div className='text-sm text-muted-foreground'>
+                  {selectedQuestionIds.length} question(s) selected
+                </div>
+                <div className='flex gap-2'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={closeManualAssignmentModal}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    disabled={
+                      isManualAssigning || selectedQuestionIds.length === 0
+                    }
+                    onClick={handleManualAssignment}
+                  >
+                    {isManualAssigning ? (
+                      <>
+                        <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                        Assigning...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className='h-4 w-4 mr-2' />
+                        Assign Selected ({selectedQuestionIds.length})
+                      </>
                     )}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-            <div className='flex justify-between items-center'>
-              <div className='text-sm text-muted-foreground'>
-                {selectedQuestionIds.length} question(s) selected
+                  </Button>
+                </div>
               </div>
-              <div className='flex gap-2'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={closeManualAssignmentModal}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  disabled={
-                    isManualAssigning || selectedQuestionIds.length === 0
-                  }
-                  onClick={handleManualAssignment}
-                >
-                  {isManualAssigning ? (
-                    <>
-                      <Loader2 className='h-4 w-4 animate-spin mr-2' />
-                      Assigning...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className='h-4 w-4 mr-2' />
-                      Assign Selected ({selectedQuestionIds.length})
-                    </>
-                  )}
-                </Button>
+            </TabsContent>
+
+            <TabsContent value='paste' className='space-y-4'>
+              <div className='space-y-4'>
+                <div>
+                  <Label htmlFor='questionIDs'>Question IDs</Label>
+                  <Textarea
+                    id='questionIDs'
+                    placeholder='Enter question IDs separated by commas, spaces, or newlines (e.g., 1, 2, 3 or 1 2 3 or 1&#10;2&#10;3)'
+                    value={questionIDsString}
+                    onChange={(e) => setQuestionIDsString(e.target.value)}
+                    className='min-h-[200px]'
+                  />
+                  <p className='text-sm text-muted-foreground mt-2'>
+                    You can paste question IDs in any format: comma-separated,
+                    space-separated, or one per line.
+                  </p>
+                </div>
+                <div className='flex justify-between items-center'>
+                  <div className='text-sm text-muted-foreground'>
+                    {questionIDsString.trim()
+                      ? `${
+                          questionIDsString
+                            .split(/[,\s\n]+/)
+                            .filter((id) => id.trim()).length
+                        } question ID(s) detected`
+                      : 'No question IDs entered'}
+                  </div>
+                  <div className='flex gap-2'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={closeManualAssignmentModal}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      disabled={
+                        isManualAssigningByIDs || !questionIDsString.trim()
+                      }
+                      onClick={handleManualAssignmentByIDs}
+                    >
+                      {isManualAssigningByIDs ? (
+                        <>
+                          <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                          Assigning...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className='h-4 w-4 mr-2' />
+                          Assign by IDs
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 
