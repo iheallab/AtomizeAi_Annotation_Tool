@@ -1,6 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useRef, useEffect } from 'react';
-import { Question, TaskGroup, Task, AnnotationResponse } from '@/types';
+import {
+  Question,
+  TaskGroup,
+  Task,
+  AddedTask,
+  AnnotationResponse,
+  Variable,
+} from '@/types';
 
 import {
   Accordion,
@@ -18,6 +25,8 @@ import {
   Tag,
   Send,
   Replace,
+  Plus,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +37,7 @@ import FeedbackIcon from '@/components/icons/FeedbackIcon';
 import MissingIcon from '@/components/icons/MissingIcon';
 import DataElementsIcon from '@/components/icons/DataElementsIcon';
 import QAIcon from '@/components/icons/QAIcon';
+import { AddTask } from '@/components/AddTask';
 
 interface AnnotationStepProps {
   question: Question;
@@ -61,6 +71,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   const [tasksCompleted, setTasksCompleted] = useState(
     questionCompleted ? true : false
   );
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [addedMissingTasks, setAddedMissingTasks] = useState<AddedTask[]>(
+    question.added_tasks || []
+  );
+  const [existingTaskIds, setExistingTaskIds] = useState<Set<string>>(
+    new Set((question.added_tasks || []).map((task) => task.id))
+  );
   // References for scrolling
   const sectionRefs = {
     questionContext: useRef<HTMLDivElement>(null),
@@ -79,6 +96,11 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     setAreMissingValuesCorrect(question.missing_data ?? question.isCompleted);
     setFeedback(question.feedback || '');
     setTasksCompleted(questionCompleted ? true : false);
+    setShowAddTask(false);
+    setAddedMissingTasks(question.added_tasks || []);
+    setExistingTaskIds(
+      new Set((question.added_tasks || []).map((task) => task.id))
+    );
 
     // Reset accordion state for completed questions or start with question section for new ones
     // if (question.annotated_by == 0) {
@@ -195,6 +217,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       feedback: feedback.trim(),
       model: question.model,
       batch_id: question.batch_id,
+      added_tasks: addedMissingTasks,
       // areMissingValuesCorrect: areMissingValuesCorrect || false,
       // feedback: feedback.trim() || undefined,
     };
@@ -206,6 +229,32 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
     setIsSkipping(true);
     await onSkip();
     setIsSkipping(false);
+  };
+
+  const handleAddMissingTasks = (
+    variables: Variable[],
+    categoryName: string
+  ) => {
+    const newTasks: AddedTask[] = variables.map((variable, index) => ({
+      id: `missing-task-${Date.now()}-${index}`,
+      name: variable.name,
+      conceptId: variable.conceptId,
+      category: variable.category || categoryName, // Use individual category if available, fallback to categoryName
+      variable: variable.name,
+      description: variable.description,
+      valid: true,
+    }));
+
+    setAddedMissingTasks((prev) => [...prev, ...newTasks]);
+    setShowAddTask(false);
+  };
+
+  const handleCancelAddTask = () => {
+    setShowAddTask(false);
+  };
+
+  const handleRemoveAddedTask = (taskId: string) => {
+    setAddedMissingTasks((prev) => prev.filter((task) => task.id !== taskId));
   };
 
   // Check if a section is completed
@@ -279,15 +328,17 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
 
           {/* Tags */}
           <div className='flex flex-wrap gap-2'>
-            {question.categories.map((category, index) => (
-              <Badge
-                key={index}
-                className='bg-white dark:bg-background border border-border text-foreground flex items-center gap-1 px-2 py-1 rounded-md text-sm'
-              >
-                <Tag size={12} />
-                {category}
-              </Badge>
-            ))}
+            {question.categories
+              .sort((a, b) => a.localeCompare(b))
+              .map((category, index) => (
+                <Badge
+                  key={index}
+                  className='bg-white dark:bg-background border border-border text-foreground flex items-center gap-1 px-2 py-1 rounded-md text-sm'
+                >
+                  <Tag size={12} />
+                  {category}
+                </Badge>
+              ))}
           </div>
 
           {/* Clinical Context Card */}
@@ -667,7 +718,10 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                         ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white'
                         : 'bg-white dark:bg-background border border-border text-foreground hover:bg-green-50 dark:hover:bg-green-900/10'
                     )}
-                    onClick={() => setAreMissingValuesCorrect(true)}
+                    onClick={() => {
+                      setAreMissingValuesCorrect(true);
+                      setShowAddTask(false);
+                    }}
                   >
                     <ThumbsUp size={18} />
                     <span>Yes</span>
@@ -685,13 +739,186 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
                         ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white'
                         : 'bg-white dark:bg-background border border-border text-foreground hover:bg-red-50 dark:hover:bg-red-900/10'
                     )}
-                    onClick={() => setAreMissingValuesCorrect(false)}
+                    onClick={() => {
+                      setAreMissingValuesCorrect(false);
+                      setShowAddTask(true);
+                    }}
                   >
                     <ThumbsDown size={18} />
                     <span>No</span>
                   </Button>
                 </div>
               </div>
+
+              {/* Add Task Component */}
+              {showAddTask && (
+                <div className='mt-6'>
+                  <AddTask
+                    onAddTasks={handleAddMissingTasks}
+                    onCancel={handleCancelAddTask}
+                  />
+                </div>
+              )}
+
+              {/* Added Missing Tasks Display */}
+              {/* Debug: {JSON.stringify(addedMissingTasks)} */}
+              {/* Debug IDs: {addedMissingTasks.map(t => t.id).join(', ')} */}
+              {addedMissingTasks.length > 0 && (
+                <div className='mt-4'>
+                  <h4 className='text-sm font-medium mb-2'>
+                    Added Missing Data Elements:
+                  </h4>
+
+                  {/* Existing Tasks (from database) */}
+                  {addedMissingTasks.filter((task) =>
+                    existingTaskIds.has(task.id)
+                  ).length > 0 && (
+                    <div className='mb-4'>
+                      <h5 className='text-xs font-medium text-muted-foreground mb-2'>
+                        Previously Saved:
+                      </h5>
+                      <div className='space-y-2'>
+                        {addedMissingTasks
+                          .filter((task) => existingTaskIds.has(task.id))
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((task) => {
+                            const isCustom =
+                              task.conceptId &&
+                              task.conceptId.startsWith('CUSTOM');
+                            return (
+                              <div
+                                key={task.id}
+                                className={`flex items-center justify-between p-3 border rounded-lg ${
+                                  isCustom
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                                    : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                                }`}
+                              >
+                                <div className='flex-1'>
+                                  <div className='text-sm font-medium'>
+                                    {task.name}
+                                  </div>
+                                  <div className='text-xs text-muted-foreground'>
+                                    Category: {task.category} | Concept ID:{' '}
+                                    {task.conceptId}
+                                  </div>
+                                  {task.description && (
+                                    <div className='text-xs text-muted-foreground mt-1'>
+                                      {task.description}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                  <Badge
+                                    variant='secondary'
+                                    className={`text-xs ${
+                                      isCustom
+                                        ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                        : ''
+                                    }`}
+                                  >
+                                    {isCustom ? 'Custom' : 'Added'}
+                                  </Badge>
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveAddedTask(task.id)
+                                    }
+                                    className='text-red-500 hover:text-red-700 p-1'
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pending Tasks (newly added, not yet saved) */}
+                  {addedMissingTasks.filter(
+                    (task) => !existingTaskIds.has(task.id)
+                  ).length > 0 && (
+                    <div>
+                      <h5 className='text-xs font-medium text-muted-foreground mb-2'>
+                        Pending (will be saved):
+                      </h5>
+                      <div className='space-y-2'>
+                        {addedMissingTasks
+                          .filter((task) => !existingTaskIds.has(task.id))
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((task) => {
+                            const isCustom =
+                              task.conceptId &&
+                              task.conceptId.startsWith('CUSTOM');
+                            return (
+                              <div
+                                key={task.id}
+                                className={`flex items-center justify-between p-3 border rounded-lg ${
+                                  isCustom
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                                    : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                                } border-dashed`}
+                              >
+                                <div className='flex-1'>
+                                  <div className='text-sm font-medium'>
+                                    {task.name}
+                                  </div>
+                                  <div className='text-xs text-muted-foreground'>
+                                    Category: {task.category} | Concept ID:{' '}
+                                    {task.conceptId}
+                                  </div>
+                                  {task.description && (
+                                    <div className='text-xs text-muted-foreground mt-1'>
+                                      {task.description}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                  <Badge
+                                    variant='secondary'
+                                    className={`text-xs ${
+                                      isCustom
+                                        ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                        : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                                    }`}
+                                  >
+                                    {isCustom ? 'Custom' : 'Pending'}
+                                  </Badge>
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveAddedTask(task.id)
+                                    }
+                                    className='text-red-500 hover:text-red-700 p-1'
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Add More Missing Data Elements Button - Always visible when "No" is selected */}
+              {areMissingValuesCorrect === false && (
+                <div className='mt-3'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setShowAddTask(true)}
+                    className='flex items-center gap-2'
+                  >
+                    <Plus size={16} />
+                    {addedMissingTasks.length > 0
+                      ? 'Add More Missing Data Elements'
+                      : 'Add Missing Data Elements'}
+                  </Button>
+                </div>
+              )}
 
               {/* Completion CTA */}
               {isSectionCompleted('missingValues') && isValid && (

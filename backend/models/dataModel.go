@@ -20,6 +20,17 @@ type RetrievalTask struct {
 	Variables []RetrievalTaskVariable `json:"variables" bson:"variables"`
 }
 
+// AddedTask represents a task that was added by the annotator for missing data elements
+type AddedTask struct {
+	ID          string `json:"id" bson:"id"`
+	Name        string `json:"name" bson:"name"`
+	ConceptID   string `json:"conceptId" bson:"concept_id"`
+	Category    string `json:"category" bson:"category"`
+	Variable    string `json:"variable" bson:"variable"`
+	Description string `json:"description,omitempty" bson:"description,omitempty"`
+	Valid       bool   `json:"valid" bson:"valid"`
+}
+
 type Question struct {
 	ID             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	QuestionID     int                `json:"question_id" bson:"question_id"`
@@ -34,6 +45,7 @@ type Question struct {
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 	Context        string             `json:"context" bson:"context"`
 	MissingData    *bool              `json:"missing_data" bson:"missing_data"`
+	AddedTasks     []AddedTask        `json:"added_tasks,omitempty" bson:"added_tasks,omitempty"`
 	CreatedAt      *time.Time         `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt      *time.Time         `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 	Model          string             `json:"model" bson:"model"`

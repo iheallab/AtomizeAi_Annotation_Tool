@@ -206,6 +206,9 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("Received annotation request: %+v\n", annotationReq)
+	fmt.Printf("Added tasks: %+v\n", annotationReq.AddedTasks)
+
 	annotationReq.AnnotatedBy = int(userID) // Assign user ID
 
 	// Ensure the question ID is valid
@@ -241,6 +244,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"question_valid":  annotationReq.QuestionValid,
 				"missing_data":    annotationReq.MissingData,
 				"reasoning_valid": annotationReq.ResoningValid,
+				"added_tasks":     annotationReq.AddedTasks,
 				"model":           annotationReq.Model,
 				"batch_id":        annotationReq.BatchID,
 				"updated_at":      time.Now(),

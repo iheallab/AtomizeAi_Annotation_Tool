@@ -72,6 +72,15 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
           missing_data?: boolean;
           model: string;
           batch_id: string;
+          added_tasks?: {
+            id: string;
+            name: string;
+            conceptId: string;
+            category: string;
+            variable: string;
+            description?: string;
+            valid: boolean;
+          }[];
           retrieval_tasks: {
             task_id: number;
             task: string;
@@ -104,6 +113,16 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
               valid: v.valid,
             })),
           })),
+          added_tasks:
+            q.added_tasks?.map((task) => ({
+              id: task.id,
+              name: task.name,
+              conceptId: task.conceptId,
+              category: task.category,
+              variable: task.variable,
+              description: task.description,
+              valid: task.valid,
+            })) || [],
         })
       );
       setQuestions(parsedQuestions);
@@ -158,7 +177,10 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
             valid: task.valid,
           })),
         })),
+        added_tasks: response.added_tasks || [],
       };
+
+      console.log('Sending annotation data:', annotatedQuestion);
 
       const res = await fetch(annotationsUrl, {
         method: 'POST',

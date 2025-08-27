@@ -1685,7 +1685,7 @@ const Admin = () => {
                                   <TableCell>{annotator.userId}</TableCell>
                                   <TableCell>
                                     <div className='font-medium'>
-                                      {annotator.username}
+                                      {annotator.firstName} {annotator.lastName}
                                     </div>
                                   </TableCell>
                                   <TableCell>

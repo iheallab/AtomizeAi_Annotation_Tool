@@ -20,6 +20,7 @@ type Annotation struct {
 	MainFeedback   string             `json:"main_feedback,omitempty" bson:"main_feedback,omitempty"`
 	Context        string             `json:"context" bson:"context"`
 	MissingData    bool               `json:"missing_data" bson:"missing_data"`
+	AddedTasks     []AddedTask        `json:"added_tasks,omitempty" bson:"added_tasks,omitempty"`
 	CreatedAt      time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt      time.Time          `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 	Model          string             `json:"model" bson:"model"`

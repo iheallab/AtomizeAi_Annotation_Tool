@@ -24,6 +24,7 @@ export interface Question {
   annotated_by: number;
   model: string;
   batch_id: string;
+  added_tasks?: AddedTask[];
 }
 
 export interface TaskGroup {
@@ -38,6 +39,16 @@ export interface Task {
   valid: boolean;
 }
 
+export interface AddedTask {
+  id: string;
+  name: string;
+  conceptId: string;
+  category: string;
+  variable: string;
+  description?: string;
+  valid: boolean;
+}
+
 export interface AnnotationResponse {
   questionId: string;
   isValid: boolean;
@@ -45,4 +56,19 @@ export interface AnnotationResponse {
   isReasoningValid: boolean;
   areMissingValuesCorrect: boolean;
   feedback?: string;
+}
+
+// New interfaces for AddTask component
+export interface Category {
+  id: string;
+  name: string;
+  variables: Variable[];
+}
+
+export interface Variable {
+  id: string;
+  name: string;
+  conceptId: string;
+  description?: string;
+  category?: string;
 }
