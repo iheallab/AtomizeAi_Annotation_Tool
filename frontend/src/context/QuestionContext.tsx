@@ -71,7 +71,7 @@ export const QuestionProvider: React.FC<{ children: React.ReactNode }> = ({
           main_feedback?: string;
           missing_data?: boolean;
           model: string;
-          batch_id: string;
+          batch_id: number;
           added_tasks?: {
             id: string;
             name: string;

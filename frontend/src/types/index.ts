@@ -23,7 +23,7 @@ export interface Question {
   categories: string[];
   annotated_by: number;
   model: string;
-  batch_id: string;
+  batch_id: number;
   added_tasks?: AddedTask[];
 }
 

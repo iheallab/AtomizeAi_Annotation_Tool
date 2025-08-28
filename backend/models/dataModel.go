@@ -49,7 +49,7 @@ type Question struct {
 	CreatedAt      *time.Time         `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt      *time.Time         `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 	Model          string             `json:"model" bson:"model"`
-	BatchID        string             `json:"batch_id" bson:"batch_id"`
+	BatchID        int                `json:"batch_id" bson:"batch_id"`
 }
 
 // // Question represents the original question entity

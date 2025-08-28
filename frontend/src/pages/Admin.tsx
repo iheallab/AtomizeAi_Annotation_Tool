@@ -242,7 +242,9 @@ const Admin = () => {
   const [uploadQuestionsFile, setUploadQuestionsFile] = useState<File | null>(
     null
   );
-  const [uploadQuestionsBatchId, setUploadQuestionsBatchId] = useState('');
+  const [uploadQuestionsBatchId, setUploadQuestionsBatchId] = useState<
+    number | ''
+  >('');
   const [uploadPreview, setUploadPreview] = useState<any>(null);
   const [uploadValidationErrors, setUploadValidationErrors] = useState<
     string[]
@@ -1509,7 +1511,11 @@ const Admin = () => {
       return;
     }
 
-    if (!uploadQuestionsBatchId.trim()) {
+    if (
+      uploadQuestionsBatchId === '' ||
+      uploadQuestionsBatchId === null ||
+      uploadQuestionsBatchId === undefined
+    ) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -1565,7 +1571,7 @@ const Admin = () => {
       // Create the final data structure with questions array and batch_id
       const finalData = {
         questions: questionsData,
-        batch_id: uploadQuestionsBatchId.trim(),
+        batch_id: uploadQuestionsBatchId,
       };
 
       // Send to backend
@@ -3193,21 +3199,21 @@ const Admin = () => {
                 <br />
                 <code className='text-xs'>
                   {`[
-                     {
-                       "question": "Question text",
-                       "context": "Context text",
-                       "category": ["category1", "category2"],
-                       "icu_topic": "ICU topic",
-                       "retrieval_tasks": [
-                         {
-                           "task": "Task description",
-                           "variables": ["var1", "var2"]
-                         }
-                       ],
-                       "reasoning": "Reasoning text",
-                       "model": "Model name"
-                     }
-                   ]`}
+                      {
+                        "question": "Question text",
+                        "context": "Context text",
+                        "category": ["category1", "category2"],
+                        "icu_topic": "ICU topic",
+                        "retrieval_tasks": [
+                          {
+                            "task": "Task description",
+                            "variables": ["var1", "var2"]
+                          }
+                        ],
+                        "reasoning": "Reasoning text",
+                        "model": "Model name"
+                      }
+                    ]`}
                 </code>
                 <br />
               </p>
@@ -3277,14 +3283,19 @@ const Admin = () => {
               <Label htmlFor='batchId'>Batch ID *</Label>
               <Input
                 id='batchId'
+                type='number'
                 placeholder='Enter batch ID for grouping questions'
                 value={uploadQuestionsBatchId}
-                onChange={(e) => setUploadQuestionsBatchId(e.target.value)}
+                onChange={(e) =>
+                  setUploadQuestionsBatchId(
+                    e.target.value === '' ? '' : parseInt(e.target.value, 10)
+                  )
+                }
                 required
               />
               <p className='text-sm text-muted-foreground mt-2'>
-                Required: Enter a unique batch ID to group these questions
-                together.
+                Required: Enter a unique batch ID (number) to group these
+                questions together.
               </p>
             </div>
 

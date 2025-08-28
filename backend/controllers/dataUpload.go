@@ -32,7 +32,7 @@ func InsertQuestions(w http.ResponseWriter, r *http.Request) {
 			Reasoning string `json:"reasoning"`
 			Model     string `json:"model"` // Model used for question generation
 		} `json:"questions"`
-		BatchID string `json:"batch_id"` // Batch ID for grouping questions
+		BatchID int `json:"batch_id"` // Batch ID for grouping questions
 	}
 
 	decoder := json.NewDecoder(r.Body)
