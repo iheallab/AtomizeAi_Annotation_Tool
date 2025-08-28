@@ -12,9 +12,6 @@ import (
 func InitializeRoutes() http.Handler {
 	r := mux.NewRouter()
 
-	// Lab Member Access:
-	r.HandleFunc("/insert_questions", controllers.InsertQuestions).Methods("POST")
-
 	// r.HandleFunc("/upload", controllers.UploadFile).Methods("POST")
 
 	r.HandleFunc("/questions", controllers.GetQuestions).Methods("GET")
@@ -46,6 +43,7 @@ func InitializeRoutes() http.Handler {
 	r.HandleFunc("/change_password", controllers.ChangePassword).Methods("POST")
 
 	// Admin routes
+	r.HandleFunc("/admin/insert_questions", controllers.InsertQuestions).Methods("POST")
 
 	r.HandleFunc("/admin/add_user", controllers.AddUser).Methods("POST")
 

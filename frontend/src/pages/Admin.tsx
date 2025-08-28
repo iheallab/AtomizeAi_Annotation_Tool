@@ -27,6 +27,7 @@ import {
   downloadAllDataUrl,
   manuallyAssignQuestionsUrl,
   getAllQuestionsUrl,
+  insertQuestionsUrl,
 } from '@/apis/api_url';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,7 @@ import {
   Download,
   Search,
   Filter,
+  Upload,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -234,6 +236,17 @@ const Admin = () => {
     useState(false);
   const [selectedUserForAssignOptions, setSelectedUserForAssignOptions] =
     useState<AnnotatorProgress | null>(null);
+  const [isUploadQuestionsModalOpen, setIsUploadQuestionsModalOpen] =
+    useState(false);
+  const [isUploadingQuestions, setIsUploadingQuestions] = useState(false);
+  const [uploadQuestionsFile, setUploadQuestionsFile] = useState<File | null>(
+    null
+  );
+  const [uploadQuestionsBatchId, setUploadQuestionsBatchId] = useState('');
+  const [uploadPreview, setUploadPreview] = useState<any>(null);
+  const [uploadValidationErrors, setUploadValidationErrors] = useState<
+    string[]
+  >([]);
 
   // Download Options State
   const [downloadOptions, setDownloadOptions] = useState({
@@ -1326,6 +1339,276 @@ const Admin = () => {
     }
   };
 
+  const openUploadQuestionsModal = () => {
+    setIsUploadQuestionsModalOpen(true);
+  };
+
+  const closeUploadQuestionsModal = () => {
+    setIsUploadQuestionsModalOpen(false);
+    setUploadQuestionsFile(null);
+    setUploadQuestionsBatchId('');
+    setUploadPreview(null);
+    setUploadValidationErrors([]);
+  };
+
+  const handleFilePreview = async () => {
+    if (!uploadQuestionsFile) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please select a file first',
+      });
+      return;
+    }
+
+    try {
+      const fileContent = await uploadQuestionsFile.text();
+      let questionsData;
+
+      try {
+        questionsData = JSON.parse(fileContent);
+      } catch (parseError) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Invalid JSON format in the uploaded file',
+        });
+        return;
+      }
+
+      // Validate the structure
+      const validation = validateQuestionsStructure(questionsData);
+      setUploadValidationErrors(validation.errors);
+      setUploadPreview(questionsData);
+
+      if (validation.isValid) {
+        toast({
+          title: 'File Preview',
+          description: `File structure is valid! Found ${
+            questionsData.length || 0
+          } questions.`,
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'File Structure Issues',
+          description: `Found ${validation.errors.length} validation errors. Check the preview below.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error previewing file:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to preview file',
+      });
+    }
+  };
+
+  // Validation function to check file structure
+  const validateQuestionsStructure = (
+    data: any
+  ): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Check if data is an array
+    if (!Array.isArray(data)) {
+      errors.push('File must contain a JSON array of questions');
+      return { isValid: false, errors };
+    }
+
+    // Check if questions array is not empty
+    if (data.length === 0) {
+      errors.push('Questions array cannot be empty');
+      return { isValid: false, errors };
+    }
+
+    // Validate each question in the array
+    data.forEach((question: any, index: number) => {
+      const questionPrefix = `Question ${index + 1}:`;
+
+      // Check required fields
+      if (!question.question || typeof question.question !== 'string') {
+        errors.push(
+          `${questionPrefix} Missing or invalid "question" field (must be a string)`
+        );
+      }
+
+      if (!question.context || typeof question.context !== 'string') {
+        errors.push(
+          `${questionPrefix} Missing or invalid "context" field (must be a string)`
+        );
+      }
+
+      if (!question.category || !Array.isArray(question.category)) {
+        errors.push(
+          `${questionPrefix} Missing or invalid "category" field (must be an array)`
+        );
+      }
+
+      if (!question.icu_topic || typeof question.icu_topic !== 'string') {
+        errors.push(
+          `${questionPrefix} Missing or invalid "icu_topic" field (must be a string)`
+        );
+      }
+
+      if (
+        !question.retrieval_tasks ||
+        !Array.isArray(question.retrieval_tasks)
+      ) {
+        errors.push(
+          `${questionPrefix} Missing or invalid "retrieval_tasks" field (must be an array)`
+        );
+      }
+
+      if (!question.reasoning || typeof question.reasoning !== 'string') {
+        errors.push(
+          `${questionPrefix} Missing or invalid "reasoning" field (must be a string)`
+        );
+      }
+
+      if (!question.model || typeof question.model !== 'string') {
+        errors.push(
+          `${questionPrefix} Missing or invalid "model" field (must be a string)`
+        );
+      }
+
+      // Validate retrieval_tasks structure if it exists
+      if (question.retrieval_tasks && Array.isArray(question.retrieval_tasks)) {
+        question.retrieval_tasks.forEach((task: any, taskIndex: number) => {
+          const taskPrefix = `${questionPrefix} Retrieval Task ${
+            taskIndex + 1
+          }:`;
+
+          if (!task.task || typeof task.task !== 'string') {
+            errors.push(
+              `${taskPrefix} Missing or invalid "task" field (must be a string)`
+            );
+          }
+
+          if (!task.variables || !Array.isArray(task.variables)) {
+            errors.push(
+              `${taskPrefix} Missing or invalid "variables" field (must be an array)`
+            );
+          }
+        });
+      }
+    });
+
+    return { isValid: errors.length === 0, errors };
+  };
+
+  const handleUploadQuestions = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadQuestionsFile) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please select a file to upload',
+      });
+      return;
+    }
+
+    if (!uploadQuestionsBatchId.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please enter a batch ID',
+      });
+      return;
+    }
+
+    setIsUploadingQuestions(true);
+    try {
+      const token = user?.token;
+      if (!token) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Please log in again',
+        });
+        return;
+      }
+
+      // Read the file content
+      const fileContent = await uploadQuestionsFile.text();
+      let questionsData;
+
+      try {
+        questionsData = JSON.parse(fileContent);
+      } catch (parseError) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Invalid JSON format in the uploaded file',
+        });
+        return;
+      }
+
+      // Validate the structure
+      const validation = validateQuestionsStructure(questionsData);
+      if (!validation.isValid) {
+        toast({
+          variant: 'destructive',
+          title: 'Invalid File Structure',
+          description: `File structure validation failed:\n${validation.errors
+            .slice(0, 5)
+            .join('\n')}${
+            validation.errors.length > 5
+              ? `\n... and ${validation.errors.length - 5} more errors`
+              : ''
+          }`,
+        });
+        return;
+      }
+
+      // Create the final data structure with questions array and batch_id
+      const finalData = {
+        questions: questionsData,
+        batch_id: uploadQuestionsBatchId.trim(),
+      };
+
+      // Send to backend
+      const response = await fetch(insertQuestionsUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(finalData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: 'Success',
+          description: `Successfully uploaded questions. ${
+            result.inserted_ids?.length || 0
+          } questions inserted.`,
+        });
+        closeUploadQuestionsModal();
+        // Refresh data to show new questions
+        fetchAdminData();
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorData.message || 'Failed to upload questions',
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading questions:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to upload questions',
+      });
+    } finally {
+      setIsUploadingQuestions(false);
+    }
+  };
+
   return (
     <div className='min-h-screen flex flex-col bg-background'>
       <Header />
@@ -1390,6 +1673,18 @@ const Admin = () => {
                       <UserPlus className='h-4 w-4' />
                     )}
                     Add New User
+                  </Button>
+                  <Button
+                    onClick={openUploadQuestionsModal}
+                    className='flex items-center gap-2'
+                    disabled={isUploadingQuestions}
+                  >
+                    {isUploadingQuestions ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      <Upload className='h-4 w-4' />
+                    )}
+                    Upload Questions
                   </Button>
                   <Button
                     onClick={() => setIsDownloadOptionsModalOpen(true)}
@@ -2861,6 +3156,168 @@ const Admin = () => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Questions Modal */}
+      <Dialog
+        open={isUploadQuestionsModalOpen}
+        onOpenChange={setIsUploadQuestionsModalOpen}
+      >
+        <DialogContent className='max-w-2xl max-h-[80vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center justify-between'>
+              <span>Upload Questions</span>
+            </DialogTitle>
+            <DialogDescription>
+              Upload a JSON file containing questions to add to the system.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUploadQuestions} className='space-y-4'>
+            <div>
+              <Label htmlFor='questionsFile'>Questions JSON File</Label>
+              <Input
+                id='questionsFile'
+                type='file'
+                accept='.json'
+                onChange={(e) => {
+                  setUploadQuestionsFile(e.target.files?.[0] || null);
+                  setUploadPreview(null);
+                  setUploadValidationErrors([]);
+                }}
+                required
+              />
+              <p className='text-sm text-muted-foreground mt-2'>
+                Upload a JSON file containing an array of questions with the
+                following structure:
+                <br />
+                <code className='text-xs'>
+                  {`[
+                     {
+                       "question": "Question text",
+                       "context": "Context text",
+                       "category": ["category1", "category2"],
+                       "icu_topic": "ICU topic",
+                       "retrieval_tasks": [
+                         {
+                           "task": "Task description",
+                           "variables": ["var1", "var2"]
+                         }
+                       ],
+                       "reasoning": "Reasoning text",
+                       "model": "Model name"
+                     }
+                   ]`}
+                </code>
+                <br />
+              </p>
+            </div>
+
+            {/* Preview Button */}
+            {uploadQuestionsFile && (
+              <div>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={handleFilePreview}
+                  className='w-full'
+                >
+                  <Search className='h-4 w-4 mr-2' />
+                  Preview & Validate File Structure
+                </Button>
+              </div>
+            )}
+
+            {/* Validation Errors Display */}
+            {uploadValidationErrors.length > 0 && (
+              <div className='border border-red-200 rounded-lg p-4 bg-red-50'>
+                <h4 className='font-semibold text-red-800 mb-2'>
+                  Validation Errors ({uploadValidationErrors.length})
+                </h4>
+                <div className='max-h-40 overflow-y-auto'>
+                  <ul className='text-sm text-red-700 space-y-1'>
+                    {uploadValidationErrors.slice(0, 10).map((error, index) => (
+                      <li key={index} className='flex items-start gap-2'>
+                        <span className='text-red-500 mt-1'>•</span>
+                        <span>{error}</span>
+                      </li>
+                    ))}
+                    {uploadValidationErrors.length > 10 && (
+                      <li className='text-red-600 font-medium'>
+                        ... and {uploadValidationErrors.length - 10} more errors
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* File Preview */}
+            {uploadPreview && uploadValidationErrors.length === 0 && (
+              <div className='border border-green-200 rounded-lg p-4 bg-green-50'>
+                <h4 className='font-semibold text-green-800 mb-2'>
+                  File Preview - Valid Structure ✓
+                </h4>
+                <div className='text-sm text-green-700 space-y-2'>
+                  <p>
+                    <strong>Total Questions:</strong>{' '}
+                    {uploadPreview.length || 0}
+                  </p>
+                  <p>
+                    <strong>File Structure:</strong> Valid
+                  </p>
+                  <p>
+                    <strong>Ready to Upload:</strong> Yes
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor='batchId'>Batch ID *</Label>
+              <Input
+                id='batchId'
+                placeholder='Enter batch ID for grouping questions'
+                value={uploadQuestionsBatchId}
+                onChange={(e) => setUploadQuestionsBatchId(e.target.value)}
+                required
+              />
+              <p className='text-sm text-muted-foreground mt-2'>
+                Required: Enter a unique batch ID to group these questions
+                together.
+              </p>
+            </div>
+
+            <div className='flex gap-2'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={closeUploadQuestionsModal}
+                className='flex-1'
+              >
+                Cancel
+              </Button>
+              <Button
+                type='submit'
+                className='flex-1'
+                disabled={
+                  isUploadingQuestions || uploadValidationErrors.length > 0
+                }
+              >
+                {isUploadingQuestions ? (
+                  <>
+                    <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className='h-4 w-4 mr-2' />
+                    Upload Questions
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

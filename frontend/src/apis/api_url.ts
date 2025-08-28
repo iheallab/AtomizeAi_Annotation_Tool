@@ -19,3 +19,4 @@ export const downloadAllDataUrl = import.meta.env.VITE_DOWNLOAD_ALL_DATA_URL;
 export const manuallyAssignQuestionsUrl = import.meta.env
   .VITE_MANUALLY_ASSIGN_QUESTIONS_URL;
 export const getAllQuestionsUrl = import.meta.env.VITE_GET_ALL_QUESTIONS_URL;
+export const insertQuestionsUrl = import.meta.env.VITE_INSERT_QUESTIONS_URL;
