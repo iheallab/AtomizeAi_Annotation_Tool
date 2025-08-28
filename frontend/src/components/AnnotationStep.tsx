@@ -38,6 +38,8 @@ import MissingIcon from '@/components/icons/MissingIcon';
 import DataElementsIcon from '@/components/icons/DataElementsIcon';
 import QAIcon from '@/components/icons/QAIcon';
 import { AddTask } from '@/components/AddTask';
+import { userAtom } from '@/atoms/atoms';
+import { useAtomValue } from 'jotai';
 
 interface AnnotationStepProps {
   question: Question;
@@ -50,6 +52,13 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   onSubmit,
   onSkip,
 }) => {
+  const user = useAtomValue(userAtom);
+  const hardCodedUserIds = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 23,
+    24, 25,
+  ];
+  const hardCodedIfEnabledUser = hardCodedUserIds.includes(user.userId);
+
   const questionCompleted = question?.annotated_by === -1 ? false : true;
   const [activeAccordion, setActiveAccordion] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean | undefined>(
@@ -213,7 +222,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       reasoning: question.reasoning,
       reasoning_valid: isReasoningValid,
       categories: question.categories,
-      annotated_by: Number(JSON.parse(localStorage.getItem('user')).userId),
+      annotated_by: user.userId,
       feedback: feedback.trim(),
       model: question.model,
       batch_id: question.batch_id,
@@ -751,7 +760,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               {/* Add Task Component */}
-              {showAddTask && (
+              {hardCodedIfEnabledUser && showAddTask && (
                 <div className='mt-6'>
                   <AddTask
                     onAddTasks={handleAddMissingTasks}
@@ -763,7 +772,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               {/* Added Missing Tasks Display */}
               {/* Debug: {JSON.stringify(addedMissingTasks)} */}
               {/* Debug IDs: {addedMissingTasks.map(t => t.id).join(', ')} */}
-              {addedMissingTasks.length > 0 && (
+              {hardCodedIfEnabledUser && addedMissingTasks.length > 0 && (
                 <div className='mt-4'>
                   <h4 className='text-sm font-medium mb-2'>
                     Added Missing Data Elements:
@@ -904,7 +913,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               )}
 
               {/* Add More Missing Data Elements Button - Always visible when "No" is selected */}
-              {areMissingValuesCorrect === false && (
+              {hardCodedIfEnabledUser && areMissingValuesCorrect === false && (
                 <div className='mt-3'>
                   <Button
                     variant='outline'

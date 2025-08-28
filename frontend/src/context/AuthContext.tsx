@@ -9,8 +9,8 @@ import {
   loginWithGoogleUrl,
   userAuthUrl,
 } from '@/apis/api_url';
-import { useSetAtom } from 'jotai';
-import { isFirstTimeLoginAtom } from '@/atoms/atoms';
+import { useAtom, useSetAtom } from 'jotai';
+import { isFirstTimeLoginAtom, userAtom } from '../atoms/atoms';
 
 interface AuthContextType {
   user: UserType | null;
@@ -30,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<UserType | null>(null);
+  const [user, setUser] = useAtom(userAtom);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();

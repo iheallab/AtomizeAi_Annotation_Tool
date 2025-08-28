@@ -59,7 +59,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user}
+	response := map[string]interface{}{"token": token, "userId": user.UserId, "user": user}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 

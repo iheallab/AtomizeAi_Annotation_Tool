@@ -1,7 +1,7 @@
 export interface UserType {
   username: string;
   token: string;
-  userId: string;
+  userId: number;
   email: string;
   role: string;
 }
