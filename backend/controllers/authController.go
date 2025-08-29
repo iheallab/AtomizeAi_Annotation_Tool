@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -196,7 +195,7 @@ func LinkUserWithGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user, "message": "User linked with Google successfully"}
+	response := map[string]interface{}{"token": token, "userId": user.UserId, "user": user, "message": "User linked with Google successfully"}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
@@ -229,7 +228,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user}
+	response := map[string]interface{}{"token": token, "userId": user.UserId, "user": user}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
@@ -277,7 +276,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	response := map[string]interface{}{"token": token, "userId": strconv.Itoa(user.UserId), "user": user}
+	response := map[string]interface{}{"token": token, "userId": user.UserId, "user": user}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
