@@ -639,11 +639,45 @@ func ManuallyAssignQuestions(w http.ResponseWriter, r *http.Request) {
 
 	// Upsert assignment document
 	updateFilter := bson.M{"user_id": userID}
+	now := time.Now()
+
+	// Get existing assignment data for counter
+	var existingAssignmentData struct {
+		AssignCounter models.AssignCounter `bson:"assign_counter"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&existingAssignmentData)
+
+	automaticCount := 0
+	manualCount := 1
+	history := []models.AssignmentHistoryItem{}
+
+	if err == nil {
+		// Assignment exists, increment the appropriate counter
+		automaticCount = existingAssignmentData.AssignCounter.AutomaticCount
+		manualCount = existingAssignmentData.AssignCounter.ManualCount + 1
+		history = existingAssignmentData.AssignCounter.History
+	}
+
+	// Add current assignment to history
+	historyItem := models.AssignmentHistoryItem{
+		Type:        "manual",
+		AssignedAt:  now,
+		QuestionIDs: requestData.QuestionIDs,
+	}
+	history = append(history, historyItem)
+
 	update := bson.M{
 		"$set": bson.M{
 			"question_ids": requestData.QuestionIDs,
-			"assigned_at":  time.Now(),
+			"assigned_at":  now,
 			"username":     user.Username,
+			"assign_counter": bson.M{
+				"automatic_count": automaticCount,
+				"manual_count":    manualCount,
+				"current_type":    "manual",
+				"assigned_at":     now,
+				"history":         history,
+			},
 		},
 	}
 	opts := options.Update().SetUpsert(true)

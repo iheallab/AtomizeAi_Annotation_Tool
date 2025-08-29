@@ -16,6 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Ping(w http.ResponseWriter, r *http.Request) {
@@ -218,11 +219,22 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	annotationsCollection := db.GetCollection("annotations")
+	assignmentsCollection := db.GetCollection("assignments")
 	if userID <= 10 {
 		annotationsCollection = db.GetCollection("annotations_dev")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	// Get assignment counters for this user
+	var assignment struct {
+		AssignCounter models.AssignCounter `bson:"assign_counter"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": int(userID)}).Decode(&assignment)
+	if err != nil && err != mongo.ErrNoDocuments {
+		http.Error(w, "Error fetching assignment data", http.StatusInternalServerError)
+		return
+	}
 
 	// Check if annotation already exists
 	filter := bson.M{
@@ -248,6 +260,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 				"model":           annotationReq.Model,
 				"batch_id":        annotationReq.BatchID,
 				"updated_at":      time.Now(),
+				"assign_counter":  assignment.AssignCounter,
 			},
 		}
 		_, err = annotationsCollection.UpdateOne(ctx, filter, update)
@@ -265,6 +278,7 @@ func AnnotateQuestion(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	annotationReq.CreatedAt = now
 	annotationReq.UpdatedAt = now
+	annotationReq.AssignCounter = assignment.AssignCounter
 	_, err = annotationsCollection.InsertOne(ctx, annotationReq)
 	if err != nil {
 		http.Error(w, "Error inserting annotation", http.StatusInternalServerError)

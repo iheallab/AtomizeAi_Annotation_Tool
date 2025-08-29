@@ -79,6 +79,23 @@ type AnnotationAssignment struct {
 	QuestionIDs        []primitive.ObjectID `json:"question_ids" bson:"question_ids"`
 	SkippedQuestionIDs []primitive.ObjectID `json:"skipped_question_ids" bson:"skipped_question_ids"`
 	AssignedAt         time.Time            `json:"assigned_at" bson:"assigned_at"`
+	AssignCounter      AssignCounter        `json:"assign_counter" bson:"assign_counter"`
+}
+
+// AssignCounter tracks assignment statistics
+type AssignCounter struct {
+	AutomaticCount int                     `json:"automatic_count" bson:"automatic_count"`
+	ManualCount    int                     `json:"manual_count" bson:"manual_count"`
+	CurrentType    string                  `json:"current_type" bson:"current_type"`
+	AssignedAt     time.Time               `json:"assigned_at" bson:"assigned_at"`
+	History        []AssignmentHistoryItem `json:"history" bson:"history"`
+}
+
+// AssignmentHistoryItem represents a single assignment event
+type AssignmentHistoryItem struct {
+	Type        string    `json:"type" bson:"type"` // "automatic" or "manual"
+	AssignedAt  time.Time `json:"assigned_at" bson:"assigned_at"`
+	QuestionIDs []int     `json:"question_ids" bson:"question_ids"`
 }
 
 // AnnotationsDone tracks completed annotations per user

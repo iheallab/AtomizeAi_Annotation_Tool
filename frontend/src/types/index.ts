@@ -6,6 +6,20 @@ export interface UserType {
   role: string;
 }
 
+export interface AssignmentHistoryItem {
+  type: string; // "automatic" or "manual"
+  assigned_at: string;
+  question_ids: number[];
+}
+
+export interface AssignCounter {
+  automatic_count: number;
+  manual_count: number;
+  current_type: string; // "automatic" or "manual"
+  assigned_at: string;
+  history: AssignmentHistoryItem[];
+}
+
 export interface Question {
   isValid?: boolean;
   isReasoningValid?: boolean;
@@ -25,6 +39,7 @@ export interface Question {
   model: string;
   batch_id: number;
   added_tasks?: AddedTask[];
+  assign_counter?: AssignCounter;
 }
 
 export interface TaskGroup {

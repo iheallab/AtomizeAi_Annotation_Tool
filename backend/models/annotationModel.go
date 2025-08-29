@@ -25,4 +25,5 @@ type Annotation struct {
 	UpdatedAt      time.Time          `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 	Model          string             `json:"model" bson:"model"`
 	BatchID        int                `json:"batch_id" bson:"batch_id"`
+	AssignCounter  AssignCounter      `json:"assign_counter" bson:"assign_counter"`
 }

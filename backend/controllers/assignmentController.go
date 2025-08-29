@@ -116,7 +116,11 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Step 2: Fetch all questions
-	cursor, err = questionCollection.Find(ctx, bson.M{})
+	cursor, err = questionCollection.Find(ctx, bson.M{
+		"batch_id": bson.M{
+			"$gt": 3,
+		},
+	})
 	if err != nil {
 		http.Error(w, "Error fetching questions", http.StatusInternalServerError)
 		return
@@ -249,11 +253,45 @@ func AddAssignment(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(usageList)
 	// Step 7: Upsert assignment document
 	updateFilter := bson.M{"user_id": userID}
+	now := time.Now()
+
+	// First, get existing assignment to check if it exists
+	var existingAssignmentData struct {
+		AssignCounter models.AssignCounter `bson:"assign_counter"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&existingAssignmentData)
+
+	automaticCount := 1
+	manualCount := 0
+	history := []models.AssignmentHistoryItem{}
+
+	if err == nil {
+		// Assignment exists, increment the appropriate counter
+		automaticCount = existingAssignmentData.AssignCounter.AutomaticCount + 1
+		manualCount = existingAssignmentData.AssignCounter.ManualCount
+		history = existingAssignmentData.AssignCounter.History
+	}
+
+	// Add current assignment to history
+	historyItem := models.AssignmentHistoryItem{
+		Type:        "automatic",
+		AssignedAt:  now,
+		QuestionIDs: selectedIDs,
+	}
+	history = append(history, historyItem)
+
 	update := bson.M{
 		"$set": bson.M{
 			"question_ids": selectedIDs,
-			"assigned_at":  time.Now(),
+			"assigned_at":  now,
 			"username":     user.Username,
+			"assign_counter": bson.M{
+				"automatic_count": automaticCount,
+				"manual_count":    manualCount,
+				"current_type":    "automatic",
+				"assigned_at":     now,
+				"history":         history,
+			},
 		},
 	}
 	opts := options.Update().SetUpsert(true)
@@ -433,11 +471,45 @@ func ReplaceQuestionByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update document:
+	now := time.Now()
+
+	// Get existing assignment data for counter
+	var existingAssignmentData struct {
+		AssignCounter models.AssignCounter `bson:"assign_counter"`
+	}
+	err = assignmentsCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&existingAssignmentData)
+
+	automaticCount := 1
+	manualCount := 0
+	history := []models.AssignmentHistoryItem{}
+
+	if err == nil {
+		// Assignment exists, increment the appropriate counter
+		automaticCount = existingAssignmentData.AssignCounter.AutomaticCount + 1
+		manualCount = existingAssignmentData.AssignCounter.ManualCount
+		history = existingAssignmentData.AssignCounter.History
+	}
+
+	// Add current assignment to history
+	historyItem := models.AssignmentHistoryItem{
+		Type:        "automatic",
+		AssignedAt:  now,
+		QuestionIDs: selectedIDs,
+	}
+	history = append(history, historyItem)
+
 	update = bson.M{
 		"$addToSet": bson.M{"question_ids": bson.M{"$each": selectedIDs}}, // Merge new question IDs
 		"$set": bson.M{
-			"assigned_at": time.Now(), // Always update timestamp
+			"assigned_at": now, // Always update timestamp
 			"username":    user.Username,
+			"assign_counter": bson.M{
+				"automatic_count": automaticCount,
+				"manual_count":    manualCount,
+				"current_type":    "automatic",
+				"assigned_at":     now,
+				"history":         history,
+			},
 		},
 	}
 
