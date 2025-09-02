@@ -53,7 +53,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   onSkip,
 }) => {
   const user = useAtomValue(userAtom);
-  const hardCodedUserIds = [14, 21, 22, 26];
+  const hardCodedUserIds = [14, 22, 26];
   const hardCodedNotEnabledUser = hardCodedUserIds.includes(user.userId);
 
   const questionCompleted = question?.annotated_by === -1 ? false : true;
