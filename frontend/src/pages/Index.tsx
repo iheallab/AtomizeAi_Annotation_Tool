@@ -107,23 +107,19 @@ const Index = () => {
                     ✨ New Feature: Enhanced Data Annotation ✨
                   </h3>
                   <p className='text-sm text-blue-800 dark:text-blue-200 leading-relaxed'>
-                    We're excited to introduce a <strong>new capability</strong>{' '}
-                    in your
-                    <strong>annotation workflow</strong>! When you answer{' '}
-                    <strong>"no"</strong> to a question, you'll now have the
-                    option to <strong>add missing data elements</strong> that
-                    weren't originally included. This feature helps improve{' '}
-                    <strong>data completeness and quality</strong> across your
+                    We’re excited to introduce a new capability in your
+                    annotation workflow! When you answer <strong>“No”</strong>{' '}
+                    in the{' '}
+                    <i>
+                      <strong> Missing Data Elements</strong>
+                    </i>{' '}
+                    section, you’ll now have the option to select the missing
+                    variables from a predefined list. If the variable you need
+                    isn’t included in that list, you’ll also be able to add it
+                    as a custom entry. This enhancement will help improve data
+                    completeness and ensure broader coverage across your
                     annotations.
                   </p>
-                  <div className='mt-3 flex items-center gap-2'>
-                    <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'>
-                      🚀 Improved Workflow
-                    </span>
-                    <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200'>
-                      📈 Enhanced Data Quality
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
