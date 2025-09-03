@@ -98,7 +98,7 @@ const Index = () => {
               <div className='absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-indigo-200/20 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-full -translate-y-16 translate-x-16'></div>
               <div className='absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-200/20 to-purple-200/20 dark:from-indigo-400/10 dark:to-purple-400/10 rounded-full translate-y-12 -translate-x-12'></div>
 
-              <div className='relative z-10 flex items-start gap-3'>
+              <div className='relative flex items-start gap-3'>
                 <div className='p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md'>
                   <Info className='w-5 h-5 text-white' />
                 </div>
