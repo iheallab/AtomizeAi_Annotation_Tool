@@ -273,7 +273,16 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       case 'reasoning':
         return isReasoningValid !== undefined;
       case 'missingValues':
-        return areMissingValuesCorrect !== undefined;
+        // If user says "Yes" (true), section is complete
+        if (areMissingValuesCorrect === true) {
+          return true;
+        }
+        // If user says "No" (false), only complete if they added missing elements
+        if (areMissingValuesCorrect === false) {
+          return addedMissingTasks.length > 0;
+        }
+        // If undefined, not complete
+        return false;
       case 'feedback':
         if (
           isValid &&
@@ -294,11 +303,26 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
       if (feedback.trim().length > 0) return true;
       else return false;
     }
+
+    // Check if missing values section is properly completed
+    const isMissingValuesProperlyCompleted = () => {
+      // If user says "Yes" (true), section is complete
+      if (areMissingValuesCorrect === true) {
+        return true;
+      }
+      // If user says "No" (false), only complete if they added missing elements
+      if (areMissingValuesCorrect === false) {
+        return addedMissingTasks.length > 0;
+      }
+      // If undefined, not complete
+      return false;
+    };
+
     return (
       isValid !== undefined &&
       tasksCompleted &&
       isReasoningValid !== undefined &&
-      areMissingValuesCorrect !== undefined &&
+      isMissingValuesProperlyCompleted() &&
       (!needsFeedback || feedback.trim().length > 0)
     );
   };
