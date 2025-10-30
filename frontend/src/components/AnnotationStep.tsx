@@ -53,8 +53,6 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
   onSkip,
 }) => {
   const user = useAtomValue(userAtom);
-  const hardCodedUserIds = [14, 22, 26];
-  const hardCodedNotEnabledUser = hardCodedUserIds.includes(user.userId);
 
   const questionCompleted = question?.annotated_by === -1 ? false : true;
   const [activeAccordion, setActiveAccordion] = useState<string>('');
@@ -781,7 +779,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               </div>
 
               {/* Add Task Component */}
-              {!hardCodedNotEnabledUser && showAddTask && (
+              {showAddTask && (
                 <div className='mt-6'>
                   <AddTask
                     onAddTasks={handleAddMissingTasks}
@@ -793,7 +791,7 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               {/* Added Missing Tasks Display */}
               {/* Debug: {JSON.stringify(addedMissingTasks)} */}
               {/* Debug IDs: {addedMissingTasks.map(t => t.id).join(', ')} */}
-              {!hardCodedNotEnabledUser && addedMissingTasks.length > 0 && (
+              {addedMissingTasks.length > 0 && (
                 <div className='mt-4'>
                   <h4 className='text-sm font-medium mb-2'>
                     Added Missing Data Elements:
@@ -934,22 +932,21 @@ export const AnnotationStep: React.FC<AnnotationStepProps> = ({
               )}
 
               {/* Add More Missing Data Elements Button - Always visible when "No" is selected */}
-              {!hardCodedNotEnabledUser &&
-                areMissingValuesCorrect === false && (
-                  <div className='mt-3'>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => setShowAddTask(true)}
-                      className='flex items-center gap-2'
-                    >
-                      <Plus size={16} />
-                      {addedMissingTasks.length > 0
-                        ? 'Add More Missing Data Elements'
-                        : 'Add Missing Data Elements'}
-                    </Button>
-                  </div>
-                )}
+              {areMissingValuesCorrect === false && (
+                <div className='mt-3'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setShowAddTask(true)}
+                    className='flex items-center gap-2'
+                  >
+                    <Plus size={16} />
+                    {addedMissingTasks.length > 0
+                      ? 'Add More Missing Data Elements'
+                      : 'Add Missing Data Elements'}
+                  </Button>
+                </div>
+              )}
 
               {/* Completion CTA */}
               {isSectionCompleted('missingValues') && isValid && (

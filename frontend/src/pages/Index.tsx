@@ -23,10 +23,6 @@ const Index = () => {
   } = useQuestions();
   const { user } = useAuth();
 
-  // Hard-coded user IDs that should not see the hint
-  const hardCodedUserIds = [14, 22, 26];
-  const shouldShowHint = !hardCodedUserIds.includes(user?.userId);
-
   if (!user) {
     return <Navigate to='/login' />;
   }
@@ -92,38 +88,35 @@ const Index = () => {
           </div>
 
           {/* Global Hint - New Feature Announcement */}
-          {shouldShowHint && (
-            <div className='mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-300 dark:border-blue-600 rounded-lg shadow-soft relative overflow-hidden'>
-              {/* Decorative background elements */}
-              <div className='absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-indigo-200/20 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-full -translate-y-16 translate-x-16'></div>
-              <div className='absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-200/20 to-purple-200/20 dark:from-indigo-400/10 dark:to-purple-400/10 rounded-full translate-y-12 -translate-x-12'></div>
+          <div className='mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-300 dark:border-blue-600 rounded-lg shadow-soft relative overflow-hidden'>
+            {/* Decorative background elements */}
+            <div className='absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-indigo-200/20 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-full -translate-y-16 translate-x-16'></div>
+            <div className='absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-200/20 to-purple-200/20 dark:from-indigo-400/10 dark:to-purple-400/10 rounded-full translate-y-12 -translate-x-12'></div>
 
-              <div className='relative flex items-start gap-3'>
-                <div className='p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md'>
-                  <Info className='w-5 h-5 text-white' />
-                </div>
-                <div className='flex-1'>
-                  <h3 className='text-lg font-semibold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent'>
-                    ✨ New Feature: Enhanced Data Annotation ✨
-                  </h3>
-                  <p className='text-sm text-blue-800 dark:text-blue-200 leading-relaxed'>
-                    We’re excited to introduce a new capability in your
-                    annotation workflow! When you answer <strong>“No”</strong>{' '}
-                    in the{' '}
-                    <i>
-                      <strong> Missing Data Elements</strong>
-                    </i>{' '}
-                    section, you’ll now have the option to select the missing
-                    variables from a predefined list. If the variable you need
-                    isn’t included in that list, you’ll also be able to add it
-                    as a custom entry. This enhancement will help improve data
-                    completeness and ensure broader coverage across your
-                    annotations.
-                  </p>
-                </div>
+            <div className='relative flex items-start gap-3'>
+              <div className='p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md'>
+                <Info className='w-5 h-5 text-white' />
+              </div>
+              <div className='flex-1'>
+                <h3 className='text-lg font-semibold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent'>
+                  ✨ New Feature: Enhanced Data Annotation ✨
+                </h3>
+                <p className='text-sm text-blue-800 dark:text-blue-200 leading-relaxed'>
+                  We’re excited to introduce a new capability in your annotation
+                  workflow! When you answer <strong>“No”</strong> in the{' '}
+                  <i>
+                    <strong> Missing Data Elements</strong>
+                  </i>{' '}
+                  section, you’ll now have the option to select the missing
+                  variables from a predefined list. If the variable you need
+                  isn’t included in that list, you’ll also be able to add it as
+                  a custom entry. This enhancement will help improve data
+                  completeness and ensure broader coverage across your
+                  annotations.
+                </p>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Current question annotation */}
           <div className='bg-white dark:bg-background border border-border rounded-3xl shadow-2xl px-8 py-10 max-w-5xl mx-auto mt-8 mb-16'>
